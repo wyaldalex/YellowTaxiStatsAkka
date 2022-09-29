@@ -1,5 +1,53 @@
 package com.tudux.taxi.actors
 
-class PersistentTaxiTripTimeInfo {
+import akka.actor.{ActorLogging, Props}
+import akka.persistence.PersistentActor
 
+case class TaxiTripTimeInfoStat(tpep_pickup_datetime: String,tpep_dropoff_datetime: String)
+
+sealed trait TaxiTripTimeInfoCommand
+object TaxiTripTimeInfoStatCommand {
+  case class CreateTaxiTripTimeInfoStat(statId: Int,taxiTripTimeInfoStat: TaxiTripTimeInfoStat) extends TaxiTripTimeInfoCommand
 }
+
+
+sealed trait TaxiTripTimeInfoEvent
+object TaxiTripTimeInfoStatEvent{
+  case class TaxiTripTimeInfoStatCreatedEvent(statId: Int, taxiTripTimeInfoStat: TaxiTripTimeInfoStat) extends TaxiTripTimeInfoEvent
+}
+
+object PersistentTaxiTripTimeInfo {
+  def props(id: String): Props = Props(new PersistentTaxiTripTimeInfo(id))
+}
+class PersistentTaxiTripTimeInfo(id: String) extends PersistentActor with ActorLogging {
+
+  import TaxiTripTimeInfoStatCommand._
+  import TaxiTripTimeInfoStatEvent._
+
+  //Persistent Actor State
+  var statCounter: Int = 1
+  var taxiTripTimeInfoStatMap : Map[Int,TaxiTripTimeInfoStat] = Map.empty
+
+  override def persistenceId: String = id
+
+  override def receiveCommand: Receive = {
+    case CreateTaxiTripTimeInfoStat(statId,taxiTripTimeInfoStat) =>
+      persist(TaxiTripTimeInfoStatCreatedEvent(statId,taxiTripTimeInfoStat)) { _ =>
+        log.info(s"Creating Trip Time Info Stat $taxiTripTimeInfoStat")
+        taxiTripTimeInfoStatMap = taxiTripTimeInfoStatMap + (statId -> taxiTripTimeInfoStat)
+        statCounter += 1
+      }
+    case _ =>
+      log.info(s"Received something else at ${self.path.name}")
+
+  }
+
+  override def receiveRecover: Receive = {
+    case TaxiTripTimeInfoStatCreatedEvent(statId,taxiTripTimeInfoStat) =>
+      log.info(s"Recovering Trip Time Info Stat $taxiTripTimeInfoStat")
+      taxiTripTimeInfoStatMap = taxiTripTimeInfoStatMap + (statId -> taxiTripTimeInfoStat)
+      statCounter += 1
+  }
+}
+
+

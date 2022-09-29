@@ -42,7 +42,7 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
         statCounter += 1
       }
     case _ =>
-      log.info("Received something else at PersistentTaxiTripCost")
+      log.info(s"Received something else at ${self.path.name}")
 
   }
 

@@ -1,5 +1,5 @@
 package com.tudux.taxi.actors
 
-class PersistentTripCostActor {
+class PersistentTaxiExtraInfo {
 
 }

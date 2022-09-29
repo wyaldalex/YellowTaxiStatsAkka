@@ -15,6 +15,7 @@ class TaxiTripActor extends Actor with ActorLogging {
 
   import TaxiStatCommand._
   import TaxiCostStatCommand._
+  import TaxiExtraInfoStatCommand._
 
   implicit def toTaxiCost(taxiStat: TaxiStat) : TaxiCostStat = {
     TaxiCostStat(taxiStat.VendorID, taxiStat.trip_distance,
@@ -22,14 +23,25 @@ class TaxiTripActor extends Actor with ActorLogging {
       taxiStat.tip_amount, taxiStat.tolls_amount, taxiStat.improvement_surcharge, taxiStat.total_amount)
   }
 
+  implicit def toTaxiExtraInfo(taxiStat: TaxiStat): TaxiExtraInfoStat = {
+    TaxiExtraInfoStat(taxiStat.pickup_longitude, taxiStat.pickup_latitude,
+      taxiStat.RateCodeID, taxiStat.store_and_fwd_flag, taxiStat.dropoff_longitude, taxiStat.dropoff_latitude)
+  }  
+
   var idStat : Int = 1
 
   //split main Taxi payload into different actors
   private val taxiTripCostActor: ActorRef = createTaxiCostActor()
+  private val taxiExtraInfoActor: ActorRef = createTaxiExtraInfoActor()
 
   def createTaxiCostActor() : ActorRef = {
     val taxiTripActorId = "persistent-taxi-cost-stats-actor"
     context.actorOf(PersistentTaxiTripCost.props(taxiTripActorId), taxiTripActorId)
+  }
+
+  def createTaxiExtraInfoActor(): ActorRef = {
+    val taxiTripActorId = "persistent-taxi-extra-info-stats-actor"
+    context.actorOf(PersistentTaxiExtraInfo.props(taxiTripActorId), taxiTripActorId)
   }
 
   /*
@@ -42,7 +54,10 @@ class TaxiTripActor extends Actor with ActorLogging {
   override def receive: Receive = {
     case CreateTaxiStat(taxiStat) =>
       log.info(s"Received $taxiStat to create")
-      taxiTripCostActor.forward(CreateTaxiCostStat(idStat,taxiStat))
+      //taxiTripCostActor.forward(CreateTaxiCostStat(idStat,taxiStat))
+      //taxiExtraInfoActor.forward(CreateTaxiExtraInfoStat(idStat,taxiStat))
+      taxiTripCostActor  ! CreateTaxiCostStat(idStat,taxiStat)
+      taxiExtraInfoActor ! CreateTaxiExtraInfoStat(idStat,taxiStat)
       idStat += 1
     case _ => log.info("Received something else")
   }
@@ -72,12 +87,12 @@ object TaxiStatApp extends App {
   import TaxiStatEvent._
   import TaxiStatCommand._
   import TaxiCostStatCommand._
-//  reader.foreach(either => {
-//    //println(either.right.getOrElse(1))
-//    taxiTripActor ! CreateTaxiStat((either.right.getOrElse(TaxiStat(
-//      2,"2015-01-15 19:05:39","2015-01-15 19:23:42",1,1.59,-73.993896484375,40.750110626220703,1,"N",-73.974784851074219,40.750617980957031,1,12,1,0.5,3.25,0,0.3,17.05
-//    ))))
-//  })
+  reader.foreach(either => {
+    //println(either.right.getOrElse(1))
+    taxiTripActor ! CreateTaxiStat((either.right.getOrElse(TaxiStat(
+      2,"2015-01-15 19:05:39","2015-01-15 19:23:42",1,1.59,-73.993896484375,40.750110626220703,1,"N",-73.974784851074219,40.750617980957031,1,12,1,0.5,3.25,0,0.3,17.05
+    ))))
+  })
 
   /*
   reader.foreach(either => {

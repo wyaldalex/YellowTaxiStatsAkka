@@ -1,15 +1,7 @@
 package com.tudux.taxi.actors
 
-import akka.actor.{ActorLogging, ActorSystem, Props}
+import akka.actor.{ActorLogging, Props}
 import akka.persistence.PersistentActor
-import akka.util.Timeout
-import com.typesafe.config.ConfigFactory
-import kantan.csv.RowDecoder
-
-import scala.concurrent.duration._
-import java.io.File
-import scala.concurrent.ExecutionContext
-import scala.io.Source
 
 case class TaxiCostStat(VendorID: Int,
                     trip_distance: Double,

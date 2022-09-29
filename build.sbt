@@ -1,30 +1,30 @@
-ThisBuild / version := "0.1.0-SNAPSHOT"
+name := "YelloTaxiStatsAkka"
 
-ThisBuild / scalaVersion := "2.13.9"
+version := "1.0.0-SNAPSHOT"
 
-ThisBuild / libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-actor" % "2.6.20",
-  "com.typesafe.akka" %% "akka-http" % "10.2.10",
-  "com.typesafe.akka" %% "akka-stream" % "2.6.20",
-  "com.typesafe.akka" %% "akka-coordination" % "2.6.20",
-  "com.typesafe.akka" %% "akka-remote" % "2.6.20",
-  "com.typesafe.akka" %% "akka-cluster" % "2.6.20",
-  "com.typesafe.akka" %% "akka-cluster-tools" % "2.6.20",
-  "com.typesafe.akka" %% "akka-pki" % "2.6.20",
-  "com.typesafe.akka" %% "akka-persistence" % "2.6.20",
-  "com.typesafe.akka" %% "akka-persistence-query" % "2.6.20",
-  "com.typesafe.akka" %% "akka-persistence-cassandra" % "1.0.6",
-  "io.circe" %% "circe-core" % "0.14.2",
-  "io.circe" %% "circe-generic" % "0.14.2",
-  "io.circe" %% "circe-parser" % "0.14.2",
-  "de.heikoseeberger" %% "akka-http-circe" % "1.39.2",
-  "ch.qos.logback" % "logback-classic" % "1.3.0",
-  "com.typesafe.akka" %% "akka-http-testkit" % "10.2.10" % Test,
-  "com.typesafe.akka" %% "akka-testkit" % "2.6.20" % Test,
-  "org.scalatest" %% "scalatest" % "3.2.12" % Test
+lazy val akkaHttpVersion = "10.2.8"
+lazy val akkaVersion     = "2.6.9"
+lazy val circeVersion    = "0.14.1"
+
+libraryDependencies ++= Seq(
+  "com.typesafe.akka" %% "akka-http"                  % akkaHttpVersion,
+  "com.typesafe.akka" %% "akka-actor-typed"           % akkaVersion,
+  "com.typesafe.akka" %% "akka-stream"                % akkaVersion,
+  "com.typesafe.akka" %% "akka-persistence-typed"     % akkaVersion,
+  "com.datastax.oss"  %  "java-driver-core"           % "4.13.0",
+  "com.typesafe.akka" %% "akka-persistence-cassandra" % "1.0.5",
+  "io.circe"          %% "circe-core"                 % circeVersion,
+  "io.circe"          %% "circe-generic"              % circeVersion,
+  "io.circe"          %% "circe-parser"               % circeVersion,
+  "de.heikoseeberger" %% "akka-http-circe"            % "1.39.2",
+  "ch.qos.logback"    % "logback-classic"             % "1.2.10",
+  "com.github.marklister" %% "product-collections" % "1.4.5",
+  "com.chuusai" %% "shapeless" % "2.3.3",
+  "com.nrinaudo" %% "kantan.csv-generic" % "0.7.0",
+
+
+  // optional, if you want to add tests
+  "com.typesafe.akka" %% "akka-http-testkit"          % akkaHttpVersion % Test,
+  "com.typesafe.akka" %% "akka-actor-testkit-typed"   % akkaVersion     % Test,
+  "org.scalatest"     %% "scalatest"                  % "3.2.9"         % Test
 )
-
-lazy val root = (project in file("."))
-  .settings(
-    name := "YelloTaxiStatsAkka"
-  )

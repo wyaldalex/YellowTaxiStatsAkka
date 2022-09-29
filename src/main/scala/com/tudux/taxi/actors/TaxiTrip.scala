@@ -89,6 +89,7 @@ class TaxiTripActor extends Actor with ActorLogging {
     case GetTotalTaxiCostStats =>
       //candidate to be a forward operation
       taxiTripCostActor ! GetTotalTaxiCostStats
+    //Individual Gets
     case GetTaxiCostStat(statId) =>
       log.info(s"Receive Taxi Cost Inquiry, forwarding")
       taxiTripCostActor.forward(GetTaxiCostStat(statId))
@@ -101,6 +102,9 @@ class TaxiTripActor extends Actor with ActorLogging {
     case GetTaxiPassengerInfoStat(statId) =>
       log.info(s"Receive Taxi Cost Inquiry, forwarding")
       taxiPassengerInfoActor.forward(GetTaxiPassengerInfoStat(statId))
+    //Individual Updates
+    case UpdateTaxiPassenger(statId,taxiTripPassengerInfoStat) =>
+      taxiPassengerInfoActor.forward(UpdateTaxiPassenger(statId,taxiTripPassengerInfoStat))
 
     case _ => log.info("Received something else")
   }

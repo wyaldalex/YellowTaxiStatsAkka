@@ -14,7 +14,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import com.tudux.taxi.actors.TaxiCostStatCommand.GetTaxiCostStat
 import com.tudux.taxi.actors.TaxiExtraInfoStatCommand.GetTaxiExtraInfoStat
 import com.tudux.taxi.actors.TaxiStatResponseResponses.TaxiStatCreatedResponse
-import com.tudux.taxi.actors.TaxiTripPassengerInfoStatCommand.GetTaxiPassengerInfoStat
+import com.tudux.taxi.actors.TaxiTripPassengerInfoStatCommand.{GetTaxiPassengerInfoStat, UpdateTaxiPassenger}
 import com.tudux.taxi.actors.TaxiTripTimeInfoStatCommand.GetTaxiTimeInfoStat
 import spray.json._
 
@@ -39,6 +39,11 @@ case class CreateTaxiStatRequest(VendorID: Int, tpep_pickup_datetime: String, tp
     payment_type, fare_amount, extra, mta_tax,
     tip_amount, tolls_amount, improvement_surcharge, total_amount))
 }
+
+case class UpdatePassengerInfoRequest(passenger_count: Int) {
+  def toCommand(statId: String) : UpdateTaxiPassenger = UpdateTaxiPassenger(statId,TaxiTripPassengerInfoStat(passenger_count))
+}
+
 
 
 trait TaxiCostStatProtocol extends DefaultJsonProtocol {
@@ -126,6 +131,16 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
               .map(_.toJson.prettyPrint)
               .map(toHttpEntity)
           )
+        }
+      } ~
+      put {
+        path(Segment) { statId =>
+          put {
+            entity(as[UpdatePassengerInfoRequest]) { request =>
+              taxiTripActor ! request.toCommand(statId)
+              complete(StatusCodes.OK)
+            }
+          }
         }
       }
     } ~

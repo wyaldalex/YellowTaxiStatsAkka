@@ -21,6 +21,7 @@ libraryDependencies ++= Seq(
   "com.github.marklister" %% "product-collections" % "1.4.5",
   "com.chuusai" %% "shapeless" % "2.3.3",
   "com.nrinaudo" %% "kantan.csv-generic" % "0.7.0",
+  "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion,
 
 
   // optional, if you want to add tests

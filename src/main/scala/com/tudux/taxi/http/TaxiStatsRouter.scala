@@ -10,6 +10,7 @@ import akka.http.scaladsl.server.Route
 import akka.util.Timeout
 import com.tudux.taxi.actors.TaxiStat
 import com.tudux.taxi.actors.TaxiStatCommand.CreateTaxiStat
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 
 import scala.concurrent.ExecutionContext
 //import como.tudux.bank.actors.PersistentBankAccount.{Command, Response}
@@ -21,12 +22,12 @@ import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
 
-case class CreateTaxiStatRequest(vendorID: Int, tpep_pickup_datetime: String, tpep_dropoff_datetime: String, passenger_count: Int,
+case class CreateTaxiStatRequest(VendorID: Int, tpep_pickup_datetime: String, tpep_dropoff_datetime: String, passenger_count: Int,
                                  trip_distance: Double, pickup_longitude: Double, pickup_latitude: Double, RateCodeID: Int,
                                  store_and_fwd_flag: String, dropoff_longitude: Double, dropoff_latitude: Double,
                                  payment_type: Int, fare_amount: Double, extra: Double, mta_tax: Double,
                                  tip_amount: Double, tolls_amount: Double, improvement_surcharge: Double, total_amount: Double) {
-  def toCommand: CreateTaxiStat = CreateTaxiStat(TaxiStat(vendorID, tpep_pickup_datetime, tpep_dropoff_datetime, passenger_count,
+  def toCommand: CreateTaxiStat = CreateTaxiStat(TaxiStat(VendorID, tpep_pickup_datetime, tpep_dropoff_datetime, passenger_count,
     trip_distance, pickup_longitude, pickup_latitude, RateCodeID,
     store_and_fwd_flag, dropoff_longitude, dropoff_latitude,
     payment_type, fare_amount, extra, mta_tax,
@@ -42,6 +43,15 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) {
       get {
         path("cost") {
           complete(StatusCodes.OK)
+        }
+      } ~
+      post {
+        path("stat") {
+          entity(as[CreateTaxiStatRequest]) { request =>
+            val statCreatedFuture : Future[Any] = (taxiTripActor ? request.toCommand)
+            println(s"Received http post to create stat $request")
+            complete(StatusCodes.OK)
+          }
         }
       }
     }

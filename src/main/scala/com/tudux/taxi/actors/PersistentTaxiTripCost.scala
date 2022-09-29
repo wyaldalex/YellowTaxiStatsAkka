@@ -11,7 +11,8 @@ case class TaxiCostStat(VendorID: Int,
 
 sealed trait TaxiCostCommand
 object TaxiCostStatCommand {
-  case class CreateTaxiCostStat(statId: Int,taxiCostStat: TaxiCostStat) extends TaxiCostCommand
+  case class CreateTaxiCostStat(statId: String,taxiCostStat: TaxiCostStat) extends TaxiCostCommand
+  case class GetTaxiCostStat(statId: String)
   case object GetTotalTaxiCostStats
 }
 
@@ -23,7 +24,7 @@ object TaxiCostStatsResponse {
 
 sealed trait TaxiCostEvent
 object TaxiCostStatEvent{
-  case class TaxiCostStatCreatedEvent(statId: Int, taxiCostStat: TaxiCostStat) extends TaxiCostEvent
+  case class TaxiCostStatCreatedEvent(statId: String, taxiCostStat: TaxiCostStat) extends TaxiCostEvent
 }
 
 object PersistentTaxiTripCost {
@@ -36,7 +37,7 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
 
   //Persistent Actor State
   var statCounter: Int = 1
-  var statCostMap : Map[Int,TaxiCostStat] = Map.empty
+  var statCostMap : Map[String,TaxiCostStat] = Map.empty
 
   override def persistenceId: String = id
 
@@ -49,6 +50,9 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
       }
     case GetTotalTaxiCostStats =>
       log.info(s"Received petition to return size which is: ${statCostMap.size})")
+
+    case GetTaxiCostStat(statId) =>
+      sender() ! statCostMap.get(statId)
 
     case _ =>
       log.info(s"Received something else at ${self.path.name}")

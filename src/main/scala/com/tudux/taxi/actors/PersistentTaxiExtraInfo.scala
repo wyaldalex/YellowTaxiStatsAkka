@@ -8,13 +8,14 @@ case class TaxiExtraInfoStat(pickup_longitude: Double, pickup_latitude: Double, 
 
 sealed trait TaxiExtraInfoCommand
 object TaxiExtraInfoStatCommand {
-  case class CreateTaxiExtraInfoStat(statId: Int,taxiExtraInfoStat: TaxiExtraInfoStat) extends TaxiExtraInfoCommand
+  case class CreateTaxiExtraInfoStat(statId: String,taxiExtraInfoStat: TaxiExtraInfoStat) extends TaxiExtraInfoCommand
+  case class GetTaxiExtraInfoStat(statId: String)
 }
 
 
 sealed trait TaxiExtraInfoEvent
 object TaxiExtraInfoStatEvent{
-  case class TaxiExtraInfoStatCreatedEvent(statId: Int, taxiExtraInfoStat: TaxiExtraInfoStat) extends TaxiExtraInfoEvent
+  case class TaxiExtraInfoStatCreatedEvent(statId: String, taxiExtraInfoStat: TaxiExtraInfoStat) extends TaxiExtraInfoEvent
 }
 
 object PersistentTaxiExtraInfo {
@@ -27,7 +28,7 @@ class PersistentTaxiExtraInfo(id: String) extends PersistentActor with ActorLogg
 
   //Persistent Actor State
   var statCounter: Int = 1
-  var statExtraInfoMap : Map[Int,TaxiExtraInfoStat] = Map.empty
+  var statExtraInfoMap : Map[String,TaxiExtraInfoStat] = Map.empty
 
   override def persistenceId: String = id
 
@@ -38,6 +39,8 @@ class PersistentTaxiExtraInfo(id: String) extends PersistentActor with ActorLogg
         statExtraInfoMap = statExtraInfoMap + (statId -> taxiExtraInfoStat)
         statCounter += 1
       }
+    case GetTaxiExtraInfoStat(statId) =>
+      sender() ! statExtraInfoMap.get(statId)
     case _ =>
       log.info(s"Received something else at ${self.path.name}")
 

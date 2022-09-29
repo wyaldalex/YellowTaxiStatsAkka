@@ -2,7 +2,9 @@ package com.tudux.taxi.actors
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
 import akka.util.Timeout
+import com.tudux.taxi.actors.TaxiStatResponseResponses.TaxiStatCreatedResponse
 
+import java.util.UUID
 import scala.concurrent.ExecutionContext
 import scala.io.Source
 import scala.concurrent.duration._
@@ -38,7 +40,7 @@ class TaxiTripActor extends Actor with ActorLogging {
     TaxiTripTimeInfoStat(taxiStat.tpep_pickup_datetime, taxiStat.tpep_dropoff_datetime)
   }
 
-  var idStat : Int = 1
+  //var idStat : Int = 1
 
   //split main Taxi payload into different actors
   private val taxiTripCostActor: ActorRef = createTaxiCostActor()
@@ -75,16 +77,30 @@ class TaxiTripActor extends Actor with ActorLogging {
   } */
   override def receive: Receive = {
     case CreateTaxiStat(taxiStat) =>
+      //generate new stat ID to avoid conflicts
+      val idStat = UUID.randomUUID().toString
       log.info(s"Received $taxiStat to create")
       //taxiTripCostActor.forward(CreateTaxiCostStat(idStat,taxiStat))
       taxiTripCostActor  ! CreateTaxiCostStat(idStat,taxiStat)
       taxiExtraInfoActor ! CreateTaxiExtraInfoStat(idStat,taxiStat)
       taxiPassengerInfoActor ! CreateTaxiTripPassengerInfoStat(idStat,taxiStat)
       taxiTimeInfoActor ! CreateTaxiTripTimeInfoStat(idStat,taxiStat)
-      idStat += 1
+      sender() ! TaxiStatCreatedResponse(idStat)
     case GetTotalTaxiCostStats =>
       //candidate to be a forward operation
       taxiTripCostActor ! GetTotalTaxiCostStats
+    case GetTaxiCostStat(statId) =>
+      log.info(s"Receive Taxi Cost Inquiry, forwarding")
+      taxiTripCostActor.forward(GetTaxiCostStat(statId))
+    case GetTaxiExtraInfoStat(statId) =>
+      log.info(s"Receive Taxi Cost Inquiry, forwarding")
+      taxiExtraInfoActor.forward(GetTaxiExtraInfoStat(statId))
+    case GetTaxiTimeInfoStat(statId) =>
+      log.info(s"Receive Taxi Cost Inquiry, forwarding")
+      taxiTimeInfoActor.forward(GetTaxiTimeInfoStat(statId))
+    case GetTaxiPassengerInfoStat(statId) =>
+      log.info(s"Receive Taxi Cost Inquiry, forwarding")
+      taxiPassengerInfoActor.forward(GetTaxiPassengerInfoStat(statId))
 
     case _ => log.info("Received something else")
   }

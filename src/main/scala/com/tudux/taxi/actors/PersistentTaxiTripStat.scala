@@ -32,12 +32,16 @@ object TaxiStatCommand {
   case class CreateTaxiStat(taxiStat: TaxiStat) extends Command
 }
 
+sealed trait TaxiStatResponse
+object TaxiStatResponseResponses {
+  case class TaxiStatCreatedResponse(statId: String) extends TaxiStatResponse
+}
 
 sealed trait Event
 object TaxiStatEvent{
   case class TaxiStatCreatedEvent(taxiStat: TaxiStat) extends Event
 }
-
+/*
 object PersistentTaxiStatActor {
   def props(id: String): Props = Props(new PersistentTaxiStatActor(id))
 }
@@ -70,5 +74,5 @@ class PersistentTaxiStatActor(id: String) extends PersistentActor with ActorLogg
       statCounter += 1
   }
 }
-
+*/
 

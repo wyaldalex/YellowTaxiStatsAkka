@@ -7,13 +7,14 @@ case class TaxiTripPassengerInfoStat(passenger_count: Int)
 
 sealed trait TaxiTripPassengerInfoCommand
 object TaxiTripPassengerInfoStatCommand {
-  case class CreateTaxiTripPassengerInfoStat(statId: Int,taxiTripPassengerInfoStat: TaxiTripPassengerInfoStat) extends TaxiTripPassengerInfoCommand
+  case class CreateTaxiTripPassengerInfoStat(statId: String,taxiTripPassengerInfoStat: TaxiTripPassengerInfoStat) extends TaxiTripPassengerInfoCommand
+  case class GetTaxiPassengerInfoStat(statId: String)
 }
 
 
 sealed trait TaxiTripPassengerInfoEvent
 object TaxiTripPassengerInfoStatEvent{
-  case class TaxiTripPassengerInfoStatCreatedEvent(statId: Int, taxiTripPassengerInfoStat: TaxiTripPassengerInfoStat) extends TaxiTripPassengerInfoEvent
+  case class TaxiTripPassengerInfoStatCreatedEvent(statId: String, taxiTripPassengerInfoStat: TaxiTripPassengerInfoStat) extends TaxiTripPassengerInfoEvent
 }
 
 object PersistentTaxiTripPassengerInfo {
@@ -26,7 +27,7 @@ class PersistentTaxiTripPassengerInfo(id: String) extends PersistentActor with A
 
   //Persistent Actor State
   var statCounter: Int = 1
-  var taxiTripPassengerInfoStatMap : Map[Int,TaxiTripPassengerInfoStat] = Map.empty
+  var taxiTripPassengerInfoStatMap : Map[String,TaxiTripPassengerInfoStat] = Map.empty
 
   override def persistenceId: String = id
 
@@ -37,6 +38,8 @@ class PersistentTaxiTripPassengerInfo(id: String) extends PersistentActor with A
         taxiTripPassengerInfoStatMap = taxiTripPassengerInfoStatMap + (statId -> taxiTripPassengerInfoStat)
         statCounter += 1
       }
+    case GetTaxiPassengerInfoStat(statId) =>
+      sender() ! taxiTripPassengerInfoStatMap.get(statId)
     case _ =>
       log.info(s"Received something else at ${self.path.name}")
 

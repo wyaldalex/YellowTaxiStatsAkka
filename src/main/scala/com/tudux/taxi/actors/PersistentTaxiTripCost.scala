@@ -12,6 +12,12 @@ case class TaxiCostStat(VendorID: Int,
 sealed trait TaxiCostCommand
 object TaxiCostStatCommand {
   case class CreateTaxiCostStat(statId: Int,taxiCostStat: TaxiCostStat) extends TaxiCostCommand
+  case object GetTotalTaxiCostStats
+}
+
+sealed trait TaxiCostResponse
+object TaxiCostStatsResponse {
+  case class TotalTaxiCostStats(total: Int,totalAmount: Double)
 }
 
 
@@ -41,6 +47,9 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
         statCostMap = statCostMap + (statId -> taxiCostStat)
         statCounter += 1
       }
+    case GetTotalTaxiCostStats =>
+      log.info(s"Received petition to return size which is: ${statCostMap.size})")
+
     case _ =>
       log.info(s"Received something else at ${self.path.name}")
 

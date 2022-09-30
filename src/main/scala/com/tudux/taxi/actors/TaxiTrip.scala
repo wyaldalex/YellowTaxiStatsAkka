@@ -109,7 +109,8 @@ class TaxiTripActor extends Actor with ActorLogging {
       taxiExtraInfoActor ! DeleteTaxiExtraInfo(statId)
       taxiPassengerInfoActor ! DeleteTaxiTripPassenger(statId)
       taxiTimeInfoActor ! DeleteTaxiTripTimeInfoStat(statId)
-
+    case calculateTripDistanceCost@CalculateTripDistanceCost(_) =>
+      taxiTripCostActor.forward(calculateTripDistanceCost)
     //Individual Deletes
     /*
     case deleteTaxiCostStat@DeleteTaxiCostStat(_) =>

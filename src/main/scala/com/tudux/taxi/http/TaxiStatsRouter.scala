@@ -11,7 +11,8 @@ import akka.util.Timeout
 import com.tudux.taxi.actors.{TaxiCostStat, TaxiExtraInfoStat, TaxiStat, TaxiTripPassengerInfoStat, TaxiTripTimeInfoStat}
 import com.tudux.taxi.actors.TaxiStatCommand.{CreateTaxiStat, DeleteTaxiStat}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import com.tudux.taxi.actors.TaxiCostStatCommand.{DeleteTaxiCostStat, GetTaxiCostStat, UpdateTaxiCostStat}
+import com.tudux.taxi.actors.TaxiCostStatCommand.{CalculateTripDistanceCost, DeleteTaxiCostStat, GetTaxiCostStat, UpdateTaxiCostStat}
+import com.tudux.taxi.actors.TaxiCostStatsResponse.CalculateTripDistanceCostResponse
 import com.tudux.taxi.actors.TaxiExtraInfoStatCommand.{GetTaxiExtraInfoStat, UpdateTaxiExtraInfoStat}
 import com.tudux.taxi.actors.TaxiStatResponseResponses.TaxiStatCreatedResponse
 import com.tudux.taxi.actors.TaxiTripPassengerInfoStatCommand.{GetTaxiPassengerInfoStat, UpdateTaxiPassenger}
@@ -78,12 +79,17 @@ trait TaxiExtraInfoProtocol extends DefaultJsonProtocol {
   implicit val taxiExtraInfoFormat = jsonFormat7(TaxiExtraInfoStat)
 }
 
+trait CalculateDistanceCostProtocol extends DefaultJsonProtocol {
+  implicit val calculateDistanceCostFormat = jsonFormat1(CalculateTripDistanceCostResponse)
+}
+
 
 class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) extends SprayJsonSupport
   with TaxiCostStatProtocol
   with TaxiTimeInfoStatProtocol
   with TaxiPassengerInfoProtocol
   with TaxiExtraInfoProtocol
+  with CalculateDistanceCostProtocol
   {
   implicit val dispatcher: ExecutionContext = system.dispatcher
   implicit val timeout: Timeout = Timeout(5.seconds)
@@ -214,6 +220,20 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
           }
         }
       }
+    } ~
+    pathPrefix("api" / "yellowtaxi" / "service" / "calculate-distance-cost") {
+      get {
+        path(Segment) { distance =>
+          println(s"Calculating average cost for distance: $distance")
+          complete(
+            (taxiTripActor ? CalculateTripDistanceCost(distance.toDouble))
+              .mapTo[CalculateTripDistanceCostResponse]
+              .map(_.toJson.prettyPrint)
+              .map(toHttpEntity)
+          )
+        }
+      }
     }
+
   }
 }

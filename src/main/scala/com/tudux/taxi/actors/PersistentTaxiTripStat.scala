@@ -30,6 +30,7 @@ case class TaxiStat(VendorID: Int, tpep_pickup_datetime: String, tpep_dropoff_da
 sealed trait Command
 object TaxiStatCommand {
   case class CreateTaxiStat(taxiStat: TaxiStat) extends Command
+  case class DeleteTaxiStat(statId: String) extends Command
 }
 
 sealed trait TaxiStatResponse

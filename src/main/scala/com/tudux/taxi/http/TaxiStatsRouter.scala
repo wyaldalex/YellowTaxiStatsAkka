@@ -9,7 +9,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.util.Timeout
 import com.tudux.taxi.actors.{TaxiCostStat, TaxiExtraInfoStat, TaxiStat, TaxiTripPassengerInfoStat, TaxiTripTimeInfoStat}
-import com.tudux.taxi.actors.TaxiStatCommand.CreateTaxiStat
+import com.tudux.taxi.actors.TaxiStatCommand.{CreateTaxiStat, DeleteTaxiStat}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import com.tudux.taxi.actors.TaxiCostStatCommand.{DeleteTaxiCostStat, GetTaxiCostStat, UpdateTaxiCostStat}
 import com.tudux.taxi.actors.TaxiExtraInfoStatCommand.{GetTaxiExtraInfoStat, UpdateTaxiExtraInfoStat}
@@ -109,6 +109,12 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
                 )
               })
             }
+        } ~
+        delete {
+          path(Segment) { statId =>
+            taxiTripActor ! DeleteTaxiStat(statId)
+            complete(StatusCodes.OK)
+          }
         }
     } ~
     pathPrefix("api" / "yellowtaxi" / "cost") {

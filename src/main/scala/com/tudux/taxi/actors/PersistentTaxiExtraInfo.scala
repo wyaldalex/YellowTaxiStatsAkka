@@ -11,6 +11,7 @@ object TaxiExtraInfoStatCommand {
   case class CreateTaxiExtraInfoStat(statId: String,taxiExtraInfoStat: TaxiExtraInfoStat) extends TaxiExtraInfoCommand
   case class GetTaxiExtraInfoStat(statId: String) extends TaxiExtraInfoCommand
   case class UpdateTaxiExtraInfoStat(statId: String,taxiExtraInfoStat: TaxiExtraInfoStat) extends TaxiExtraInfoCommand
+  case class DeleteTaxiExtraInfo(statId: String) extends TaxiExtraInfoCommand
 }
 
 
@@ -18,6 +19,7 @@ sealed trait TaxiExtraInfoEvent
 object TaxiExtraInfoStatEvent{
   case class TaxiExtraInfoStatCreatedEvent(statId: String, taxiExtraInfoStat: TaxiExtraInfoStat) extends TaxiExtraInfoEvent
   case class TaxiExtraInfoStatUpdatedEvent(statId: String, taxiExtraInfoStat: TaxiExtraInfoStat) extends TaxiExtraInfoEvent
+  case class DeletedTaxiExtraInfoEvent(statId: String) extends TaxiExtraInfoEvent
 }
 
 object PersistentTaxiExtraInfo {
@@ -49,6 +51,15 @@ class PersistentTaxiExtraInfo(id: String) extends PersistentActor with ActorLogg
 
     case GetTaxiExtraInfoStat(statId) =>
       sender() ! statExtraInfoMap.get(statId)
+    case DeleteTaxiExtraInfo(statId) =>
+      log.info("Deleting taxi cost stat")
+      if (statExtraInfoMap.contains(statId)) {
+        persist(DeletedTaxiExtraInfoEvent(statId)) { _ =>
+          val taxiExtraInfoToBeDeleted: TaxiExtraInfoStat = statExtraInfoMap(statId).copy(deletedFlag = true)
+          statExtraInfoMap = statExtraInfoMap + (statId -> taxiExtraInfoToBeDeleted)
+        }
+      }
+
     case _ =>
       log.info(s"Received something else at ${self.path.name}")
 
@@ -61,6 +72,11 @@ class PersistentTaxiExtraInfo(id: String) extends PersistentActor with ActorLogg
     case TaxiExtraInfoStatUpdatedEvent(statId,taxiExtraInfoStat) =>
       log.info(s"Recovering Updated Extra Info Stat $taxiExtraInfoStat")
       statExtraInfoMap = statExtraInfoMap + (statId -> taxiExtraInfoStat)
+    case DeletedTaxiExtraInfoEvent(statId) =>
+      log.info(s"Recovering Deleted Extra Info Stat")
+      val taxiExtraInfoToBeDeleted: TaxiExtraInfoStat = statExtraInfoMap(statId).copy(deletedFlag = true)
+      statExtraInfoMap = statExtraInfoMap + (statId -> taxiExtraInfoToBeDeleted)
+
   }
 }
 

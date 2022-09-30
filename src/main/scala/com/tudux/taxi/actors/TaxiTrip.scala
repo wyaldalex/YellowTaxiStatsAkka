@@ -103,10 +103,25 @@ class TaxiTripActor extends Actor with ActorLogging {
       taxiExtraInfoActor.forward(updateTaxiExtraInfoStat)
     case updateTaxiCostStat@UpdateTaxiCostStat(_,_) =>
       taxiTripCostActor.forward(updateTaxiCostStat)
+    //General Delete
+    case DeleteTaxiStat(statId) =>
+      taxiTripCostActor ! DeleteTaxiCostStat(statId)
+      taxiExtraInfoActor ! DeleteTaxiExtraInfo(statId)
+      taxiPassengerInfoActor ! DeleteTaxiTripPassenger(statId)
+      taxiTimeInfoActor ! DeleteTaxiTripTimeInfoStat(statId)
+
     //Individual Deletes
+    /*
     case deleteTaxiCostStat@DeleteTaxiCostStat(_) =>
       taxiTripCostActor ! deleteTaxiCostStat
+    case deleteTaxiExtraInfo@DeleteTaxiExtraInfo(_) =>
+      taxiExtraInfoActor ! deleteTaxiExtraInfo
+    case deleteTaxiTripPassenger@DeleteTaxiTripPassenger(_) =>
+      taxiPassengerInfoActor ! deleteTaxiTripPassenger
+    case deleteTaxiTripTimeInfoStat@DeleteTaxiTripTimeInfoStat(_) =>
+      taxiTimeInfoActor ! deleteTaxiTripTimeInfoStat */
     case _ => log.info("Received something else at parent actor")
+
   }
 
 }

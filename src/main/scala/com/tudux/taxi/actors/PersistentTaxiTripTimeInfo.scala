@@ -3,7 +3,7 @@ package com.tudux.taxi.actors
 import akka.actor.{ActorLogging, Props}
 import akka.persistence.PersistentActor
 
-case class TaxiTripTimeInfoStat(tpep_pickup_datetime: String,tpep_dropoff_datetime: String)
+case class TaxiTripTimeInfoStat(tpep_pickup_datetime: String,tpep_dropoff_datetime: String,deletedFlag: Boolean = false)
 
 sealed trait TaxiTripTimeInfoCommand
 object TaxiTripTimeInfoStatCommand {

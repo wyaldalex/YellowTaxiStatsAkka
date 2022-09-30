@@ -47,19 +47,19 @@ case class UpdatePassengerInfoRequest(passenger_count: Int) {
 
 
 trait TaxiCostStatProtocol extends DefaultJsonProtocol {
-  implicit val taxiCostStatFormat = jsonFormat10(TaxiCostStat)
+  implicit val taxiCostStatFormat = jsonFormat11(TaxiCostStat)
 }
 
 trait TaxiTimeInfoStatProtocol extends DefaultJsonProtocol {
-  implicit val taxiTimeInfoFormat = jsonFormat2(TaxiTripTimeInfoStat)
+  implicit val taxiTimeInfoFormat = jsonFormat3(TaxiTripTimeInfoStat)
 }
 
 trait TaxiPassengerInfoProtocol extends DefaultJsonProtocol {
-  implicit val taxiPassengerFormat = jsonFormat1(TaxiTripPassengerInfoStat)
+  implicit val taxiPassengerFormat = jsonFormat2(TaxiTripPassengerInfoStat)
 }
 
 trait TaxiExtraInfoProtocol extends DefaultJsonProtocol {
-  implicit val taxiExtraInfoFormat = jsonFormat6(TaxiExtraInfoStat)
+  implicit val taxiExtraInfoFormat = jsonFormat7(TaxiExtraInfoStat)
 }
 
 

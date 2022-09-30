@@ -4,7 +4,7 @@ import akka.actor.{ActorLogging, Props}
 import akka.persistence.PersistentActor
 
 case class TaxiExtraInfoStat(pickup_longitude: Double, pickup_latitude: Double, RateCodeID: Int,
-                             store_and_fwd_flag: String, dropoff_longitude: Double, dropoff_latitude: Double)
+                             store_and_fwd_flag: String, dropoff_longitude: Double, dropoff_latitude: Double, deletedFlag: Boolean = false)
 
 sealed trait TaxiExtraInfoCommand
 object TaxiExtraInfoStatCommand {

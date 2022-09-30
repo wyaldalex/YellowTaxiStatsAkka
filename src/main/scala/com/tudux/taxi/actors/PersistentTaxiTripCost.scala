@@ -6,7 +6,7 @@ import akka.persistence.PersistentActor
 case class TaxiCostStat(VendorID: Int,
                     trip_distance: Double,
                     payment_type: Int, fare_amount: Double, extra: Double, mta_tax: Double,
-                    tip_amount: Double, tolls_amount: Double, improvement_surcharge: Double, total_amount: Double)
+                    tip_amount: Double, tolls_amount: Double, improvement_surcharge: Double, total_amount: Double, deletedFlag: Boolean = false)
 
 
 sealed trait TaxiCostCommand

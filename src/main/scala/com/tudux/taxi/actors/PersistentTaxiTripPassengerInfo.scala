@@ -3,7 +3,7 @@ package com.tudux.taxi.actors
 import akka.actor.{ActorLogging, Props}
 import akka.persistence.PersistentActor
 
-case class TaxiTripPassengerInfoStat(passenger_count: Int)
+case class TaxiTripPassengerInfoStat(passenger_count: Int,deletedFlag: Boolean = false)
 
 sealed trait TaxiTripPassengerInfoCommand
 object TaxiTripPassengerInfoStatCommand {

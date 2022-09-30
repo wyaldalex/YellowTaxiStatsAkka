@@ -135,12 +135,11 @@ object TaxiStatApp extends App {
   import TaxiStatCommand._
   import TaxiCostStatCommand._
   //Data loading:
-//  reader.foreach(either => {
-//    //println(either.right.getOrElse(1))
-//    taxiTripActor ! CreateTaxiStat((either.right.getOrElse(TaxiStat(
-//      2,"2015-01-15 19:05:39","2015-01-15 19:23:42",1,1.59,-73.993896484375,40.750110626220703,1,"N",-73.974784851074219,40.750617980957031,1,12,1,0.5,3.25,0,0.3,17.05
-//    ))))
-//  })
+  reader.foreach(either => {
+    taxiTripActor ! CreateTaxiStat((either.right.getOrElse(TaxiStat(
+      2,"2015-01-15 19:05:39","2015-01-15 19:23:42",1,1.59,-73.993896484375,40.750110626220703,1,"N",-73.974784851074219,40.750617980957031,1,12,1,0.5,3.25,0,0.3,17.05
+    ))))
+  })
   //Operations testing
   taxiTripActor ! GetTotalTaxiCostStats
 

@@ -16,7 +16,8 @@ import com.tudux.taxi.actors.TaxiCostStatsResponse.CalculateTripDistanceCostResp
 import com.tudux.taxi.actors.TaxiExtraInfoStatCommand.{GetTaxiExtraInfoStat, UpdateTaxiExtraInfoStat}
 import com.tudux.taxi.actors.TaxiStatResponseResponses.TaxiStatCreatedResponse
 import com.tudux.taxi.actors.TaxiTripPassengerInfoStatCommand.{GetTaxiPassengerInfoStat, UpdateTaxiPassenger}
-import com.tudux.taxi.actors.TaxiTripTimeInfoStatCommand.{GetTaxiTimeInfoStat, UpdateTaxiTripTimeInfoStat}
+import com.tudux.taxi.actors.TaxiTripTimeInfoStatCommand.{GetAverageTripTime, GetTaxiTimeInfoStat, UpdateTaxiTripTimeInfoStat}
+import com.tudux.taxi.actors.TaxiTripTimeResponses.TaxiTripAverageTimeMinutesResponse
 import spray.json._
 
 import scala.concurrent.ExecutionContext
@@ -83,6 +84,10 @@ trait CalculateDistanceCostProtocol extends DefaultJsonProtocol {
   implicit val calculateDistanceCostFormat = jsonFormat1(CalculateTripDistanceCostResponse)
 }
 
+trait CalculateAverageTripTime extends DefaultJsonProtocol {
+  implicit val averageTripTimeFormat = jsonFormat1(TaxiTripAverageTimeMinutesResponse)
+}
+
 
 class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) extends SprayJsonSupport
   with TaxiCostStatProtocol
@@ -90,6 +95,7 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
   with TaxiPassengerInfoProtocol
   with TaxiExtraInfoProtocol
   with CalculateDistanceCostProtocol
+  with CalculateAverageTripTime
   {
   implicit val dispatcher: ExecutionContext = system.dispatcher
   implicit val timeout: Timeout = Timeout(5.seconds)
@@ -233,7 +239,17 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
           )
         }
       }
-    }
+    } ~
+      pathPrefix("api" / "yellowtaxi" / "service" / "average-trip-time") {
+        get {
+            complete(
+              (taxiTripActor ? GetAverageTripTime)
+                .mapTo[TaxiTripAverageTimeMinutesResponse]
+                .map(_.toJson.prettyPrint)
+                .map(toHttpEntity)
+            )
+        }
+      }
 
   }
 }

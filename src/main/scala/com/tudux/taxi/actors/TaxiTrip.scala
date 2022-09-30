@@ -109,8 +109,11 @@ class TaxiTripActor extends Actor with ActorLogging {
       taxiExtraInfoActor ! DeleteTaxiExtraInfo(statId)
       taxiPassengerInfoActor ! DeleteTaxiTripPassenger(statId)
       taxiTimeInfoActor ! DeleteTaxiTripTimeInfoStat(statId)
+    //Domain Specific Operations
     case calculateTripDistanceCost@CalculateTripDistanceCost(_) =>
       taxiTripCostActor.forward(calculateTripDistanceCost)
+    case getAverageTripTime@GetAverageTripTime =>
+      taxiTimeInfoActor.forward(getAverageTripTime)
     //Individual Deletes
     /*
     case deleteTaxiCostStat@DeleteTaxiCostStat(_) =>
@@ -177,4 +180,14 @@ object TaxiStatApp extends App {
 
 
 
+}
+
+object RandomTest extends App {
+  val format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:SS")
+  val d1 = format.parse("2015-01-10 20:58:31")
+  val d2 = format.parse("2015-01-10 21:58:31")
+  println(d1)
+  println(d2)
+
+  println((d2.getTime - d1.getTime)/60000)
 }

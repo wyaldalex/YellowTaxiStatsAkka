@@ -17,7 +17,8 @@ object TaxiCostStatCommand {
   case object GetTotalTaxiCostStats extends  TaxiCostCommand
   case class UpdateTaxiCostStat(statId: String,taxiCostStat: TaxiCostStat) extends TaxiCostCommand
   case class DeleteTaxiCostStat(statId: String) extends TaxiCostCommand
-  case class CalculateTripDistanceCost(distance: Double)
+  case class CalculateTripDistanceCost(distance: Double) extends TaxiCostCommand
+  case object GetPaymentMethodsStats
 }
 
 sealed trait TaxiCostResponse
@@ -44,7 +45,7 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
 
   //Persistent Actor State
   var statCostMap : Map[String,TaxiCostStat] = Map.empty
-  //Used for domain specific utility
+  //Used for calculate estimated cost
   var totalDistance : Double = 0
   var totalAmount : Double = 0
 
@@ -57,6 +58,7 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
         statCostMap = statCostMap + (statId -> taxiCostStat)
         totalAmount += taxiCostStat.total_amount
         totalDistance += taxiCostStat.trip_distance
+
       }
     case GetTotalTaxiCostStats =>
       log.info(s"Received petition to return size which is: ${statCostMap.size})")
@@ -87,7 +89,7 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
     case CalculateTripDistanceCost(distance) =>
       log.info("Calculating estimated trip cost")
       sender() ! CalculateTripDistanceCostResponse((totalAmount/totalDistance) * distance)
-
+    case GetPaymentMethodsStats =>
     case _ =>
       log.info(s"Received something else at ${self.path.name}")
 
@@ -99,6 +101,7 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
       statCostMap = statCostMap + (statId -> taxiCostStat)
       totalAmount += taxiCostStat.total_amount
       totalDistance += taxiCostStat.trip_distance
+
     case UpdatedTaxiCostStatEvent(statId,taxiCostStat) =>
       val prevAmount = statCostMap(statId).total_amount
       val prevDistance = statCostMap(statId).trip_distance

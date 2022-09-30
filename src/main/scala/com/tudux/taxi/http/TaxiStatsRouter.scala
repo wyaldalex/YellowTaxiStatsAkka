@@ -11,8 +11,8 @@ import akka.util.Timeout
 import com.tudux.taxi.actors.{TaxiCostStat, TaxiExtraInfoStat, TaxiStat, TaxiTripPassengerInfoStat, TaxiTripTimeInfoStat}
 import com.tudux.taxi.actors.TaxiStatCommand.{CreateTaxiStat, DeleteTaxiStat}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import com.tudux.taxi.actors.TaxiCostStatCommand.{CalculateTripDistanceCost, DeleteTaxiCostStat, GetTaxiCostStat, UpdateTaxiCostStat}
-import com.tudux.taxi.actors.TaxiCostStatsResponse.CalculateTripDistanceCostResponse
+import com.tudux.taxi.actors.TaxiCostStatCommand.{CalculateTripDistanceCost, DeleteTaxiCostStat, GetAverageTipAmount, GetTaxiCostStat, UpdateTaxiCostStat}
+import com.tudux.taxi.actors.TaxiCostStatsResponse.{CalculateTripDistanceCostResponse, GetAverageTipAmountResponse}
 import com.tudux.taxi.actors.TaxiExtraInfoStatCommand.{GetTaxiExtraInfoStat, UpdateTaxiExtraInfoStat}
 import com.tudux.taxi.actors.TaxiStatResponseResponses.TaxiStatCreatedResponse
 import com.tudux.taxi.actors.TaxiTripPassengerInfoStatCommand.{GetTaxiPassengerInfoStat, UpdateTaxiPassenger}
@@ -84,8 +84,11 @@ trait CalculateDistanceCostProtocol extends DefaultJsonProtocol {
   implicit val calculateDistanceCostFormat = jsonFormat1(CalculateTripDistanceCostResponse)
 }
 
-trait CalculateAverageTripTime extends DefaultJsonProtocol {
+trait CalculateAverageTripTimeProtocol extends DefaultJsonProtocol {
   implicit val averageTripTimeFormat = jsonFormat1(TaxiTripAverageTimeMinutesResponse)
+}
+trait GetAverageTipAmountProtocol extends DefaultJsonProtocol {
+  implicit val averageTipAmountFormat = jsonFormat1(GetAverageTipAmountResponse)
 }
 
 
@@ -95,7 +98,8 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
   with TaxiPassengerInfoProtocol
   with TaxiExtraInfoProtocol
   with CalculateDistanceCostProtocol
-  with CalculateAverageTripTime
+  with CalculateAverageTripTimeProtocol
+  with GetAverageTipAmountProtocol
   {
   implicit val dispatcher: ExecutionContext = system.dispatcher
   implicit val timeout: Timeout = Timeout(5.seconds)
@@ -248,6 +252,16 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
                 .map(_.toJson.prettyPrint)
                 .map(toHttpEntity)
             )
+        }
+      } ~
+      pathPrefix("api" / "yellowtaxi" / "service" / "average-tip") {
+        get {
+          complete(
+            (taxiTripActor ? GetAverageTipAmount)
+              .mapTo[GetAverageTipAmountResponse]
+              .map(_.toJson.prettyPrint)
+              .map(toHttpEntity)
+          )
         }
       }
 

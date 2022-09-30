@@ -2,7 +2,6 @@ package com.tudux.taxi.actors
 
 import akka.actor.{ActorLogging, Props}
 import akka.persistence.PersistentActor
-import com.tudux.taxi.actors.TaxiCostStatsResponse.CalculateTripDistanceCostResponse
 
 case class TaxiCostStat(VendorID: Int,
                     trip_distance: Double,
@@ -19,12 +18,14 @@ object TaxiCostStatCommand {
   case class DeleteTaxiCostStat(statId: String) extends TaxiCostCommand
   case class CalculateTripDistanceCost(distance: Double) extends TaxiCostCommand
   case object GetPaymentMethodsStats
+  case object GetAverageTipAmount
 }
 
 sealed trait TaxiCostResponse
 object TaxiCostStatsResponse {
-  case class TotalTaxiCostStats(total: Int,totalAmount: Double)
-  case class CalculateTripDistanceCostResponse(estimatedCost: Double)
+  case class TotalTaxiCostStats(total: Int,totalAmount: Double) extends TaxiCostResponse
+  case class CalculateTripDistanceCostResponse(estimatedCost: Double) extends TaxiCostResponse
+  case class GetAverageTipAmountResponse(averageTipAmount: Double)  extends TaxiCostResponse
 }
 
 
@@ -42,12 +43,14 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
 
   import TaxiCostStatCommand._
   import TaxiCostStatEvent._
+  import TaxiCostStatsResponse._
 
   //Persistent Actor State
   var statCostMap : Map[String,TaxiCostStat] = Map.empty
   //Used for calculate estimated cost
   var totalDistance : Double = 0
   var totalAmount : Double = 0
+  var tipStats : Map[String,Double] = Map.empty
 
   override def persistenceId: String = id
 
@@ -58,7 +61,7 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
         statCostMap = statCostMap + (statId -> taxiCostStat)
         totalAmount += taxiCostStat.total_amount
         totalDistance += taxiCostStat.trip_distance
-
+        if(taxiCostStat.tip_amount > 0) tipStats =  tipStats + (statId -> taxiCostStat.tip_amount)
       }
     case GetTotalTaxiCostStats =>
       log.info(s"Received petition to return size which is: ${statCostMap.size})")
@@ -74,6 +77,8 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
           statCostMap = statCostMap + (statId -> taxiCostStat)
           totalAmount += statCostMap(statId).total_amount - prevAmount
           totalDistance += statCostMap(statId).trip_distance - prevDistance
+          if(tipStats.contains(statId) && (taxiCostStat.tip_amount >0)) tipStats = (tipStats + (statId -> taxiCostStat.tip_amount))
+          else if (tipStats.contains(statId) && (taxiCostStat.tip_amount == 0)) tipStats = (tipStats - statId)
         }
       } else {
         log.info(s"Entry not found to update by id $statId")
@@ -89,6 +94,9 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
     case CalculateTripDistanceCost(distance) =>
       log.info("Calculating estimated trip cost")
       sender() ! CalculateTripDistanceCostResponse((totalAmount/totalDistance) * distance)
+    case GetAverageTipAmount =>
+      sender() ! GetAverageTipAmountResponse(tipStats.values.sum / tipStats.size)
+
     case GetPaymentMethodsStats =>
     case _ =>
       log.info(s"Received something else at ${self.path.name}")
@@ -101,6 +109,7 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
       statCostMap = statCostMap + (statId -> taxiCostStat)
       totalAmount += taxiCostStat.total_amount
       totalDistance += taxiCostStat.trip_distance
+      if(taxiCostStat.tip_amount > 0) tipStats = tipStats + (statId -> taxiCostStat.tip_amount)
 
     case UpdatedTaxiCostStatEvent(statId,taxiCostStat) =>
       val prevAmount = statCostMap(statId).total_amount
@@ -108,6 +117,8 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
       statCostMap = statCostMap + (statId -> taxiCostStat)
       totalAmount += statCostMap(statId).total_amount - prevAmount
       totalDistance += statCostMap(statId).trip_distance - prevDistance
+      if (tipStats.contains(statId) && (taxiCostStat.tip_amount > 0)) tipStats = (tipStats + (statId -> taxiCostStat.tip_amount))
+      else if (tipStats.contains(statId) && (taxiCostStat.tip_amount == 0)) tipStats = (tipStats - statId)
     case DeletedTaxiCostStatEvent(statId) =>
       val taxiCostStatToBeDeleted: TaxiCostStat = statCostMap(statId).copy(deletedFlag = true)
       statCostMap = statCostMap + (statId -> taxiCostStatToBeDeleted)

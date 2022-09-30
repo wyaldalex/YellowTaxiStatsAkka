@@ -114,6 +114,9 @@ class TaxiTripActor extends Actor with ActorLogging {
       taxiTripCostActor.forward(calculateTripDistanceCost)
     case getAverageTripTime@GetAverageTripTime =>
       taxiTimeInfoActor.forward(getAverageTripTime)
+    case getAverageTipAmount@GetAverageTipAmount =>
+      log.info("Received GetAverageTipAmount request")
+      taxiTripCostActor.forward(getAverageTipAmount)
     //Individual Deletes
     /*
     case deleteTaxiCostStat@DeleteTaxiCostStat(_) =>

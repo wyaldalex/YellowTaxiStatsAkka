@@ -8,15 +8,15 @@ case class TaxiTripPassengerInfoStat(passenger_count: Int,deletedFlag: Boolean =
 sealed trait TaxiTripPassengerInfoCommand
 object TaxiTripPassengerInfoStatCommand {
   case class CreateTaxiTripPassengerInfoStat(statId: String,taxiTripPassengerInfoStat: TaxiTripPassengerInfoStat) extends TaxiTripPassengerInfoCommand
-  case class GetTaxiPassengerInfoStat(statId: String)
-  case class UpdateTaxiPassenger(statId: String, taxiTripPassengerInfoStat: TaxiTripPassengerInfoStat)
+  case class GetTaxiPassengerInfoStat(statId: String) extends TaxiTripPassengerInfoCommand
+  case class UpdateTaxiPassenger(statId: String, taxiTripPassengerInfoStat: TaxiTripPassengerInfoStat) extends TaxiTripPassengerInfoCommand
 }
 
 
 sealed trait TaxiTripPassengerInfoEvent
 object TaxiTripPassengerInfoStatEvent{
   case class TaxiTripPassengerInfoStatCreatedEvent(statId: String, taxiTripPassengerInfoStat: TaxiTripPassengerInfoStat) extends TaxiTripPassengerInfoEvent
-  case class UpdatedTaxiPassengerEvent(statId: String, taxiTripPassengerInfoStat: TaxiTripPassengerInfoStat)
+  case class UpdatedTaxiPassengerEvent(statId: String, taxiTripPassengerInfoStat: TaxiTripPassengerInfoStat) extends TaxiTripPassengerInfoEvent
 }
 
 object PersistentTaxiTripPassengerInfo {
@@ -44,10 +44,11 @@ class PersistentTaxiTripPassengerInfo(id: String) extends PersistentActor with A
       sender() ! taxiTripPassengerInfoStatMap.get(statId)
     case UpdateTaxiPassenger(statId,taxiTripPassengerInfoStat) =>
       log.info(s"Applying update for Passenger Info for id $statId")
-      persist(UpdatedTaxiPassengerEvent(statId,taxiTripPassengerInfoStat)) { _ =>
-        log.info(s"Updated applied for Passenger info Id: $statId")
-        taxiTripPassengerInfoStatMap = taxiTripPassengerInfoStatMap + (statId -> taxiTripPassengerInfoStat)
-      }
+      if (taxiTripPassengerInfoStatMap.contains(statId)) {
+        persist(UpdatedTaxiPassengerEvent(statId, taxiTripPassengerInfoStat)) { _ =>
+          taxiTripPassengerInfoStatMap = taxiTripPassengerInfoStatMap + (statId -> taxiTripPassengerInfoStat)
+        }
+      } else log.info(s"Entry not found to update by id $statId")
     case _ =>
       log.info(s"Received something else at ${self.path.name}")
 

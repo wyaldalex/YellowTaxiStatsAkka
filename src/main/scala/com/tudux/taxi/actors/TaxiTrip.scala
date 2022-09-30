@@ -67,14 +67,6 @@ class TaxiTripActor extends Actor with ActorLogging {
     val taxiTripActorId = "persistent-time-info-stats-actor"
     context.actorOf(PersistentTaxiTripTimeInfo.props(taxiTripActorId), taxiTripActorId)
   }
-
-  /*
-  override def receive: Receive = {
-    case CreateTaxiStat(taxiStat) =>
-      log.info(s"Received $taxiStat to create")
-      taxiTripCostActor.forward(CreateTaxiStat(taxiStat))
-    case _ => log.info("Received something else")
-  } */
   override def receive: Receive = {
     case CreateTaxiStat(taxiStat) =>
       //generate new stat ID to avoid conflicts
@@ -90,23 +82,31 @@ class TaxiTripActor extends Actor with ActorLogging {
       //candidate to be a forward operation
       taxiTripCostActor ! GetTotalTaxiCostStats
     //Individual Gets
-    case GetTaxiCostStat(statId) =>
+    case getTaxiCostStat@GetTaxiCostStat(_) =>
       log.info(s"Receive Taxi Cost Inquiry, forwarding")
-      taxiTripCostActor.forward(GetTaxiCostStat(statId))
-    case GetTaxiExtraInfoStat(statId) =>
+      taxiTripCostActor.forward(getTaxiCostStat)
+    case getTaxiExtraInfoStat@GetTaxiExtraInfoStat(_) =>
       log.info(s"Receive Taxi Cost Inquiry, forwarding")
-      taxiExtraInfoActor.forward(GetTaxiExtraInfoStat(statId))
-    case GetTaxiTimeInfoStat(statId) =>
+      taxiExtraInfoActor.forward(getTaxiExtraInfoStat)
+    case getTaxiTimeInfoStat@GetTaxiTimeInfoStat(statId) =>
       log.info(s"Receive Taxi Cost Inquiry, forwarding")
-      taxiTimeInfoActor.forward(GetTaxiTimeInfoStat(statId))
-    case GetTaxiPassengerInfoStat(statId) =>
+      taxiTimeInfoActor.forward(getTaxiTimeInfoStat)
+    case getTaxiPassengerInfoStat@GetTaxiPassengerInfoStat(_) =>
       log.info(s"Receive Taxi Cost Inquiry, forwarding")
-      taxiPassengerInfoActor.forward(GetTaxiPassengerInfoStat(statId))
+      taxiPassengerInfoActor.forward(getTaxiPassengerInfoStat)
     //Individual Updates
-    case UpdateTaxiPassenger(statId,taxiTripPassengerInfoStat) =>
-      taxiPassengerInfoActor.forward(UpdateTaxiPassenger(statId,taxiTripPassengerInfoStat))
-
-    case _ => log.info("Received something else")
+    case updateTaxiPassenger@UpdateTaxiPassenger(_,_) =>
+      taxiPassengerInfoActor.forward(updateTaxiPassenger)
+    case updateTaxiTripTimeInfoStat@UpdateTaxiTripTimeInfoStat(_,_) =>
+      taxiTimeInfoActor.forward(updateTaxiTripTimeInfoStat)
+    case updateTaxiExtraInfoStat@UpdateTaxiExtraInfoStat(_,_) =>
+      taxiExtraInfoActor.forward(updateTaxiExtraInfoStat)
+    case updateTaxiCostStat@UpdateTaxiCostStat(_,_) =>
+      taxiTripCostActor.forward(updateTaxiCostStat)
+    //Individual Deletes
+    case deleteTaxiCostStat@DeleteTaxiCostStat(_) =>
+      taxiTripCostActor ! deleteTaxiCostStat
+    case _ => log.info("Received something else at parent actor")
   }
 
 }

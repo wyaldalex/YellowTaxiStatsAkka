@@ -11,11 +11,11 @@ import akka.util.Timeout
 import com.tudux.taxi.actors.{TaxiCostStat, TaxiExtraInfoStat, TaxiStat, TaxiTripPassengerInfoStat, TaxiTripTimeInfoStat}
 import com.tudux.taxi.actors.TaxiStatCommand.CreateTaxiStat
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import com.tudux.taxi.actors.TaxiCostStatCommand.GetTaxiCostStat
-import com.tudux.taxi.actors.TaxiExtraInfoStatCommand.GetTaxiExtraInfoStat
+import com.tudux.taxi.actors.TaxiCostStatCommand.{DeleteTaxiCostStat, GetTaxiCostStat, UpdateTaxiCostStat}
+import com.tudux.taxi.actors.TaxiExtraInfoStatCommand.{GetTaxiExtraInfoStat, UpdateTaxiExtraInfoStat}
 import com.tudux.taxi.actors.TaxiStatResponseResponses.TaxiStatCreatedResponse
 import com.tudux.taxi.actors.TaxiTripPassengerInfoStatCommand.{GetTaxiPassengerInfoStat, UpdateTaxiPassenger}
-import com.tudux.taxi.actors.TaxiTripTimeInfoStatCommand.GetTaxiTimeInfoStat
+import com.tudux.taxi.actors.TaxiTripTimeInfoStatCommand.{GetTaxiTimeInfoStat, UpdateTaxiTripTimeInfoStat}
 import spray.json._
 
 import scala.concurrent.ExecutionContext
@@ -43,7 +43,23 @@ case class CreateTaxiStatRequest(VendorID: Int, tpep_pickup_datetime: String, tp
 case class UpdatePassengerInfoRequest(passenger_count: Int) {
   def toCommand(statId: String) : UpdateTaxiPassenger = UpdateTaxiPassenger(statId,TaxiTripPassengerInfoStat(passenger_count))
 }
-
+case class UpdateExtraInfoRequest(pickup_longitude: Double, pickup_latitude: Double, RateCodeID: Int,
+                                  store_and_fwd_flag: String, dropoff_longitude: Double, dropoff_latitude: Double) {
+  def toCommand(statId: String) : UpdateTaxiExtraInfoStat = UpdateTaxiExtraInfoStat(statId,TaxiExtraInfoStat(pickup_longitude,pickup_latitude, RateCodeID,
+    store_and_fwd_flag,dropoff_longitude,dropoff_latitude))
+}
+case class UpdateTimeInfoRequest(tpep_pickup_datetime: String,tpep_dropoff_datetime: String) {
+  def toCommand(statId: String) : UpdateTaxiTripTimeInfoStat = UpdateTaxiTripTimeInfoStat(statId,TaxiTripTimeInfoStat(tpep_pickup_datetime,tpep_dropoff_datetime))
+}
+case class UpdateCostInfoRequest(VendorID: Int,
+                                 trip_distance: Double,
+                                 payment_type: Int, fare_amount: Double, extra: Double, mta_tax: Double,
+                                 tip_amount: Double, tolls_amount: Double, improvement_surcharge: Double, total_amount: Double) {
+  def toCommand(statId: String) : UpdateTaxiCostStat = UpdateTaxiCostStat(statId,TaxiCostStat(VendorID,
+    trip_distance,
+    payment_type, fare_amount, extra, mta_tax,
+    tip_amount, tolls_amount, improvement_surcharge, total_amount))
+}
 
 
 trait TaxiCostStatProtocol extends DefaultJsonProtocol {
@@ -106,6 +122,22 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
               .map(toHttpEntity)
           )
         }
+      } ~
+      put {
+        path(Segment) { statId =>
+          put {
+            entity(as[UpdateCostInfoRequest]) { request =>
+              taxiTripActor ! request.toCommand(statId)
+              complete(StatusCodes.OK)
+            }
+          }
+        }
+      } ~
+      delete {
+        path(Segment) { statId =>
+              taxiTripActor ! DeleteTaxiCostStat(statId)
+              complete(StatusCodes.OK)
+        }
       }
     } ~
     pathPrefix("api" / "yellowtaxi" / "time") {
@@ -118,6 +150,16 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
               .map(_.toJson.prettyPrint)
               .map(toHttpEntity)
           )
+        }
+      } ~
+      put {
+        path(Segment) { statId =>
+          put {
+            entity(as[UpdateTimeInfoRequest]) { request =>
+              taxiTripActor ! request.toCommand(statId)
+              complete(StatusCodes.OK)
+            }
+          }
         }
       }
     } ~
@@ -154,6 +196,16 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
               .map(_.toJson.prettyPrint)
               .map(toHttpEntity)
           )
+        }
+      } ~
+      put {
+        path(Segment) { statId =>
+          put {
+            entity(as[UpdateExtraInfoRequest]) { request =>
+              taxiTripActor ! request.toCommand(statId)
+              complete(StatusCodes.OK)
+            }
+          }
         }
       }
     }

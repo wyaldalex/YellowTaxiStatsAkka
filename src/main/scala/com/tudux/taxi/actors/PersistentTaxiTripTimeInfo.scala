@@ -9,12 +9,14 @@ sealed trait TaxiTripTimeInfoCommand
 object TaxiTripTimeInfoStatCommand {
   case class CreateTaxiTripTimeInfoStat(statId: String,taxiTripTimeInfoStat: TaxiTripTimeInfoStat) extends TaxiTripTimeInfoCommand
   case class GetTaxiTimeInfoStat(statId: String)
+  case class UpdateTaxiTripTimeInfoStat(statId: String,taxiTripTimeInfoStat: TaxiTripTimeInfoStat) extends TaxiTripTimeInfoCommand
 }
 
 
 sealed trait TaxiTripTimeInfoEvent
 object TaxiTripTimeInfoStatEvent{
   case class TaxiTripTimeInfoStatCreatedEvent(statId: String, taxiTripTimeInfoStat: TaxiTripTimeInfoStat) extends TaxiTripTimeInfoEvent
+  case class TaxiTripTimeInfoStatUpdatedEvent(statId: String, taxiTripTimeInfoStat: TaxiTripTimeInfoStat) extends TaxiTripTimeInfoEvent
 }
 
 object PersistentTaxiTripTimeInfo {
@@ -26,7 +28,6 @@ class PersistentTaxiTripTimeInfo(id: String) extends PersistentActor with ActorL
   import TaxiTripTimeInfoStatEvent._
 
   //Persistent Actor State
-  var statCounter: Int = 1
   var taxiTripTimeInfoStatMap : Map[String,TaxiTripTimeInfoStat] = Map.empty
 
   override def persistenceId: String = id
@@ -36,8 +37,12 @@ class PersistentTaxiTripTimeInfo(id: String) extends PersistentActor with ActorL
       persist(TaxiTripTimeInfoStatCreatedEvent(statId,taxiTripTimeInfoStat)) { _ =>
         log.info(s"Creating Trip Time Info Stat $taxiTripTimeInfoStat")
         taxiTripTimeInfoStatMap = taxiTripTimeInfoStatMap + (statId -> taxiTripTimeInfoStat)
-        statCounter += 1
       }
+    case UpdateTaxiTripTimeInfoStat(statId, taxiTripTimeInfoStat) =>
+      log.info("Updating Time Info ")
+      if(taxiTripTimeInfoStatMap.contains(statId)) {
+        taxiTripTimeInfoStatMap = taxiTripTimeInfoStatMap + (statId -> taxiTripTimeInfoStat)
+      } else log.info(s"Entry not found to update by id $statId")
     case GetTaxiTimeInfoStat(statId) =>
       sender() ! taxiTripTimeInfoStatMap.get(statId)
     case _ =>
@@ -49,7 +54,9 @@ class PersistentTaxiTripTimeInfo(id: String) extends PersistentActor with ActorL
     case TaxiTripTimeInfoStatCreatedEvent(statId,taxiTripTimeInfoStat) =>
       log.info(s"Recovering Trip Time Info Stat $taxiTripTimeInfoStat")
       taxiTripTimeInfoStatMap = taxiTripTimeInfoStatMap + (statId -> taxiTripTimeInfoStat)
-      statCounter += 1
+    case TaxiTripTimeInfoStatUpdatedEvent(statId,taxiTripTimeInfoStat) =>
+      log.info(s"Recovering Update Trip Time Info Stat $taxiTripTimeInfoStat")
+      taxiTripTimeInfoStatMap = taxiTripTimeInfoStatMap + (statId -> taxiTripTimeInfoStat)
   }
 }
 

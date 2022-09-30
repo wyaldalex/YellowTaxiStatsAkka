@@ -9,13 +9,15 @@ case class TaxiExtraInfoStat(pickup_longitude: Double, pickup_latitude: Double, 
 sealed trait TaxiExtraInfoCommand
 object TaxiExtraInfoStatCommand {
   case class CreateTaxiExtraInfoStat(statId: String,taxiExtraInfoStat: TaxiExtraInfoStat) extends TaxiExtraInfoCommand
-  case class GetTaxiExtraInfoStat(statId: String)
+  case class GetTaxiExtraInfoStat(statId: String) extends TaxiExtraInfoCommand
+  case class UpdateTaxiExtraInfoStat(statId: String,taxiExtraInfoStat: TaxiExtraInfoStat) extends TaxiExtraInfoCommand
 }
 
 
 sealed trait TaxiExtraInfoEvent
 object TaxiExtraInfoStatEvent{
   case class TaxiExtraInfoStatCreatedEvent(statId: String, taxiExtraInfoStat: TaxiExtraInfoStat) extends TaxiExtraInfoEvent
+  case class TaxiExtraInfoStatUpdatedEvent(statId: String, taxiExtraInfoStat: TaxiExtraInfoStat) extends TaxiExtraInfoEvent
 }
 
 object PersistentTaxiExtraInfo {
@@ -27,7 +29,6 @@ class PersistentTaxiExtraInfo(id: String) extends PersistentActor with ActorLogg
   import TaxiExtraInfoStatEvent._
 
   //Persistent Actor State
-  var statCounter: Int = 1
   var statExtraInfoMap : Map[String,TaxiExtraInfoStat] = Map.empty
 
   override def persistenceId: String = id
@@ -37,8 +38,15 @@ class PersistentTaxiExtraInfo(id: String) extends PersistentActor with ActorLogg
       persist(TaxiExtraInfoStatCreatedEvent(statId,taxiExtraInfoStat)) { _ =>
         log.info(s"Creating Extra Info Stat $taxiExtraInfoStat")
         statExtraInfoMap = statExtraInfoMap + (statId -> taxiExtraInfoStat)
-        statCounter += 1
       }
+    case UpdateTaxiExtraInfoStat(statId,taxiExtraInfoStat) =>
+      log.info(s"Updating Extra Info Stat $taxiExtraInfoStat")
+      if(statExtraInfoMap.contains(statId)) {
+        persist(TaxiExtraInfoStatUpdatedEvent(statId, taxiExtraInfoStat)) { _ =>
+          statExtraInfoMap = statExtraInfoMap + (statId -> taxiExtraInfoStat)
+        }
+      } else log.info(s"Entry not found to update by id $statId")
+
     case GetTaxiExtraInfoStat(statId) =>
       sender() ! statExtraInfoMap.get(statId)
     case _ =>
@@ -50,7 +58,9 @@ class PersistentTaxiExtraInfo(id: String) extends PersistentActor with ActorLogg
     case TaxiExtraInfoStatCreatedEvent(statId,taxiExtraInfoStat) =>
       log.info(s"Recovering Extra Info Stat $taxiExtraInfoStat")
       statExtraInfoMap = statExtraInfoMap + (statId -> taxiExtraInfoStat)
-      statCounter += 1
+    case TaxiExtraInfoStatUpdatedEvent(statId,taxiExtraInfoStat) =>
+      log.info(s"Recovering Updated Extra Info Stat $taxiExtraInfoStat")
+      statExtraInfoMap = statExtraInfoMap + (statId -> taxiExtraInfoStat)
   }
 }
 

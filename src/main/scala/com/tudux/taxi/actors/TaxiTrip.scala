@@ -117,6 +117,15 @@ class TaxiTripActor extends Actor with ActorLogging {
     case getAverageTipAmount@GetAverageTipAmount =>
       log.info("Received GetAverageTipAmount request")
       taxiTripCostActor.forward(getAverageTipAmount)
+    //Individual Stats
+    case getTotalCostLoaded@GetTotalCostLoaded =>
+      taxiTripCostActor.forward(getTotalCostLoaded)
+    case getTotalExtraInfoLoaded@GetTotalExtraInfoLoaded =>
+      taxiExtraInfoActor.forward(getTotalExtraInfoLoaded)
+    case getTotalTimeInfoInfoLoaded@GetTotalTimeInfoInfoLoaded =>
+      taxiTimeInfoActor.forward(getTotalTimeInfoInfoLoaded)
+    case getTotalPassengerInfoLoaded@GetTotalPassengerInfoLoaded =>
+      taxiPassengerInfoActor.forward(getTotalPassengerInfoLoaded)
     //Individual Deletes
     /*
     case deleteTaxiCostStat@DeleteTaxiCostStat(_) =>
@@ -150,7 +159,8 @@ object TaxiStatApp extends App {
   import kantan.csv.ops._ // Enriches types with useful methods.
   import kantan.csv.generic._ // Automatic derivation of codecs.
   implicit val decoder: RowDecoder[TaxiStat] = RowDecoder.ordered(TaxiStat.apply _)
-  val source_csv = Source.fromResource("smallset.csv").mkString
+  //val source_csv = Source.fromResource("smallset.csv").mkString
+  val source_csv = Source.fromResource("100ksample.csv").mkString
   val reader = source_csv.asCsvReader[TaxiStat](rfc)
 
   import TaxiStatEvent._

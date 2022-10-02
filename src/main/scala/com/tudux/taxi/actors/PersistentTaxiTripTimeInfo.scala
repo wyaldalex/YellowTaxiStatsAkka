@@ -12,6 +12,7 @@ object TaxiTripTimeInfoStatCommand {
   case class UpdateTaxiTripTimeInfoStat(statId: String,taxiTripTimeInfoStat: TaxiTripTimeInfoStat) extends TaxiTripTimeInfoCommand
   case class DeleteTaxiTripTimeInfoStat(statId: String) extends TaxiTripTimeInfoCommand
   case object GetAverageTripTime extends TaxiTripTimeInfoCommand
+  case object GetTotalTimeInfoInfoLoaded
 }
 
 
@@ -74,6 +75,8 @@ class PersistentTaxiTripTimeInfo(id: String) extends PersistentActor with ActorL
       }
     case GetAverageTripTime =>
       sender() ! TaxiTripAverageTimeMinutesResponse(totalMinutesTrip / taxiTripTimeInfoStatMap.size)
+    case GetTotalTimeInfoInfoLoaded =>
+      sender() ! taxiTripTimeInfoStatMap.size
     case _ =>
       log.info(s"Received something else at ${self.path.name}")
 

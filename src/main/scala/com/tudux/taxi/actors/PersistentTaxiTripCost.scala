@@ -17,8 +17,8 @@ object TaxiCostStatCommand {
   case class UpdateTaxiCostStat(statId: String,taxiCostStat: TaxiCostStat) extends TaxiCostCommand
   case class DeleteTaxiCostStat(statId: String) extends TaxiCostCommand
   case class CalculateTripDistanceCost(distance: Double) extends TaxiCostCommand
-  case object GetPaymentMethodsStats
-  case object GetAverageTipAmount
+  case object GetAverageTipAmount extends TaxiCostCommand
+  case object GetTotalCostLoaded extends TaxiCostCommand
 }
 
 sealed trait TaxiCostResponse
@@ -97,7 +97,8 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
     case GetAverageTipAmount =>
       sender() ! GetAverageTipAmountResponse(tipStats.values.sum / tipStats.size)
 
-    case GetPaymentMethodsStats =>
+    case GetTotalCostLoaded =>
+      sender() ! statCostMap.size
     case _ =>
       log.info(s"Received something else at ${self.path.name}")
 

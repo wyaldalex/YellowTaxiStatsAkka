@@ -11,6 +11,7 @@ object TaxiTripPassengerInfoStatCommand {
   case class GetTaxiPassengerInfoStat(statId: String) extends TaxiTripPassengerInfoCommand
   case class UpdateTaxiPassenger(statId: String, taxiTripPassengerInfoStat: TaxiTripPassengerInfoStat) extends TaxiTripPassengerInfoCommand
   case class DeleteTaxiTripPassenger(statId: String) extends TaxiTripPassengerInfoCommand
+  case object GetTotalPassengerInfoLoaded
 }
 
 
@@ -59,7 +60,8 @@ class PersistentTaxiTripPassengerInfo(id: String) extends PersistentActor with A
           taxiTripPassengerInfoStatMap = taxiTripPassengerInfoStatMap + (statId -> taxiPassengerInfoDeleted)
         }
       }
-
+    case GetTotalPassengerInfoLoaded =>
+      sender() ! taxiTripPassengerInfoStatMap.size
     case _ =>
       log.info(s"Received something else at ${self.path.name}")
 

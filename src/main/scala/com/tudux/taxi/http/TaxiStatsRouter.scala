@@ -11,16 +11,17 @@ import akka.util.Timeout
 import com.tudux.taxi.actors.{TaxiCostStat, TaxiExtraInfoStat, TaxiStat, TaxiTripPassengerInfoStat, TaxiTripTimeInfoStat}
 import com.tudux.taxi.actors.TaxiStatCommand.{CreateTaxiStat, DeleteTaxiStat}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import com.tudux.taxi.actors.TaxiCostStatCommand.{CalculateTripDistanceCost, DeleteTaxiCostStat, GetAverageTipAmount, GetTaxiCostStat, UpdateTaxiCostStat}
+import com.tudux.taxi.actors.TaxiCostStatCommand.{CalculateTripDistanceCost, DeleteTaxiCostStat, GetAverageTipAmount, GetTaxiCostStat, GetTotalCostLoaded, UpdateTaxiCostStat}
 import com.tudux.taxi.actors.TaxiCostStatsResponse.{CalculateTripDistanceCostResponse, GetAverageTipAmountResponse}
-import com.tudux.taxi.actors.TaxiExtraInfoStatCommand.{GetTaxiExtraInfoStat, UpdateTaxiExtraInfoStat}
+import com.tudux.taxi.actors.TaxiExtraInfoStatCommand.{GetTaxiExtraInfoStat, GetTotalExtraInfoLoaded, UpdateTaxiExtraInfoStat}
 import com.tudux.taxi.actors.TaxiStatResponseResponses.TaxiStatCreatedResponse
-import com.tudux.taxi.actors.TaxiTripPassengerInfoStatCommand.{GetTaxiPassengerInfoStat, UpdateTaxiPassenger}
-import com.tudux.taxi.actors.TaxiTripTimeInfoStatCommand.{GetAverageTripTime, GetTaxiTimeInfoStat, UpdateTaxiTripTimeInfoStat}
+import com.tudux.taxi.actors.TaxiTripPassengerInfoStatCommand.{GetTaxiPassengerInfoStat, GetTotalPassengerInfoLoaded, UpdateTaxiPassenger}
+import com.tudux.taxi.actors.TaxiTripTimeInfoStatCommand.{GetAverageTripTime, GetTaxiTimeInfoStat, GetTotalTimeInfoInfoLoaded, UpdateTaxiTripTimeInfoStat}
 import com.tudux.taxi.actors.TaxiTripTimeResponses.TaxiTripAverageTimeMinutesResponse
 import spray.json._
 
 import scala.concurrent.ExecutionContext
+import scala.util.{Failure, Success}
 //import como.tudux.bank.actors.PersistentBankAccount.{Command, Response}
 //import como.tudux.bank.actors.PersistentBankAccount.Command._
 //import como.tudux.bank.actors.PersistentBankAccount.Response.{BankAccountBalanceUpdatedResponse, BankAccountCreatedResponse, GetBankAccountResponse}
@@ -63,6 +64,7 @@ case class UpdateCostInfoRequest(VendorID: Int,
     tip_amount, tolls_amount, improvement_surcharge, total_amount))
 }
 
+case class LoadedStatsResponse(totalCostLoaded: Int, totalExtraInfoLoaded: Int, totalTimeInfoLoaded: Int, totalPassengerInfo: Int)
 
 trait TaxiCostStatProtocol extends DefaultJsonProtocol {
   implicit val taxiCostStatFormat = jsonFormat11(TaxiCostStat)
@@ -90,6 +92,9 @@ trait CalculateAverageTripTimeProtocol extends DefaultJsonProtocol {
 trait GetAverageTipAmountProtocol extends DefaultJsonProtocol {
   implicit val averageTipAmountFormat = jsonFormat1(GetAverageTipAmountResponse)
 }
+trait GetTotalLoadedResponseProtocol extends DefaultJsonProtocol {
+  implicit val totalLoadedResponseFormat = jsonFormat4(LoadedStatsResponse)
+}
 
 
 class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) extends SprayJsonSupport
@@ -100,6 +105,7 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
   with CalculateDistanceCostProtocol
   with CalculateAverageTripTimeProtocol
   with GetAverageTipAmountProtocol
+  with GetTotalLoadedResponseProtocol
   {
   implicit val dispatcher: ExecutionContext = system.dispatcher
   implicit val timeout: Timeout = Timeout(5.seconds)
@@ -259,6 +265,25 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
           complete(
             (taxiTripActor ? GetAverageTipAmount)
               .mapTo[GetAverageTipAmountResponse]
+              .map(_.toJson.prettyPrint)
+              .map(toHttpEntity)
+          )
+        }
+      } ~
+      pathPrefix("api" / "yellowtaxi" /  "loaded" / "stat") {
+        get {
+          val statTotalCostLoadedFuture: Future[Int] = (taxiTripActor ? GetTotalCostLoaded).mapTo[Int]
+          val statTotalPassengerInfoLoadedFuture: Future[Int] = (taxiTripActor ? GetTotalPassengerInfoLoaded).mapTo[Int]
+          val statTotalExtraInfoLoadedFuture: Future[Int] = (taxiTripActor ? GetTotalExtraInfoLoaded).mapTo[Int]
+          val statTotalTimeInfoFuture: Future[Int] = (taxiTripActor ? GetTotalTimeInfoInfoLoaded).mapTo[Int]
+          val totalLoadResponse = for {
+            r1 <- statTotalCostLoadedFuture
+            r2 <- statTotalExtraInfoLoadedFuture
+            r3 <- statTotalTimeInfoFuture
+            r4 <- statTotalPassengerInfoLoadedFuture
+          } yield LoadedStatsResponse(r1,r2,r3,r4)
+          complete(
+            totalLoadResponse.mapTo[LoadedStatsResponse]
               .map(_.toJson.prettyPrint)
               .map(toHttpEntity)
           )

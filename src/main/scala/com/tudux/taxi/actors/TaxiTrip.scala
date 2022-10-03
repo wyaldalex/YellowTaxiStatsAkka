@@ -143,7 +143,7 @@ class TaxiTripActor extends Actor with ActorLogging {
 }
 
 
-object TaxiStatApp extends App {
+object TaxiStatAppLoader extends App {
 
   implicit val system: ActorSystem = ActorSystem("BankPlayground")
   implicit val timeout: Timeout = Timeout(2.seconds)
@@ -161,6 +161,7 @@ object TaxiStatApp extends App {
   implicit val decoder: RowDecoder[TaxiStat] = RowDecoder.ordered(TaxiStat.apply _)
   //val source_csv = Source.fromResource("smallset.csv").mkString
   val source_csv = Source.fromResource("100ksample.csv").mkString
+  //val source_csv = Source.fromResource("1millSample.csv").mkString
   val reader = source_csv.asCsvReader[TaxiStat](rfc)
 
   import TaxiStatEvent._

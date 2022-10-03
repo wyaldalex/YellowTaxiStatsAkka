@@ -38,6 +38,7 @@ class PersistentTaxiExtraInfo(id: String) extends PersistentActor with ActorLogg
 
   override def receiveCommand: Receive = {
     case CreateTaxiExtraInfoStat(statId,taxiExtraInfoStat) =>
+      //throw new RuntimeException("Mock Actor Failure") //Simulate Actor failure
       persist(TaxiExtraInfoStatCreatedEvent(statId,taxiExtraInfoStat)) { _ =>
         log.info(s"Creating Extra Info Stat $taxiExtraInfoStat")
         statExtraInfoMap = statExtraInfoMap + (statId -> taxiExtraInfoStat)

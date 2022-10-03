@@ -108,7 +108,7 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
   with GetTotalLoadedResponseProtocol
   {
   implicit val dispatcher: ExecutionContext = system.dispatcher
-  implicit val timeout: Timeout = Timeout(5.seconds)
+  implicit val timeout: Timeout = Timeout(50.seconds)
 
   def toHttpEntity(payload: String) = HttpEntity(ContentTypes.`application/json`, payload)
 

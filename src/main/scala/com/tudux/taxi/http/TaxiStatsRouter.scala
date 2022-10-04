@@ -1,33 +1,26 @@
 package com.tudux.taxi.http
 
-import akka.pattern.ask
-import akka.http.scaladsl.server.Directives._
 import akka.actor.{ActorRef, ActorSystem}
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpResponse, StatusCodes}
-import akka.http.scaladsl.model.headers.Location
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import akka.pattern.ask
 import akka.util.Timeout
-import com.tudux.taxi.actors.{TaxiCostStat, TaxiExtraInfoStat, TaxiStat, TaxiTripPassengerInfoStat, TaxiTripTimeInfoStat}
-import com.tudux.taxi.actors.TaxiStatCommand.{CreateTaxiStat, DeleteTaxiStat}
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import com.tudux.taxi.actors.TaxiCostStatCommand.{CalculateTripDistanceCost, DeleteTaxiCostStat, GetAverageTipAmount, GetTaxiCostStat, GetTotalCostLoaded, UpdateTaxiCostStat}
+import com.tudux.taxi.actors.TaxiCostStatCommand._
 import com.tudux.taxi.actors.TaxiCostStatsResponse.{CalculateTripDistanceCostResponse, GetAverageTipAmountResponse}
 import com.tudux.taxi.actors.TaxiExtraInfoStatCommand.{GetTaxiExtraInfoStat, GetTotalExtraInfoLoaded, UpdateTaxiExtraInfoStat}
+import com.tudux.taxi.actors.TaxiStatCommand.{CreateTaxiStat, DeleteTaxiStat}
 import com.tudux.taxi.actors.TaxiStatResponseResponses.TaxiStatCreatedResponse
 import com.tudux.taxi.actors.TaxiTripPassengerInfoStatCommand.{GetTaxiPassengerInfoStat, GetTotalPassengerInfoLoaded, UpdateTaxiPassenger}
 import com.tudux.taxi.actors.TaxiTripTimeInfoStatCommand.{GetAverageTripTime, GetTaxiTimeInfoStat, GetTotalTimeInfoInfoLoaded, UpdateTaxiTripTimeInfoStat}
 import com.tudux.taxi.actors.TaxiTripTimeResponses.TaxiTripAverageTimeMinutesResponse
-import com.tudux.taxi.http.swagger.Swagger
+import com.tudux.taxi.actors._
 import spray.json._
 
 import scala.concurrent.ExecutionContext
-import scala.util.{Failure, Success}
-//import como.tudux.bank.actors.PersistentBankAccount.{Command, Response}
-//import como.tudux.bank.actors.PersistentBankAccount.Command._
-//import como.tudux.bank.actors.PersistentBankAccount.Response.{BankAccountBalanceUpdatedResponse, BankAccountCreatedResponse, GetBankAccountResponse}
-import io.circe.generic.auto._
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
+import io.circe.generic.auto._
 
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
@@ -115,9 +108,6 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
 
   val routes: Route = {
     pathPrefix("api" / "yellowtaxi" / "stat") {
-      get {
-        complete(StatusCodes.OK)
-      } ~
         post {
             entity(as[CreateTaxiStatRequest]) { request =>
               val statCreatedFuture: Future[TaxiStatCreatedResponse] = (taxiTripActor ? request.toCommand).mapTo[TaxiStatCreatedResponse]
@@ -160,12 +150,6 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
               complete(StatusCodes.OK)
             }
           }
-        }
-      } ~
-      delete {
-        path(Segment) { statId =>
-              taxiTripActor ! DeleteTaxiCostStat(statId)
-              complete(StatusCodes.OK)
         }
       }
     } ~

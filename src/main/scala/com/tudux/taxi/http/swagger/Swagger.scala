@@ -15,7 +15,10 @@ case class Swagger(system: ActorSystem) extends SwaggerHttpService {
   val PROTOCOL = config.getString("swagger.api.protocol")
 
   override def apiClasses: Set[Class[_]] = Set(classOf[Base], classOf[CreateStatResponse], classOf[DeleteTaxiStat],
-    classOf[GetTaxiCostStat], classOf[CalculateTripDistanceCost], classOf[GetAverageTipAmount],classOf[GetAverageTripTime])
+    classOf[GetTaxiCostStat], classOf[CalculateTripDistanceCost], classOf[GetAverageTipAmount],classOf[GetAverageTripTime],
+    classOf[UpdateTaxiCost], classOf[GetTaxiTimeInfoStat], classOf[UpdateTaxiTimeInfo],
+    classOf[GetTaxiPassenger],classOf[UpdateTaxiPassenger],
+    classOf[GetTaxiExtraInfo],classOf[UpdateTaxiExtraInfo])
 
   override val host = API_URL
 

@@ -21,5 +21,5 @@ trait CreateStatResponse {
     new ApiResponse(code = 400, message = "The request content was malformed"),
     new ApiResponse(code = 500, message = "There was an internal server error.")
   ))
-  def pingSwagger: Option[Route] = None
+  def createTaxiTripStatSwagger: Option[Route] = None
 }

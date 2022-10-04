@@ -10,7 +10,7 @@ import io.swagger.models.Operation
 @Api(value = "/cost")
 @SwaggerDefinition(tags = Array(new Tag(name = "GetTaxiCostStat", description = "Operation to get  TaxiCostStat by statID")))
 trait GetTaxiCostStat {
-  @ApiOperation(value = "stat", tags = Array("stat"), httpMethod = "GET", notes = "This route will retrieve Taxi Trip Cost by Id"   )
+  @ApiOperation(value = "stat", tags = Array("cost"), httpMethod = "GET", notes = "This route will retrieve Taxi Trip Cost by Id"   )
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "statId", value = "The unique id of the taxi trip stat", required = true, dataType = "int", paramType = "path")
   ))

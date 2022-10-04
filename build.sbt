@@ -22,8 +22,15 @@ libraryDependencies ++= Seq(
   "com.chuusai" %% "shapeless" % "2.3.3",
   "com.nrinaudo" %% "kantan.csv-generic" % "0.7.0",
   "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion,
-  "com.github.swagger-akka-http" %% "swagger-akka-http" % "1.4.0",
-  "com.typesafe.akka" %% "akka-http-testkit" % "10.1.7" % Test,
+  //"com.github.swagger-akka-http" %% "swagger-akka-http" % "1.4.0",
+  "com.github.swagger-akka-http" %% "swagger-akka-http" % "1.3.0",
+  "com.fasterxml.jackson.core" % "jackson-databind" % "2.11.3",
+  "javax.xml.bind" % "jaxb-api" % "2.1",
+  //"com.github.swagger-akka-http" %% "swagger-akka-http" % "0.14.1",
+  //"com.github.swagger-akka-http" % "swagger-akka-http_2.11" % "0.14.0",
+  //"com.typesafe.akka" % "akka-http-testkit_2.11" % "10.0.9" % "test",
+ // "com.typesafe.akka" %% "akka-http-testkit" % "10.1.7" % Test,
+
 
 
   // optional, if you want to add tests

@@ -4,19 +4,22 @@ import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.Http
 import akka.util.Timeout
 import com.tudux.taxi.actors.TaxiTripActor
-import com.tudux.taxi.http.TaxiStatsRouter
+import com.tudux.taxi.http.{Base, TaxiStatsRouter}
+import akka.http.scaladsl.server.Directives._
+import com.tudux.taxi.http.swagger.Swagger
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
+//Visit Swagger Documentation: http://localhost:10001/swagger-ui/index.html
 object TaxiApp extends App {
 
   def startHttpServer(taxiAppActor: ActorRef)(implicit system: ActorSystem): Unit = {
     implicit val scheduler: ExecutionContext = system.dispatcher
 
     val router = new TaxiStatsRouter(taxiAppActor)
-    val routes = router.routes
+    val routes = router.routes ~  Base(system).routes ~ Swagger(system).routes ~ getFromResourceDirectory("swagger-ui")
 
     val bindingFuture = Http().newServerAt("localhost", 10001).bind(routes)
 

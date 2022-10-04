@@ -18,6 +18,7 @@ import com.tudux.taxi.actors.TaxiStatResponseResponses.TaxiStatCreatedResponse
 import com.tudux.taxi.actors.TaxiTripPassengerInfoStatCommand.{GetTaxiPassengerInfoStat, GetTotalPassengerInfoLoaded, UpdateTaxiPassenger}
 import com.tudux.taxi.actors.TaxiTripTimeInfoStatCommand.{GetAverageTripTime, GetTaxiTimeInfoStat, GetTotalTimeInfoInfoLoaded, UpdateTaxiTripTimeInfoStat}
 import com.tudux.taxi.actors.TaxiTripTimeResponses.TaxiTripAverageTimeMinutesResponse
+import com.tudux.taxi.http.swagger.Swagger
 import spray.json._
 
 import scala.concurrent.ExecutionContext
@@ -289,6 +290,5 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
           )
         }
       }
-
   }
 }

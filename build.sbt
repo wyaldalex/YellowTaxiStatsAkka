@@ -22,6 +22,8 @@ libraryDependencies ++= Seq(
   "com.chuusai" %% "shapeless" % "2.3.3",
   "com.nrinaudo" %% "kantan.csv-generic" % "0.7.0",
   "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion,
+  "com.github.swagger-akka-http" %% "swagger-akka-http" % "1.4.0",
+  "com.typesafe.akka" %% "akka-http-testkit" % "10.1.7" % Test,
 
 
   // optional, if you want to add tests

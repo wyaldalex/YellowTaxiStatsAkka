@@ -12,6 +12,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
+//Visit Swagger Documentation: http://localhost:10001/swagger-ui/index.html
 object TaxiApp extends App {
 
   def startHttpServer(taxiAppActor: ActorRef)(implicit system: ActorSystem): Unit = {

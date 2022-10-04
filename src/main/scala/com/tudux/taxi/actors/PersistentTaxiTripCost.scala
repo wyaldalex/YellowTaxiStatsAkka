@@ -19,6 +19,7 @@ object TaxiCostStatCommand {
   case class CalculateTripDistanceCost(distance: Double) extends TaxiCostCommand
   case object GetAverageTipAmount extends TaxiCostCommand
   case object GetTotalCostLoaded extends TaxiCostCommand
+  case class PrintTimeToLoad(startTimeMillis: Long) extends TaxiCostCommand
 }
 
 sealed trait TaxiCostResponse
@@ -99,6 +100,11 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
 
     case GetTotalCostLoaded =>
       sender() ! statCostMap.size
+    case PrintTimeToLoad(startTimeMillis) =>
+      log.info("Getting Load Time")
+      val endTimeMillis = System.currentTimeMillis()
+      val durationSeconds = (endTimeMillis - startTimeMillis) / 1000
+      log.info(s"Total Load Time: $durationSeconds" )
     case _ =>
       log.info(s"Received something else at ${self.path.name}")
 

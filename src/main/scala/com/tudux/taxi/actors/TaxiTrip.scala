@@ -6,8 +6,8 @@ import com.tudux.taxi.actors.TaxiStatResponseResponses.TaxiStatCreatedResponse
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext
-import scala.io.Source
 import scala.concurrent.duration._
+import scala.io.Source
 
 object TaxiTripActor {
   def props: Props = Props(new TaxiTripActor)
@@ -15,9 +15,9 @@ object TaxiTripActor {
 
 class TaxiTripActor extends Actor with ActorLogging {
 
-  import TaxiStatCommand._
   import TaxiCostStatCommand._
   import TaxiExtraInfoStatCommand._
+  import TaxiStatCommand._
   import TaxiTripPassengerInfoStatCommand._
   import TaxiTripTimeInfoStatCommand._
 
@@ -136,6 +136,9 @@ class TaxiTripActor extends Actor with ActorLogging {
       taxiPassengerInfoActor ! deleteTaxiTripPassenger
     case deleteTaxiTripTimeInfoStat@DeleteTaxiTripTimeInfoStat(_) =>
       taxiTimeInfoActor ! deleteTaxiTripTimeInfoStat */
+    case printTimeToLoad@PrintTimeToLoad(_) =>
+      log.info("Forwarding Total Time to Load Request")
+      taxiTripCostActor.forward(printTimeToLoad)
     case _ => log.info("Received something else at parent actor")
 
   }
@@ -145,7 +148,7 @@ class TaxiTripActor extends Actor with ActorLogging {
 
 object TaxiStatAppLoader extends App {
 
-  implicit val system: ActorSystem = ActorSystem("BankPlayground")
+  implicit val system: ActorSystem = ActorSystem("TaxiLoader")
   implicit val timeout: Timeout = Timeout(2.seconds)
   implicit val scheduler: ExecutionContext = system.dispatcher
   /*
@@ -154,27 +157,35 @@ object TaxiStatAppLoader extends App {
   //val persistentTaxiStatActor = system.actorOf(PersistentTaxiStatActor.props, "quickPersistentActorTest")
   val taxiTripActor = system.actorOf(TaxiTripActor.props, "parentTaxiActor")
 
-
-  import kantan.csv._ // All kantan.csv types.
-  import kantan.csv.ops._ // Enriches types with useful methods.
-  import kantan.csv.generic._ // Automatic derivation of codecs.
+  import kantan.csv._
+  import kantan.csv.ops._ // Automatic derivation of codecs.
   implicit val decoder: RowDecoder[TaxiStat] = RowDecoder.ordered(TaxiStat.apply _)
+  //Start Processing including reading of the file
+  val startTimeMillis = System.currentTimeMillis()
   //val source_csv = Source.fromResource("smallset.csv").mkString
-  val source_csv = Source.fromResource("100ksample.csv").mkString
+  //val source_csv = Source.fromResource("100ksample.csv").mkString
+  val source_csv = Source.fromResource("1ksample.csv").mkString
   //val source_csv = Source.fromResource("1millSample.csv").mkString
   val reader = source_csv.asCsvReader[TaxiStat](rfc)
 
-  import TaxiStatEvent._
-  import TaxiStatCommand._
   import TaxiCostStatCommand._
+  import TaxiStatCommand._
   //Data loading:
   reader.foreach(either => {
     taxiTripActor ! CreateTaxiStat((either.right.getOrElse(TaxiStat(
       2,"2015-01-15 19:05:39","2015-01-15 19:23:42",1,1.59,-73.993896484375,40.750110626220703,1,"N",-73.974784851074219,40.750617980957031,1,12,1,0.5,3.25,0,0.3,17.05
     ))))
   })
+
   //Operations testing
+
+  taxiTripActor ! PrintTimeToLoad(startTimeMillis)
   taxiTripActor ! GetTotalTaxiCostStats
+
+
+
+
+
 
   /*
   reader.foreach(either => {

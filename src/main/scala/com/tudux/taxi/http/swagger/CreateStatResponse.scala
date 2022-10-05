@@ -17,7 +17,7 @@ trait CreateStatResponse {
       dataTypeClass = classOf[CreateTaxiStatRequest] , paramType = "body")
   ))
   @ApiResponses(Array(
-    new ApiResponse(code = 200, message = "Stat created with Id {newStatId}"),
+    new ApiResponse(code = 201, message = "Stat created with Id {newStatId}"),
     new ApiResponse(code = 400, message = "The request content was malformed"),
     new ApiResponse(code = 500, message = "There was an internal server error.")
   ))

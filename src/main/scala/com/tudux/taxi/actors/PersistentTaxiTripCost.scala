@@ -59,8 +59,9 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
   override def receiveCommand: Receive = {
     case CreateTaxiCostStat(statId,taxiCostStat) =>
       persist(TaxiCostStatCreatedEvent(statId,taxiCostStat)) { _ =>
-        log.info("Creating Taxi Cost Stat")
+        log.info(s"Creating Taxi Cost Stat $taxiCostStat")
         state = taxiCostStat
+        log.info(s"Updated cost stat: $taxiCostStat")
         //statCostMap = statCostMap + (statId -> taxiCostStat)
 //        totalAmount += taxiCostStat.total_amount
 //        totalDistance += taxiCostStat.trip_distance
@@ -70,7 +71,7 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
       //log.info(s"Received petition to return size which is: ${statCostMap.size})")
 
     case GetTaxiCostStat(statId) =>
-      log.info("Receiving request to return cost trip cost information")
+      log.info(s"Receiving request to return cost trip cost information ${self.path}")
       sender() ! state
     case UpdateTaxiCostStat(statId,taxiCostStat) =>
       /*
@@ -117,7 +118,8 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
 
   override def receiveRecover: Receive = {
     case TaxiCostStatCreatedEvent(statId,taxiCostStat) =>
-      log.info(s"Recovering Taxi Cost Stat $taxiCostStat")
+      log.info(s"Recovering Taxi Cost Stat $statId at ${self.path}")
+      state = taxiCostStat
       //statCostMap = statCostMap + (statId -> taxiCostStat)
 //      totalAmount += taxiCostStat.total_amount
 //      totalDistance += taxiCostStat.trip_distance

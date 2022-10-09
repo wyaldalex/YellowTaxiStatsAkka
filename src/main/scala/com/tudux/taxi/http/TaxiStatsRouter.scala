@@ -136,7 +136,8 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
           println(s"Received some statID $statId")
           complete(
             (taxiTripActor ? GetTaxiCostStat(statId.toString))
-              .mapTo[Option[TaxiCostStat]]
+              //.mapTo[Option[TaxiCostStat]]
+              .mapTo[TaxiCostStat]
               .map(_.toJson.prettyPrint)
               .map(toHttpEntity)
           )

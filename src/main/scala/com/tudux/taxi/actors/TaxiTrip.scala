@@ -98,24 +98,25 @@ class TaxiTripActor extends PersistentActor with ActorLogging {
       val statId = UUID.randomUUID().toString
       log.info(s"Received $taxiStat to create")
       //taxiTripCostActor.forward(CreateTaxiCostStat(idStat,taxiStat))
-      val newTaxiTripCostActor = createTaxiCostActor(statId+costActorIdSuffix)
-      val newTaxiExtraInfoActor = createTaxiExtraInfoActor(statId+extraInfoActorIdSuffix)
-      val newTaxiPassengerInfoActor = createPassengerInfoActor(statId+passengerActorIdSuffix)
-      val newTaxiTimeInfoActor = createTimeInfoActor(statId+timeActorIdSuffix)
-
-      newTaxiTripCostActor  ! CreateTaxiCostStat(statId+costActorIdSuffix,taxiStat)
-      newTaxiExtraInfoActor ! CreateTaxiExtraInfoStat(statId+extraInfoActorIdSuffix,taxiStat)
-      newTaxiPassengerInfoActor ! CreateTaxiTripPassengerInfoStat(statId+passengerActorIdSuffix,taxiStat)
-      newTaxiTimeInfoActor ! CreateTaxiTripTimeInfoStat(statId+timeActorIdSuffix,taxiStat)
+      val newTaxiTripCostActor = createTaxiCostActor(statId.concat(costActorIdSuffix))
+      val newTaxiExtraInfoActor = createTaxiExtraInfoActor(statId.concat(extraInfoActorIdSuffix))
+      val newTaxiPassengerInfoActor = createPassengerInfoActor(statId.concat(passengerActorIdSuffix))
+      val newTaxiTimeInfoActor = createTimeInfoActor(statId.concat(timeActorIdSuffix))
 
       /*
       new state modification
        */
       persist(CreatedTaxiTripEvent(statId)) { event =>
-        state = state.copy(costs = state.costs + ((statId + costActorIdSuffix) -> newTaxiTripCostActor))
+        state = state.copy(costs = state.costs + (statId.concat(costActorIdSuffix) -> newTaxiTripCostActor))
         state = state.copy(extrainfo = state.extrainfo + ((statId + extraInfoActorIdSuffix) -> newTaxiExtraInfoActor))
         state = state.copy(passengerinfo = state.passengerinfo + ((statId + passengerActorIdSuffix) -> newTaxiPassengerInfoActor))
         state = state.copy(timeinfo = state.timeinfo + ((statId + timeActorIdSuffix) -> newTaxiTimeInfoActor))
+
+        newTaxiTripCostActor ! CreateTaxiCostStat(statId,taxiStat)
+        newTaxiExtraInfoActor ! CreateTaxiExtraInfoStat(statId,taxiStat)
+        newTaxiPassengerInfoActor ! CreateTaxiTripPassengerInfoStat(statId,taxiStat)
+        newTaxiTimeInfoActor ! CreateTaxiTripTimeInfoStat(statId,taxiStat)
+
       }
 
       sender() ! TaxiStatCreatedResponse(statId)
@@ -129,7 +130,7 @@ class TaxiTripActor extends PersistentActor with ActorLogging {
     case getTaxiCostStat@GetTaxiCostStat(statId) =>
       log.info(s"Receive Taxi Cost Inquiry, forwarding")
       //taxiTripCostActor.forward(getTaxiCostStat)
-      val taxiTripCostActor = state.costs(statId+costActorIdSuffix)
+      val taxiTripCostActor = state.costs(statId)
       taxiTripCostActor.forward(getTaxiCostStat)
     case getTaxiExtraInfoStat@GetTaxiExtraInfoStat(_) =>
       log.info(s"Receive Taxi Cost Inquiry, forwarding")
@@ -194,9 +195,9 @@ class TaxiTripActor extends PersistentActor with ActorLogging {
   override def receiveRecover: Receive = {
     case CreatedTaxiTripEvent(statId) =>
       log.info(s"Recovering Taxi Trip for id: $statId")
-      val costActor = context.child(statId)
-        .getOrElse(context.actorOf(PersistentTaxiTripCost.props(statId), statId))
-      state = state.copy(costs = state.costs + ((statId + costActorIdSuffix) -> costActor))
+      val costActor = context.child(statId.concat(costActorIdSuffix))
+        .getOrElse(context.actorOf(PersistentTaxiTripCost.props(statId.concat(costActorIdSuffix)), statId.concat(costActorIdSuffix)))
+      state = state.copy(costs = state.costs + (statId -> costActor))
 
   }
 
@@ -229,11 +230,11 @@ object TaxiStatAppLoader extends App {
   import TaxiStatCommand._
   import TaxiTripCommand._
   //Data loading:
-//  reader.foreach(either => {
-//    taxiTripActor ! CreateTaxiTripCommand((either.right.getOrElse(TaxiStat(
-//      2,"2015-01-15 19:05:39","2015-01-15 19:23:42",1,1.59,-73.993896484375,40.750110626220703,1,"N",-73.974784851074219,40.750617980957031,1,12,1,0.5,3.25,0,0.3,17.05
-//    ))))
-//  })
+  reader.foreach(either => {
+    taxiTripActor ! CreateTaxiTripCommand((either.right.getOrElse(TaxiStat(
+      2,"2015-01-15 19:05:39","2015-01-15 19:23:42",1,1.59,-73.993896484375,40.750110626220703,1,"N",-73.974784851074219,40.750617980957031,1,12,1,0.5,3.25,0,0.3,17.05
+    ))))
+  })
 
   //Operations testing
 

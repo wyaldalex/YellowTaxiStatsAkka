@@ -3,6 +3,7 @@ package com.tudux.taxi.actors
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
 import akka.persistence.PersistentActor
 import akka.util.Timeout
+import com.tudux.taxi.actors.CostAggregatorCommand.AddCostAggregatorValues
 import com.tudux.taxi.actors.TaxiStatResponseResponses.TaxiStatCreatedResponse
 
 import java.util.UUID
@@ -31,6 +32,7 @@ object TaxiTripActor {
 class TaxiTripActor extends PersistentActor with ActorLogging {
 
   import TaxiCostStatCommand._
+  import CostAggregatorCommand._
   import TaxiExtraInfoStatCommand._
   import TaxiStatCommand._
   import TaxiTripPassengerInfoStatCommand._
@@ -44,6 +46,8 @@ class TaxiTripActor extends PersistentActor with ActorLogging {
   val extraInfoActorIdSuffix = "-extrainfo"
   val timeActorIdSuffix = "-time"
   val passengerActorIdSuffix = "-passenger"
+
+  val costAggregatorActor : ActorRef = context.actorOf(PersistentCostStatsAggregator.props("cost-aggregator"), "cost-aggregator")
 
   implicit def toTaxiCost(taxiStat: TaxiStat) : TaxiCostStat = {
     TaxiCostStat(taxiStat.VendorID, taxiStat.trip_distance,
@@ -62,6 +66,10 @@ class TaxiTripActor extends PersistentActor with ActorLogging {
 
   implicit def toTaxiTimeInfoStat(taxiStat: TaxiStat): TaxiTripTimeInfoStat = {
     TaxiTripTimeInfoStat(taxiStat.tpep_pickup_datetime, taxiStat.tpep_dropoff_datetime)
+  }
+
+  implicit def toAggregatorStat(taxiStat: TaxiStat) : AggregatorStat = {
+    AggregatorStat(taxiStat.total_amount, taxiStat.trip_distance, taxiStat.tip_amount)
   }
 
 
@@ -102,7 +110,6 @@ class TaxiTripActor extends PersistentActor with ActorLogging {
       val newTaxiExtraInfoActor = createTaxiExtraInfoActor(statId.concat(extraInfoActorIdSuffix))
       val newTaxiPassengerInfoActor = createPassengerInfoActor(statId.concat(passengerActorIdSuffix))
       val newTaxiTimeInfoActor = createTimeInfoActor(statId.concat(timeActorIdSuffix))
-
       /*
       new state modification
        */
@@ -116,6 +123,7 @@ class TaxiTripActor extends PersistentActor with ActorLogging {
         newTaxiExtraInfoActor ! CreateTaxiExtraInfoStat(statId,taxiStat)
         newTaxiPassengerInfoActor ! CreateTaxiTripPassengerInfoStat(statId,taxiStat)
         newTaxiTimeInfoActor ! CreateTaxiTripTimeInfoStat(statId,taxiStat)
+        costAggregatorActor ! AddCostAggregatorValues(statId,taxiStat)
 
       }
 
@@ -163,14 +171,14 @@ class TaxiTripActor extends PersistentActor with ActorLogging {
 //      taxiTimeInfoActor ! DeleteTaxiTripTimeInfoStat(statId)
     //Domain Specific Operations
     case calculateTripDistanceCost@CalculateTripDistanceCost(_) =>
-      log.info("To be implemented")
-      //taxiTripCostActor.forward(calculateTripDistanceCost)
+      log.info("Received CalculateTripDistanceCost request")
+      costAggregatorActor.forward(calculateTripDistanceCost)
     case getAverageTripTime@GetAverageTripTime =>
       log.info("To be implemented")
       //taxiTimeInfoActor.forward(getAverageTripTime)
     case getAverageTipAmount@GetAverageTipAmount =>
       log.info("Received GetAverageTipAmount request")
-//      taxiTripCostActor.forward(getAverageTipAmount)
+      costAggregatorActor.forward(getAverageTipAmount)
     //Individual Stats
     case getTotalCostLoaded@GetTotalCostLoaded =>
       log.info("To be implemented")

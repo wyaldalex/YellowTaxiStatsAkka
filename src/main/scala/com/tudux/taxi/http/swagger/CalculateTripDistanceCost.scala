@@ -3,7 +3,7 @@ package com.tudux.taxi.http.swagger
 import javax.ws.rs.Path
 import akka.http.scaladsl.server.Route
 import com.tudux.taxi.actors.TaxiCostStat
-import com.tudux.taxi.actors.TaxiCostStatsResponse.CalculateTripDistanceCostResponse
+import com.tudux.taxi.actors.CostAggregatorResponse.CalculateTripDistanceCostResponse
 import io.swagger.annotations._
 
 @Path("/api/yellowtaxi/service/calculate-distance-cost/{distance}")

@@ -16,8 +16,6 @@ object TaxiCostStatCommand {
   case object GetTotalTaxiCostStats extends  TaxiCostCommand
   case class UpdateTaxiCostStat(statId: String,taxiCostStat: TaxiCostStat) extends TaxiCostCommand
   case class DeleteTaxiCostStat(statId: String) extends TaxiCostCommand
-  case class CalculateTripDistanceCost(distance: Double) extends TaxiCostCommand
-  case object GetAverageTipAmount extends TaxiCostCommand
   case object GetTotalCostLoaded extends TaxiCostCommand
   case class PrintTimeToLoad(startTimeMillis: Long) extends TaxiCostCommand
 }
@@ -25,8 +23,6 @@ object TaxiCostStatCommand {
 sealed trait TaxiCostResponse
 object TaxiCostStatsResponse {
   case class TotalTaxiCostStats(total: Int,totalAmount: Double) extends TaxiCostResponse
-  case class CalculateTripDistanceCostResponse(estimatedCost: Double) extends TaxiCostResponse
-  case class GetAverageTipAmountResponse(averageTipAmount: Double)  extends TaxiCostResponse
 }
 
 
@@ -98,12 +94,6 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
           statCostMap = statCostMap + (statId -> taxiCostStatToBeDeleted)
         }
       }*/
-    case CalculateTripDistanceCost(distance) =>
-      log.info("Calculating estimated trip cost")
-      //sender() ! CalculateTripDistanceCostResponse((totalAmount/totalDistance) * distance)
-    case GetAverageTipAmount =>
-      //sender() ! GetAverageTipAmountResponse(tipStats.values.sum / tipStats.size)
-
     case GetTotalCostLoaded =>
       //sender() ! statCostMap.size
     case PrintTimeToLoad(startTimeMillis) =>

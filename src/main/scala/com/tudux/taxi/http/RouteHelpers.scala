@@ -4,6 +4,7 @@ import com.tudux.taxi.actors.CostAggregatorResponse.{CalculateTripDistanceCostRe
 import com.tudux.taxi.actors.TaxiCostStatCommand._
 import com.tudux.taxi.actors.TaxiExtraInfoStatCommand.UpdateTaxiExtraInfoStat
 import com.tudux.taxi.actors.TaxiStatCommand.CreateTaxiStat
+import com.tudux.taxi.actors.TaxiTripCommand.CreateTaxiTripCommand
 import com.tudux.taxi.actors.TaxiTripPassengerInfoStatCommand.UpdateTaxiPassenger
 import com.tudux.taxi.actors.TaxiTripTimeInfoStatCommand.UpdateTaxiTripTimeInfoStat
 import com.tudux.taxi.actors.TaxiTripTimeResponses.TaxiTripAverageTimeMinutesResponse
@@ -12,40 +13,40 @@ import spray.json._
 
 object RouteHelpers {
 
-  case class CreateTaxiStatRequest(VendorID: Int, tpep_pickup_datetime: String, tpep_dropoff_datetime: String, passenger_count: Int,
-                                   trip_distance: Double, pickup_longitude: Double, pickup_latitude: Double, RateCodeID: Int,
-                                   store_and_fwd_flag: String, dropoff_longitude: Double, dropoff_latitude: Double,
-                                   payment_type: Int, fare_amount: Double, extra: Double, mta_tax: Double,
-                                   tip_amount: Double, tolls_amount: Double, improvement_surcharge: Double, total_amount: Double) {
-    def toCommand: CreateTaxiStat = CreateTaxiStat(TaxiStat(VendorID, tpep_pickup_datetime, tpep_dropoff_datetime, passenger_count,
-      trip_distance, pickup_longitude, pickup_latitude, RateCodeID,
-      store_and_fwd_flag, dropoff_longitude, dropoff_latitude,
-      payment_type, fare_amount, extra, mta_tax,
-      tip_amount, tolls_amount, improvement_surcharge, total_amount))
+  case class CreateTaxiStatRequest(vendorID: Int, tpepPickupDatetime: String, tpepDropoffDatetime: String, passengerCount: Int,
+                                   tripDistance: Double, pickupLongitude: Double, pickupLatitude: Double, rateCodeID: Int,
+                                   storeAndFwdFlag: String, dropoffLongitude: Double, dropoffLatitude: Double,
+                                   paymentType: Int, fareAmount: Double, extra: Double, mtaTax: Double,
+                                   tipAmount: Double, tollsAmount: Double, improvementSurcharge: Double, totalAmount: Double) {
+    def toCommand: CreateTaxiTripCommand = CreateTaxiTripCommand(TaxiStat(vendorID, tpepPickupDatetime, tpepDropoffDatetime, passengerCount,
+      tripDistance, pickupLongitude, pickupLatitude, rateCodeID,
+      storeAndFwdFlag, dropoffLongitude, dropoffLatitude,
+      paymentType, fareAmount, extra, mtaTax,
+      tipAmount, tollsAmount, improvementSurcharge, totalAmount))
   }
 
-  case class UpdatePassengerInfoRequest(passenger_count: Int) {
-    def toCommand(statId: String): UpdateTaxiPassenger = UpdateTaxiPassenger(statId, TaxiTripPassengerInfoStat(passenger_count))
+  case class UpdatePassengerInfoRequest(passengerCount: Int) {
+    def toCommand(statId: String): UpdateTaxiPassenger = UpdateTaxiPassenger(statId, TaxiTripPassengerInfoStat(passengerCount))
   }
 
-  case class UpdateExtraInfoRequest(pickup_longitude: Double, pickup_latitude: Double, RateCodeID: Int,
-                                    store_and_fwd_flag: String, dropoff_longitude: Double, dropoff_latitude: Double) {
-    def toCommand(statId: String): UpdateTaxiExtraInfoStat = UpdateTaxiExtraInfoStat(statId, TaxiExtraInfoStat(pickup_longitude, pickup_latitude, RateCodeID,
-      store_and_fwd_flag, dropoff_longitude, dropoff_latitude))
+  case class UpdateExtraInfoRequest(pickupLongitude: Double, pickupLatitude: Double, rateCodeID: Int,
+                                    storeAndFwdFlag: String, dropoffLongitude: Double, dropoffLatitude: Double) {
+    def toCommand(statId: String): UpdateTaxiExtraInfoStat = UpdateTaxiExtraInfoStat(statId, TaxiExtraInfoStat(pickupLongitude, pickupLatitude, rateCodeID,
+      storeAndFwdFlag, dropoffLongitude, dropoffLatitude))
   }
 
-  case class UpdateTimeInfoRequest(tpep_pickup_datetime: String, tpep_dropoff_datetime: String) {
-    def toCommand(statId: String): UpdateTaxiTripTimeInfoStat = UpdateTaxiTripTimeInfoStat(statId, TaxiTripTimeInfoStat(tpep_pickup_datetime, tpep_dropoff_datetime))
+  case class UpdateTimeInfoRequest(tpepPickupDatetime: String, tpepDropoffDatetime: String) {
+    def toCommand(statId: String): UpdateTaxiTripTimeInfoStat = UpdateTaxiTripTimeInfoStat(statId, TaxiTripTimeInfoStat(tpepPickupDatetime, tpepDropoffDatetime))
   }
 
-  case class UpdateCostInfoRequest(VendorID: Int,
-                                   trip_distance: Double,
-                                   payment_type: Int, fare_amount: Double, extra: Double, mta_tax: Double,
-                                   tip_amount: Double, tolls_amount: Double, improvement_surcharge: Double, total_amount: Double) {
-    def toCommand(statId: String): UpdateTaxiCostStat = UpdateTaxiCostStat(statId, TaxiCostStat(VendorID,
-      trip_distance,
-      payment_type, fare_amount, extra, mta_tax,
-      tip_amount, tolls_amount, improvement_surcharge, total_amount))
+  case class UpdateCostInfoRequest(vendorID: Int,
+                                   tripDistance: Double,
+                                   paymentType: Int, fareAmount: Double, extra: Double, mtaTax: Double,
+                                   tipAmount: Double, tollsAmount: Double, improvementSurcharge: Double, totalAmount: Double) {
+    def toCommand(statId: String): UpdateTaxiCostStat = UpdateTaxiCostStat(statId, TaxiCostStat(vendorID,
+      tripDistance,
+      paymentType, fareAmount, extra, mtaTax,
+      tipAmount, tollsAmount, improvementSurcharge, totalAmount))
   }
 
   case class LoadedStatsResponse(totalCostLoaded: Int, totalExtraInfoLoaded: Int, totalTimeInfoLoaded: Int, totalPassengerInfo: Int)

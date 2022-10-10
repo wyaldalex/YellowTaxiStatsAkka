@@ -1,12 +1,13 @@
 package com.tudux.taxi.actors
 
-import akka.actor.{ActorLogging, Props}
+import akka.actor.{ActorLogging, ActorRef, Props}
 import akka.persistence.PersistentActor
+import com.tudux.taxi.actors.CostAggregatorCommand.UpdateCostAggregatorValues
 
-case class TaxiCostStat(VendorID: Int,
-                    trip_distance: Double,
-                    payment_type: Int, fare_amount: Double, extra: Double, mta_tax: Double,
-                    tip_amount: Double, tolls_amount: Double, improvement_surcharge: Double, total_amount: Double, deletedFlag: Boolean = false)
+case class TaxiCostStat(vendorID: Int,
+                    tripDistance: Double,
+                    paymentType: Int, fareAmount: Double, extra: Double, mtaTax: Double,
+                    tipAmount: Double, tollsAmount: Double, improvementSurcharge: Double, totalAmount: Double, deletedFlag: Boolean = false)
 
 
 sealed trait TaxiCostCommand
@@ -14,7 +15,7 @@ object TaxiCostStatCommand {
   case class CreateTaxiCostStat(statId: String,taxiCostStat: TaxiCostStat) extends TaxiCostCommand
   case class GetTaxiCostStat(statId: String) extends  TaxiCostCommand
   case object GetTotalTaxiCostStats extends  TaxiCostCommand
-  case class UpdateTaxiCostStat(statId: String,taxiCostStat: TaxiCostStat) extends TaxiCostCommand
+  case class UpdateTaxiCostStat(statId: String,taxiCostStat: TaxiCostStat, costAggregator: ActorRef = null) extends TaxiCostCommand
   case class DeleteTaxiCostStat(statId: String) extends TaxiCostCommand
   case object GetTotalCostLoaded extends TaxiCostCommand
   case class PrintTimeToLoad(startTimeMillis: Long) extends TaxiCostCommand
@@ -57,43 +58,30 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
       persist(TaxiCostStatCreatedEvent(statId,taxiCostStat)) { _ =>
         log.info(s"Creating Taxi Cost Stat $taxiCostStat")
         state = taxiCostStat
-        log.info(s"Updated cost stat: $taxiCostStat")
-        //statCostMap = statCostMap + (statId -> taxiCostStat)
-//        totalAmount += taxiCostStat.total_amount
-//        totalDistance += taxiCostStat.trip_distance
-        //if(taxiCostStat.tip_amount > 0) tipStats =  tipStats + (statId -> taxiCostStat.tip_amount)
+        log.info(s"Created cost stat: $taxiCostStat")
       }
-    case GetTotalTaxiCostStats =>
-      //log.info(s"Received petition to return size which is: ${statCostMap.size})")
 
     case GetTaxiCostStat(statId) =>
       log.info(s"Receiving request to return cost trip cost information ${self.path}")
       sender() ! state
-    case UpdateTaxiCostStat(statId,taxiCostStat) =>
-      /*
-      log.info("Updating taxi cost stat")
-      if (statCostMap.contains(statId)) {
-        persist(UpdatedTaxiCostStatEvent(statId, taxiCostStat)) { _ =>
-          val prevAmount = statCostMap(statId).total_amount
-          val prevDistance = statCostMap(statId).trip_distance
-          statCostMap = statCostMap + (statId -> taxiCostStat)
-          totalAmount += statCostMap(statId).total_amount - prevAmount
-          totalDistance += statCostMap(statId).trip_distance - prevDistance
-          if(tipStats.contains(statId) && (taxiCostStat.tip_amount >0)) tipStats = (tipStats + (statId -> taxiCostStat.tip_amount))
-          else if (tipStats.contains(statId) && (taxiCostStat.tip_amount == 0)) tipStats = (tipStats - statId)
+    case UpdateTaxiCostStat(statId,taxiCostStat,costAggregator) =>
+
+      persist(UpdatedTaxiCostStatEvent(statId, taxiCostStat)) { _ =>
+        costAggregator ! UpdateCostAggregatorValues(
+          taxiCostStat.totalAmount-state.totalAmount,
+          taxiCostStat.tripDistance-state.tripDistance,
+          taxiCostStat.totalAmount - state.tipAmount,
+          state.tipAmount)
+        state = taxiCostStat
+        log.info(s"Updated cost stat: $taxiCostStat")
         }
-      } else {
-        log.info(s"Entry not found to update by id $statId")
-      } */
+
     case DeleteTaxiCostStat(statId) =>
       log.info("Deleting taxi cost stat")
-      /*
-      if(statCostMap.contains(statId)) {
-        persist(DeletedTaxiCostStatEvent(statId)) { _ =>
-          val taxiCostStatToBeDeleted: TaxiCostStat = statCostMap(statId).copy(deletedFlag = true)
-          statCostMap = statCostMap + (statId -> taxiCostStatToBeDeleted)
-        }
-      }*/
+      persist(DeletedTaxiCostStatEvent(statId)) { _ =>
+        state = state.copy(deletedFlag = true)
+      }
+
     case GetTotalCostLoaded =>
       //sender() ! statCostMap.size
     case PrintTimeToLoad(startTimeMillis) =>
@@ -108,7 +96,7 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
 
   override def receiveRecover: Receive = {
     case TaxiCostStatCreatedEvent(statId,taxiCostStat) =>
-      log.info(s"Recovering Taxi Cost Stat $statId at ${self.path}")
+      log.info(s"Recovering Taxi Cost Created  $statId at ${self.path}")
       state = taxiCostStat
       //statCostMap = statCostMap + (statId -> taxiCostStat)
 //      totalAmount += taxiCostStat.total_amount
@@ -116,6 +104,8 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
       //if(taxiCostStat.tip_amount > 0) tipStats = tipStats + (statId -> taxiCostStat.tip_amount)
 
     case UpdatedTaxiCostStatEvent(statId,taxiCostStat) =>
+      log.info(s"Recovering Taxi Cost Updated $statId at ${self.path}")
+      state = taxiCostStat
 //      val prevAmount = statCostMap(statId).total_amount
 //      val prevDistance = statCostMap(statId).trip_distance
 //      statCostMap = statCostMap + (statId -> taxiCostStat)
@@ -124,8 +114,7 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
 //      if (tipStats.contains(statId) && (taxiCostStat.tip_amount > 0)) tipStats = (tipStats + (statId -> taxiCostStat.tip_amount))
 //      else if (tipStats.contains(statId) && (taxiCostStat.tip_amount == 0)) tipStats = (tipStats - statId)
     case DeletedTaxiCostStatEvent(statId) =>
-//      val taxiCostStatToBeDeleted: TaxiCostStat = statCostMap(statId).copy(deletedFlag = true)
-//      statCostMap = statCostMap + (statId -> taxiCostStatToBeDeleted)
+      state = state.copy(deletedFlag = true)
   }
 }
 

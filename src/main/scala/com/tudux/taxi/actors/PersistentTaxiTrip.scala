@@ -20,11 +20,11 @@ import scala.io.Source
 1,2015-01-10 20:33:39,2015-01-10 20:58:31,1,2.20,-73.9832763671875,40.726009368896484,1,N,-73.992469787597656,40.7496337890625,2,14,0.5,0.5,0,0,0.3,15.3
  */
 
-case class TaxiStat(VendorID: Int, tpep_pickup_datetime: String, tpep_dropoff_datetime: String, passenger_count: Int,
-                          trip_distance: Double, pickup_longitude: Double, pickup_latitude: Double, RateCodeID: Int,
-                          store_and_fwd_flag: String, dropoff_longitude: Double, dropoff_latitude: Double,
-                          payment_type: Int, fare_amount: Double, extra: Double, mta_tax: Double,
-                          tip_amount: Double, tolls_amount: Double, improvement_surcharge: Double, total_amount: Double)
+case class TaxiStat(vendorID: Int, tpepPickupDatetime: String, tpepDropoffDatetime: String, passengerCount: Int,
+                          tripDistance: Double, pickupLongitude: Double, pickupLatitude: Double, rateCodeID: Int,
+                          storeAndFwdFlag: String, dropoffLongitude: Double, dropoffLatitude: Double,
+                          paymentType: Int, fareAmount: Double, extra: Double, mtaTax: Double,
+                          tipAmount: Double, tollsAmount: Double, improvementSurcharge: Double, totalAmount: Double)
 
 
 sealed trait Command

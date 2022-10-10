@@ -3,7 +3,7 @@ package com.tudux.taxi.actors
 import akka.actor.{ActorLogging, Props}
 import akka.persistence.PersistentActor
 
-case class TaxiTripTimeInfoStat(tpep_pickup_datetime: String,tpep_dropoff_datetime: String,deletedFlag: Boolean = false)
+case class TaxiTripTimeInfoStat(tpepPickupDatetime: String,tpepDropoffDatetime: String,deletedFlag: Boolean = false)
 
 sealed trait TaxiTripTimeInfoCommand
 object TaxiTripTimeInfoStatCommand {
@@ -44,7 +44,7 @@ class PersistentTaxiTripTimeInfo(id: String) extends PersistentActor with ActorL
   var totalMinutesTrip : Double = 0
 
   def getMinutes (taxiTripTimeInfoStat: TaxiTripTimeInfoStat) : Int = {
-    ((format.parse(taxiTripTimeInfoStat.tpep_dropoff_datetime).getTime - format.parse(taxiTripTimeInfoStat.tpep_pickup_datetime).getTime)/60000).toInt
+    ((format.parse(taxiTripTimeInfoStat.tpepDropoffDatetime).getTime - format.parse(taxiTripTimeInfoStat.tpepPickupDatetime).getTime)/60000).toInt
   }
 
   override def persistenceId: String = id

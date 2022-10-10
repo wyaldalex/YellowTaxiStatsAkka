@@ -1,10 +1,10 @@
 package com.tudux.taxi.actors
 
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
+import akka.actor.{ActorLogging, ActorRef, ActorSystem, Props}
 import akka.persistence.PersistentActor
 import akka.util.Timeout
-import com.tudux.taxi.actors.CostAggregatorCommand.AddCostAggregatorValues
 import com.tudux.taxi.actors.TaxiStatResponseResponses.TaxiStatCreatedResponse
+import com.tudux.taxi.actors.helpers.TaxiTripHelpers._
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext
@@ -31,15 +31,15 @@ object TaxiTripActor {
 }
 class TaxiTripActor extends PersistentActor with ActorLogging {
 
-  import TaxiCostStatCommand._
   import CostAggregatorCommand._
+  import TaxiCostStatCommand._
   import TaxiExtraInfoStatCommand._
   import TaxiStatCommand._
-  import TaxiTripPassengerInfoStatCommand._
-  import TaxiTripTimeInfoStatCommand._
   import TaxiTripActor._
   import TaxiTripCommand._
   import TaxiTripEvent._
+  import TaxiTripPassengerInfoStatCommand._
+  import TaxiTripTimeInfoStatCommand._
 
   var state: TaxiTripState = TaxiTripState(Map.empty,Map.empty,Map.empty,Map.empty )
   val costActorIdSuffix = "-cost"
@@ -48,31 +48,6 @@ class TaxiTripActor extends PersistentActor with ActorLogging {
   val passengerActorIdSuffix = "-passenger"
 
   val costAggregatorActor : ActorRef = context.actorOf(PersistentCostStatsAggregator.props("cost-aggregator"), "cost-aggregator")
-
-  implicit def toTaxiCost(taxiStat: TaxiStat) : TaxiCostStat = {
-    TaxiCostStat(taxiStat.VendorID, taxiStat.trip_distance,
-      taxiStat.payment_type, taxiStat.fare_amount, taxiStat.fare_amount, taxiStat.mta_tax,
-      taxiStat.tip_amount, taxiStat.tolls_amount, taxiStat.improvement_surcharge, taxiStat.total_amount)
-  }
-
-  implicit def toTaxiExtraInfo(taxiStat: TaxiStat): TaxiExtraInfoStat = {
-    TaxiExtraInfoStat(taxiStat.pickup_longitude, taxiStat.pickup_latitude,
-      taxiStat.RateCodeID, taxiStat.store_and_fwd_flag, taxiStat.dropoff_longitude, taxiStat.dropoff_latitude)
-  }
-
-  implicit def toTaxiPassengerInfo(taxiStat: TaxiStat): TaxiTripPassengerInfoStat = {
-    TaxiTripPassengerInfoStat(taxiStat.passenger_count)
-  }
-
-  implicit def toTaxiTimeInfoStat(taxiStat: TaxiStat): TaxiTripTimeInfoStat = {
-    TaxiTripTimeInfoStat(taxiStat.tpep_pickup_datetime, taxiStat.tpep_dropoff_datetime)
-  }
-
-  implicit def toAggregatorStat(taxiStat: TaxiStat) : AggregatorStat = {
-    AggregatorStat(taxiStat.total_amount, taxiStat.trip_distance, taxiStat.tip_amount)
-  }
-
-
 
   //var idStat : Int = 1
 
@@ -124,9 +99,7 @@ class TaxiTripActor extends PersistentActor with ActorLogging {
         newTaxiPassengerInfoActor ! CreateTaxiTripPassengerInfoStat(statId,taxiStat)
         newTaxiTimeInfoActor ! CreateTaxiTripTimeInfoStat(statId,taxiStat)
         costAggregatorActor ! AddCostAggregatorValues(statId,taxiStat)
-
       }
-
       sender() ! TaxiStatCreatedResponse(statId)
 
     case GetTotalTaxiCostStats =>
@@ -159,12 +132,13 @@ class TaxiTripActor extends PersistentActor with ActorLogging {
     case updateTaxiExtraInfoStat@UpdateTaxiExtraInfoStat(_,_) =>
       log.info("To be implemented")
       //taxiExtraInfoActor.forward(updateTaxiExtraInfoStat)
-    case updateTaxiCostStat@UpdateTaxiCostStat(_,_) =>
-      log.info("To be implemented")
-      //taxiTripCostActor.forward(updateTaxiCostStat)
+    case updateTaxiCostStat@UpdateTaxiCostStat(statId,taxiCostStat,_) =>
+      val taxiTripCostActor = state.costs(statId)
+      taxiTripCostActor.forward(UpdateTaxiCostStat(statId, taxiCostStat , costAggregatorActor))
     //General Delete
-    case DeleteTaxiStat(statId) =>
-      log.info("To be implemented")
+    case deleteTaxiStat@DeleteTaxiStat(statId) =>
+      val taxiTripCostActor = state.costs(statId)
+      taxiTripCostActor ! DeleteTaxiCostStat(statId)
 //      taxiTripCostActor ! DeleteTaxiCostStat(statId)
 //      taxiExtraInfoActor ! DeleteTaxiExtraInfo(statId)
 //      taxiPassengerInfoActor ! DeleteTaxiTripPassenger(statId)
@@ -235,7 +209,6 @@ object TaxiStatAppLoader extends App {
   val reader = source_csv.asCsvReader[TaxiStat](rfc)
 
   import TaxiCostStatCommand._
-  import TaxiStatCommand._
   import TaxiTripCommand._
   //Data loading:
   reader.foreach(either => {

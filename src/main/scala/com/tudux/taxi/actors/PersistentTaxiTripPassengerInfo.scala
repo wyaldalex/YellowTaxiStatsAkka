@@ -31,8 +31,8 @@ class PersistentTaxiTripPassengerInfo(id: String) extends PersistentActor with A
   import TaxiTripPassengerInfoStatEvent._
 
   //Persistent Actor State
-  var statCounter: Int = 1
-  var taxiTripPassengerInfoStatMap : Map[String,TaxiTripPassengerInfoStat] = Map.empty
+  //var taxiTripPassengerInfoStatMap : Map[String,TaxiTripPassengerInfoStat] = Map.empty
+  var state : TaxiTripPassengerInfoStat = TaxiTripPassengerInfoStat(0)
 
   override def persistenceId: String = id
 
@@ -40,28 +40,21 @@ class PersistentTaxiTripPassengerInfo(id: String) extends PersistentActor with A
     case CreateTaxiTripPassengerInfoStat(statId,taxiTripPassengerInfoStat) =>
       persist(TaxiTripPassengerInfoStatCreatedEvent(statId,taxiTripPassengerInfoStat)) { _ =>
         log.info(s"Creating Passenger Info Stat $taxiTripPassengerInfoStat")
-        taxiTripPassengerInfoStatMap = taxiTripPassengerInfoStatMap + (statId -> taxiTripPassengerInfoStat)
-        statCounter += 1
+        state = taxiTripPassengerInfoStat
       }
     case GetTaxiPassengerInfoStat(statId) =>
-      sender() ! taxiTripPassengerInfoStatMap.get(statId)
+      sender() ! state
     case UpdateTaxiPassenger(statId,taxiTripPassengerInfoStat) =>
       log.info(s"Applying update for Passenger Info for id $statId")
-      if (taxiTripPassengerInfoStatMap.contains(statId)) {
-        persist(UpdatedTaxiPassengerEvent(statId, taxiTripPassengerInfoStat)) { _ =>
-          taxiTripPassengerInfoStatMap = taxiTripPassengerInfoStatMap + (statId -> taxiTripPassengerInfoStat)
-        }
-      } else log.info(s"Entry not found to update by id $statId")
+      persist(UpdatedTaxiPassengerEvent(statId, taxiTripPassengerInfoStat)) { _ =>
+        state = taxiTripPassengerInfoStat
+      }
     case DeleteTaxiTripPassenger(statId) =>
       log.info("Deleting taxi cost stat")
-      if (taxiTripPassengerInfoStatMap.contains(statId)) {
-        persist(DeletedTaxiTripPassengerEvent(statId)) { _ =>
-          val taxiPassengerInfoDeleted: TaxiTripPassengerInfoStat = taxiTripPassengerInfoStatMap(statId).copy(deletedFlag = true)
-          taxiTripPassengerInfoStatMap = taxiTripPassengerInfoStatMap + (statId -> taxiPassengerInfoDeleted)
-        }
+      persist(DeletedTaxiTripPassengerEvent(statId)) { _ =>
+        state = state.copy(deletedFlag = true)
       }
-    case GetTotalPassengerInfoLoaded =>
-      sender() ! taxiTripPassengerInfoStatMap.size
+
     case _ =>
       log.info(s"Received something else at ${self.path.name}")
 
@@ -70,15 +63,13 @@ class PersistentTaxiTripPassengerInfo(id: String) extends PersistentActor with A
   override def receiveRecover: Receive = {
     case TaxiTripPassengerInfoStatCreatedEvent(statId,taxiTripPassengerInfoStat) =>
       log.info(s"Recovering Passenger Info Stat $taxiTripPassengerInfoStat")
-      taxiTripPassengerInfoStatMap = taxiTripPassengerInfoStatMap + (statId -> taxiTripPassengerInfoStat)
-      statCounter += 1
+      state = taxiTripPassengerInfoStat
     case   UpdatedTaxiPassengerEvent(statId,taxiTripPassengerInfoStat) =>
       log.info(s"Recovered Update Event applied for Passenger info Id: $statId")
-      taxiTripPassengerInfoStatMap = taxiTripPassengerInfoStatMap + (statId -> taxiTripPassengerInfoStat)
+      state = taxiTripPassengerInfoStat
     case DeletedTaxiTripPassengerEvent(statId) =>
       log.info(s"Recovered Deleted Event applied for Passenger info Id: $statId")
-      val taxiPassengerInfoDeleted: TaxiTripPassengerInfoStat = taxiTripPassengerInfoStatMap(statId).copy(deletedFlag = true)
-      taxiTripPassengerInfoStatMap = taxiTripPassengerInfoStatMap + (statId -> taxiPassengerInfoDeleted)
+      state = state.copy(deletedFlag = true)
   }
 }
 

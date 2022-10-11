@@ -4,7 +4,7 @@ import akka.actor.{ActorLogging, Props}
 import akka.persistence.PersistentActor
 
 case class TaxiExtraInfoStat(pickupLongitude: Double, pickupLatitude: Double, rateCodeID: Int,
-                             storeAndFwd_flag: String, dropoffLongitude: Double, dropoffLatitude: Double, deletedFlag: Boolean = false)
+                             storeAndFwdFlag: String, dropoffLongitude: Double, dropoffLatitude: Double, deletedFlag: Boolean = false)
 
 sealed trait TaxiExtraInfoCommand
 object TaxiExtraInfoStatCommand {
@@ -32,7 +32,8 @@ class PersistentTaxiExtraInfo(id: String) extends PersistentActor with ActorLogg
   import TaxiExtraInfoStatEvent._
 
   //Persistent Actor State
-  var statExtraInfoMap : Map[String,TaxiExtraInfoStat] = Map.empty
+  //var statExtraInfoMap : Map[String,TaxiExtraInfoStat] = Map.empty
+  var state : TaxiExtraInfoStat = TaxiExtraInfoStat(0,0,0,"",0,0)
 
   override def persistenceId: String = id
 
@@ -41,28 +42,23 @@ class PersistentTaxiExtraInfo(id: String) extends PersistentActor with ActorLogg
       //throw new RuntimeException("Mock Actor Failure") //Simulate Actor failure
       persist(TaxiExtraInfoStatCreatedEvent(statId,taxiExtraInfoStat)) { _ =>
         log.info(s"Creating Extra Info Stat $taxiExtraInfoStat")
-        statExtraInfoMap = statExtraInfoMap + (statId -> taxiExtraInfoStat)
+        state = taxiExtraInfoStat
       }
     case UpdateTaxiExtraInfoStat(statId,taxiExtraInfoStat) =>
       log.info(s"Updating Extra Info Stat $taxiExtraInfoStat")
-      if(statExtraInfoMap.contains(statId)) {
-        persist(TaxiExtraInfoStatUpdatedEvent(statId, taxiExtraInfoStat)) { _ =>
-          statExtraInfoMap = statExtraInfoMap + (statId -> taxiExtraInfoStat)
-        }
-      } else log.info(s"Entry not found to update by id $statId")
+      persist(TaxiExtraInfoStatUpdatedEvent(statId, taxiExtraInfoStat)) { _ =>
+        state = taxiExtraInfoStat
+      }
 
     case GetTaxiExtraInfoStat(statId) =>
-      sender() ! statExtraInfoMap.get(statId)
+      sender() ! state
     case DeleteTaxiExtraInfo(statId) =>
       log.info("Deleting taxi cost stat")
-      if (statExtraInfoMap.contains(statId)) {
-        persist(DeletedTaxiExtraInfoEvent(statId)) { _ =>
-          val taxiExtraInfoToBeDeleted: TaxiExtraInfoStat = statExtraInfoMap(statId).copy(deletedFlag = true)
-          statExtraInfoMap = statExtraInfoMap + (statId -> taxiExtraInfoToBeDeleted)
-        }
+      persist(DeletedTaxiExtraInfoEvent(statId)) { _ =>
+        state = state.copy(deletedFlag = true)
       }
     case GetTotalExtraInfoLoaded =>
-      sender() ! statExtraInfoMap.size
+      //sender() ! statExtraInfoMap.size
     case _ =>
       log.info(s"Received something else at ${self.path.name}")
 
@@ -71,14 +67,13 @@ class PersistentTaxiExtraInfo(id: String) extends PersistentActor with ActorLogg
   override def receiveRecover: Receive = {
     case TaxiExtraInfoStatCreatedEvent(statId,taxiExtraInfoStat) =>
       log.info(s"Recovering Extra Info Stat $taxiExtraInfoStat")
-      statExtraInfoMap = statExtraInfoMap + (statId -> taxiExtraInfoStat)
+      state = taxiExtraInfoStat
     case TaxiExtraInfoStatUpdatedEvent(statId,taxiExtraInfoStat) =>
       log.info(s"Recovering Updated Extra Info Stat $taxiExtraInfoStat")
-      statExtraInfoMap = statExtraInfoMap + (statId -> taxiExtraInfoStat)
+      state = taxiExtraInfoStat
     case DeletedTaxiExtraInfoEvent(statId) =>
       log.info(s"Recovering Deleted Extra Info Stat")
-      val taxiExtraInfoToBeDeleted: TaxiExtraInfoStat = statExtraInfoMap(statId).copy(deletedFlag = true)
-      statExtraInfoMap = statExtraInfoMap + (statId -> taxiExtraInfoToBeDeleted)
+      state = state.copy(deletedFlag = true)
 
   }
 }

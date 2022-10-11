@@ -11,13 +11,27 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.io.Source
 
+
+case class TaxiStat(vendorID: Int, tpepPickupDatetime: String, tpepDropoffDatetime: String, passengerCount: Int,
+                    tripDistance: Double, pickupLongitude: Double, pickupLatitude: Double, rateCodeID: Int,
+                    storeAndFwdFlag: String, dropoffLongitude: Double, dropoffLatitude: Double,
+                    paymentType: Int, fareAmount: Double, extra: Double, mtaTax: Double,
+                    tipAmount: Double, tollsAmount: Double, improvementSurcharge: Double, totalAmount: Double)
+
 sealed trait TaxiTripCommand
 object TaxiTripCommand {
   case class CreateTaxiTripCommand(taxiStat: TaxiStat) extends  TaxiTripCommand
+  case class CreateTaxiStat(taxiStat: TaxiStat) extends TaxiTripCommand
+  case class DeleteTaxiStat(statId: String) extends TaxiTripCommand
 }
 sealed trait TaxiTripEvent
 object TaxiTripEvent {
   case class CreatedTaxiTripEvent(statId: String) extends  TaxiTripEvent
+}
+
+sealed trait TaxiStatResponse
+object TaxiStatResponseResponses {
+  case class TaxiStatCreatedResponse(statId: String) extends TaxiStatResponse
 }
 
 object TaxiTripActor {
@@ -34,7 +48,6 @@ class TaxiTripActor extends PersistentActor with ActorLogging {
   import CostAggregatorCommand._
   import TaxiCostStatCommand._
   import TaxiExtraInfoStatCommand._
-  import TaxiStatCommand._
   import TaxiTripActor._
   import TaxiTripCommand._
   import TaxiTripEvent._
@@ -48,14 +61,6 @@ class TaxiTripActor extends PersistentActor with ActorLogging {
   val passengerActorIdSuffix = "-passenger"
 
   val costAggregatorActor : ActorRef = context.actorOf(PersistentCostStatsAggregator.props("cost-aggregator"), "cost-aggregator")
-
-  //var idStat : Int = 1
-
-  //split main Taxi payload into different actors
-  //private val taxiTripCostActor: ActorRef = createTaxiCostActor()
-  //private val taxiExtraInfoActor: ActorRef = createTaxiExtraInfoActor()
-  //private val taxiPassengerInfoActor: ActorRef = createPassengerInfoActor()
-  //private val taxiTimeInfoActor: ActorRef = createTimeInfoActor()
 
   def createTaxiCostActor(id: String) : ActorRef = {
     context.actorOf(PersistentTaxiTripCost.props(id), id)
@@ -90,9 +95,9 @@ class TaxiTripActor extends PersistentActor with ActorLogging {
        */
       persist(CreatedTaxiTripEvent(statId)) { event =>
         state = state.copy(costs = state.costs + (statId.concat(costActorIdSuffix) -> newTaxiTripCostActor))
-        state = state.copy(extrainfo = state.extrainfo + ((statId + extraInfoActorIdSuffix) -> newTaxiExtraInfoActor))
-        state = state.copy(passengerinfo = state.passengerinfo + ((statId + passengerActorIdSuffix) -> newTaxiPassengerInfoActor))
-        state = state.copy(timeinfo = state.timeinfo + ((statId + timeActorIdSuffix) -> newTaxiTimeInfoActor))
+        state = state.copy(extrainfo = state.extrainfo + ((statId.concat(extraInfoActorIdSuffix)) -> newTaxiExtraInfoActor))
+        state = state.copy(passengerinfo = state.passengerinfo + (statId.concat(passengerActorIdSuffix) -> newTaxiPassengerInfoActor))
+        state = state.copy(timeinfo = state.timeinfo + (statId.concat(timeActorIdSuffix) -> newTaxiTimeInfoActor))
 
         newTaxiTripCostActor ! CreateTaxiCostStat(statId,taxiStat)
         newTaxiExtraInfoActor ! CreateTaxiExtraInfoStat(statId,taxiStat)
@@ -104,45 +109,47 @@ class TaxiTripActor extends PersistentActor with ActorLogging {
 
     case GetTotalTaxiCostStats =>
       log.info("To be implemented")
-      //candidate to be a forward operation
-      //taxiTripCostActor ! GetTotalTaxiCostStats
       log.info(s"Received petition to return size which is: ${state.costs.size})")
     //Individual Gets
     case getTaxiCostStat@GetTaxiCostStat(statId) =>
       log.info(s"Receive Taxi Cost Inquiry, forwarding")
-      //taxiTripCostActor.forward(getTaxiCostStat)
       val taxiTripCostActor = state.costs(statId)
       taxiTripCostActor.forward(getTaxiCostStat)
-    case getTaxiExtraInfoStat@GetTaxiExtraInfoStat(_) =>
+    case getTaxiExtraInfoStat@GetTaxiExtraInfoStat(statId) =>
       log.info(s"Receive Taxi Cost Inquiry, forwarding")
-      //taxiExtraInfoActor.forward(getTaxiExtraInfoStat)
+      val taxiExtraInfoActor = state.extrainfo(statId)
+      taxiExtraInfoActor.forward(getTaxiExtraInfoStat)
     case getTaxiTimeInfoStat@GetTaxiTimeInfoStat(statId) =>
       log.info(s"Receive Taxi Cost Inquiry, forwarding")
-      //taxiTimeInfoActor.forward(getTaxiTimeInfoStat)
-    case getTaxiPassengerInfoStat@GetTaxiPassengerInfoStat(_) =>
+      val taxiTimeInfoActor = state.timeinfo(statId)
+      taxiTimeInfoActor.forward(getTaxiTimeInfoStat)
+    case getTaxiPassengerInfoStat@GetTaxiPassengerInfoStat(statId) =>
       log.info(s"Receive Taxi Cost Inquiry, forwarding")
-      //taxiPassengerInfoActor.forward(getTaxiPassengerInfoStat)
+      val taxiPassengerInfoActor = state.passengerinfo(statId)
+      taxiPassengerInfoActor.forward(getTaxiPassengerInfoStat)
     //Individual Updates
-    case updateTaxiPassenger@UpdateTaxiPassenger(_,_) =>
-      log.info("To be implemented")
-      //taxiPassengerInfoActor.forward(updateTaxiPassenger)
-    case updateTaxiTripTimeInfoStat@UpdateTaxiTripTimeInfoStat(_,_) =>
-      log.info("To be implemented")
-      //taxiTimeInfoActor.forward(updateTaxiTripTimeInfoStat)
-    case updateTaxiExtraInfoStat@UpdateTaxiExtraInfoStat(_,_) =>
-      log.info("To be implemented")
-      //taxiExtraInfoActor.forward(updateTaxiExtraInfoStat)
+    case updateTaxiPassenger@UpdateTaxiPassenger(statId,_) =>
+      val taxiPassengerInfoActor = state.passengerinfo(statId)
+      taxiPassengerInfoActor.forward(updateTaxiPassenger)
+    case updateTaxiTripTimeInfoStat@UpdateTaxiTripTimeInfoStat(statId,_) =>
+      val taxiTimeInfoActor = state.timeinfo(statId)
+      taxiTimeInfoActor.forward(updateTaxiTripTimeInfoStat)
+    case updateTaxiExtraInfoStat@UpdateTaxiExtraInfoStat(statId,_) =>
+      val taxiExtraInfoActor = state.extrainfo(statId)
+      taxiExtraInfoActor.forward(updateTaxiExtraInfoStat)
     case updateTaxiCostStat@UpdateTaxiCostStat(statId,taxiCostStat,_) =>
       val taxiTripCostActor = state.costs(statId)
       taxiTripCostActor.forward(UpdateTaxiCostStat(statId, taxiCostStat , costAggregatorActor))
     //General Delete
     case deleteTaxiStat@DeleteTaxiStat(statId) =>
       val taxiTripCostActor = state.costs(statId)
+      val taxiExtraInfoActor = state.extrainfo(statId)
+      val taxiPassengerInfoActor = state.passengerinfo(statId)
+      val taxiTimeInfoActor = state.timeinfo(statId)
       taxiTripCostActor ! DeleteTaxiCostStat(statId)
-//      taxiTripCostActor ! DeleteTaxiCostStat(statId)
-//      taxiExtraInfoActor ! DeleteTaxiExtraInfo(statId)
-//      taxiPassengerInfoActor ! DeleteTaxiTripPassenger(statId)
-//      taxiTimeInfoActor ! DeleteTaxiTripTimeInfoStat(statId)
+      taxiExtraInfoActor ! DeleteTaxiExtraInfo(statId)
+      taxiPassengerInfoActor ! DeleteTaxiTripPassenger(statId)
+      taxiTimeInfoActor ! DeleteTaxiTripTimeInfoStat(statId)
     //Domain Specific Operations
     case calculateTripDistanceCost@CalculateTripDistanceCost(_) =>
       log.info("Received CalculateTripDistanceCost request")
@@ -179,7 +186,16 @@ class TaxiTripActor extends PersistentActor with ActorLogging {
       log.info(s"Recovering Taxi Trip for id: $statId")
       val costActor = context.child(statId.concat(costActorIdSuffix))
         .getOrElse(context.actorOf(PersistentTaxiTripCost.props(statId.concat(costActorIdSuffix)), statId.concat(costActorIdSuffix)))
+      val extraInfoActor = context.child(statId.concat(extraInfoActorIdSuffix))
+        .getOrElse(context.actorOf(PersistentTaxiExtraInfo.props(statId.concat(extraInfoActorIdSuffix)), statId.concat(extraInfoActorIdSuffix)))
+      val timeInfoActor = context.child(statId.concat(timeActorIdSuffix))
+        .getOrElse(context.actorOf(PersistentTaxiTripTimeInfo.props(statId.concat(timeActorIdSuffix)), statId.concat(timeActorIdSuffix)))
+      val passengerActor = context.child(statId.concat(passengerActorIdSuffix))
+        .getOrElse(context.actorOf(PersistentTaxiTripPassengerInfo.props(statId.concat(passengerActorIdSuffix)), statId.concat(passengerActorIdSuffix)))
       state = state.copy(costs = state.costs + (statId -> costActor))
+      state = state.copy(extrainfo = state.extrainfo + (statId -> extraInfoActor))
+      state = state.copy(timeinfo = state.timeinfo + (statId -> timeInfoActor))
+      state = state.copy(passengerinfo = state.passengerinfo + (statId -> passengerActor))
 
   }
 

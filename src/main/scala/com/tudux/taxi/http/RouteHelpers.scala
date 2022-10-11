@@ -3,7 +3,7 @@ package com.tudux.taxi.http
 import com.tudux.taxi.actors.CostAggregatorResponse.{CalculateTripDistanceCostResponse, GetAverageTipAmountResponse}
 import com.tudux.taxi.actors.TaxiCostStatCommand._
 import com.tudux.taxi.actors.TaxiExtraInfoStatCommand.UpdateTaxiExtraInfoStat
-import com.tudux.taxi.actors.TaxiStatCommand.CreateTaxiStat
+import com.tudux.taxi.actors.TaxiTripCommand.CreateTaxiStat
 import com.tudux.taxi.actors.TaxiTripCommand.CreateTaxiTripCommand
 import com.tudux.taxi.actors.TaxiTripPassengerInfoStatCommand.UpdateTaxiPassenger
 import com.tudux.taxi.actors.TaxiTripTimeInfoStatCommand.UpdateTaxiTripTimeInfoStat

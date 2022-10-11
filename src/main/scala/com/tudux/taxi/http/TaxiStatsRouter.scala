@@ -11,7 +11,7 @@ import com.tudux.taxi.actors.CostAggregatorCommand.{CalculateTripDistanceCost, G
 import com.tudux.taxi.actors.CostAggregatorResponse.{CalculateTripDistanceCostResponse, GetAverageTipAmountResponse}
 import com.tudux.taxi.actors.TaxiCostStatCommand._
 import com.tudux.taxi.actors.TaxiExtraInfoStatCommand.{GetTaxiExtraInfoStat, GetTotalExtraInfoLoaded}
-import com.tudux.taxi.actors.TaxiStatCommand.DeleteTaxiStat
+import com.tudux.taxi.actors.TaxiTripCommand.DeleteTaxiStat
 import com.tudux.taxi.actors.TaxiStatResponseResponses.TaxiStatCreatedResponse
 import com.tudux.taxi.actors.TaxiTripPassengerInfoStatCommand.{GetTaxiPassengerInfoStat, GetTotalPassengerInfoLoaded}
 import com.tudux.taxi.actors.TaxiTripTimeInfoStatCommand.{GetAverageTripTime, GetTaxiTimeInfoStat, GetTotalTimeInfoInfoLoaded}
@@ -44,7 +44,7 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
   def toHttpEntity(payload: String) = HttpEntity(ContentTypes.`application/json`, payload)
 
   val routes: Route = {
-    pathPrefix("api" / "yellowtaxi" / "stat") {
+    pathPrefix("api" / "yellowtaxi" / "taxitrip") {
         post {
             entity(as[CreateTaxiStatRequest]) { request =>
               val statCreatedFuture: Future[TaxiStatCreatedResponse] = (taxiTripActor ? request.toCommand).mapTo[TaxiStatCreatedResponse]
@@ -97,7 +97,8 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
           println(s"Received some statID $statId")
           complete(
             (taxiTripActor ? GetTaxiTimeInfoStat(statId.toString))
-              .mapTo[Option[TaxiTripTimeInfoStat]]
+             // .mapTo[Option[TaxiTripTimeInfoStat]]
+              .mapTo[TaxiTripTimeInfoStat]
               .map(_.toJson.prettyPrint)
               .map(toHttpEntity)
           )
@@ -120,7 +121,7 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
           println(s"Received some statID $statId")
           complete(
             (taxiTripActor ? GetTaxiPassengerInfoStat(statId.toString))
-              .mapTo[Option[TaxiTripPassengerInfoStat]]
+              .mapTo[TaxiTripPassengerInfoStat]
               .map(_.toJson.prettyPrint)
               .map(toHttpEntity)
           )
@@ -143,7 +144,8 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
           println(s"Received some statID $statId")
           complete(
             (taxiTripActor ? GetTaxiExtraInfoStat(statId.toString))
-              .mapTo[Option[TaxiExtraInfoStat]]
+              //.mapTo[Option[TaxiExtraInfoStat]]
+              .mapTo[TaxiExtraInfoStat]
               .map(_.toJson.prettyPrint)
               .map(toHttpEntity)
           )

@@ -6,12 +6,12 @@ import com.tudux.taxi.http.RouteHelpers.CreateTaxiStatRequest
 import io.swagger.annotations._
 import io.swagger.models.Operation
 
-@Path("/api/yellowtaxi/stat")
-@Api(value = "/stat")
+@Path("/api/yellowtaxi/taxitrip")
+@Api(value = "/taxitrip")
 @SwaggerDefinition(tags = Array(new Tag(name = "CreateTaxiTripStat", description = "Operation used to create Taxi Trip Stat")))
 trait CreateStatResponse {
   @Operation
-  @ApiOperation(value = "stat", tags = Array("stat"), httpMethod = "POST", notes = "This route will return the id of the created stat"   )
+  @ApiOperation(value = "taxitrip", tags = Array("taxitrip"), httpMethod = "POST", notes = "This route will return the id of the created stat"   )
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "CreateTaxiStatRequest", required = true,
       dataTypeClass = classOf[CreateTaxiStatRequest] , paramType = "body")

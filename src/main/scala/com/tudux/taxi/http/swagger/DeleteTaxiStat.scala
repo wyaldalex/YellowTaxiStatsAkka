@@ -5,11 +5,11 @@ import akka.http.scaladsl.server.Route
 import io.swagger.annotations._
 import io.swagger.models.Operation
 
-@Path("/api/yellowtaxi/stat/{statId}")
-@Api(value = "/stat")
+@Path("/api/yellowtaxi/taxitrip/{statId}")
+@Api(value = "/taxitrip")
 @SwaggerDefinition(tags = Array(new Tag(name = "DeleteTaxiTripStat", description = "Operation to Delete Stat by statID")))
 trait DeleteTaxiStat {
-  @ApiOperation(value = "stat", tags = Array("stat"), httpMethod = "DELETE", notes = "This route will delete Trip stat by Id"   )
+  @ApiOperation(value = "taxitrip", tags = Array("taxitrip"), httpMethod = "DELETE", notes = "This route will delete Trip stat by Id"   )
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "statId", value = "The unique id of the taxi trip stat", required = true, dataType = "int", paramType = "path")
   ))

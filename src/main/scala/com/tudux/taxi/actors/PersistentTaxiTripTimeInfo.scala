@@ -38,14 +38,15 @@ class PersistentTaxiTripTimeInfo(id: String) extends PersistentActor with ActorL
   import TaxiTripTimeInfoStatEvent._
   import TaxiTripTimeResponses._
 
-  val format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:SS")
+//  val format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:SS")
   //Persistent Actor State
-  var taxiTripTimeInfoStatMap : Map[String,TaxiTripTimeInfoStat] = Map.empty
-  var totalMinutesTrip : Double = 0
+  //var taxiTripTimeInfoStatMap : Map[String,TaxiTripTimeInfoStat] = Map.empty
+  var state : TaxiTripTimeInfoStat = TaxiTripTimeInfoStat("","")
+//  var totalMinutesTrip : Double = 0
 
-  def getMinutes (taxiTripTimeInfoStat: TaxiTripTimeInfoStat) : Int = {
-    ((format.parse(taxiTripTimeInfoStat.tpepDropoffDatetime).getTime - format.parse(taxiTripTimeInfoStat.tpepPickupDatetime).getTime)/60000).toInt
-  }
+//  def getMinutes (taxiTripTimeInfoStat: TaxiTripTimeInfoStat) : Int = {
+//    ((format.parse(taxiTripTimeInfoStat.tpepDropoffDatetime).getTime - format.parse(taxiTripTimeInfoStat.tpepPickupDatetime).getTime)/60000).toInt
+//  }
 
   override def persistenceId: String = id
 
@@ -53,30 +54,37 @@ class PersistentTaxiTripTimeInfo(id: String) extends PersistentActor with ActorL
     case CreateTaxiTripTimeInfoStat(statId,taxiTripTimeInfoStat) =>
       persist(TaxiTripTimeInfoStatCreatedEvent(statId,taxiTripTimeInfoStat)) { _ =>
         log.info(s"Creating Trip Time Info Stat $taxiTripTimeInfoStat")
-        taxiTripTimeInfoStatMap = taxiTripTimeInfoStatMap + (statId -> taxiTripTimeInfoStat)
-        totalMinutesTrip += getMinutes(taxiTripTimeInfoStat)
+        state = taxiTripTimeInfoStat
+//        taxiTripTimeInfoStatMap = taxiTripTimeInfoStatMap + (statId -> taxiTripTimeInfoStat)
+//        totalMinutesTrip += getMinutes(taxiTripTimeInfoStat)
       }
     case UpdateTaxiTripTimeInfoStat(statId, taxiTripTimeInfoStat) =>
       log.info("Updating Time Info ")
-      if(taxiTripTimeInfoStatMap.contains(statId)) {
-        val currentMinutes = getMinutes(taxiTripTimeInfoStatMap(statId))
-        taxiTripTimeInfoStatMap = taxiTripTimeInfoStatMap + (statId -> taxiTripTimeInfoStat)
-        totalMinutesTrip +=  (getMinutes(taxiTripTimeInfoStatMap(statId)) - currentMinutes)
-      } else log.info(s"Entry not found to update by id $statId")
-    case GetTaxiTimeInfoStat(statId) =>
-      sender() ! taxiTripTimeInfoStatMap.get(statId)
+      persist(TaxiTripTimeInfoStatUpdatedEvent(statId,taxiTripTimeInfoStat)) { _ =>
+        state = taxiTripTimeInfoStat
+      }
+//      if(taxiTripTimeInfoStatMap.contains(statId)) {
+//        val currentMinutes = getMinutes(taxiTripTimeInfoStatMap(statId))
+//        taxiTripTimeInfoStatMap = taxiTripTimeInfoStatMap + (statId -> taxiTripTimeInfoStat)
+//        totalMinutesTrip +=  (getMinutes(taxiTripTimeInfoStatMap(statId)) - currentMinutes)
+//      } else log.info(s"Entry not found to update by id $statId")
+    case GetTaxiTimeInfoStat(_) =>
+      sender() ! state
     case DeleteTaxiTripTimeInfoStat(statId) =>
       log.info("Deleting taxi cost stat")
-      if (taxiTripTimeInfoStatMap.contains(statId)) {
-        persist(DeletedTaxiTripTimeInfoStatEvent(statId)) { _ =>
-          val taxiTimeInfoDeleted: TaxiTripTimeInfoStat = taxiTripTimeInfoStatMap(statId).copy(deletedFlag = true)
-          taxiTripTimeInfoStatMap = taxiTripTimeInfoStatMap + (statId -> taxiTimeInfoDeleted)
-        }
+      persist(DeletedTaxiTripTimeInfoStatEvent(statId)) { _ =>
+        state = state.copy(deletedFlag = true)
       }
+//      if (taxiTripTimeInfoStatMap.contains(statId)) {
+//        persist(DeletedTaxiTripTimeInfoStatEvent(statId)) { _ =>
+//          val taxiTimeInfoDeleted: TaxiTripTimeInfoStat = taxiTripTimeInfoStatMap(statId).copy(deletedFlag = true)
+//          taxiTripTimeInfoStatMap = taxiTripTimeInfoStatMap + (statId -> taxiTimeInfoDeleted)
+//        }
+//      }
     case GetAverageTripTime =>
-      sender() ! TaxiTripAverageTimeMinutesResponse(totalMinutesTrip / taxiTripTimeInfoStatMap.size)
+//      sender() ! TaxiTripAverageTimeMinutesResponse(totalMinutesTrip / taxiTripTimeInfoStatMap.size)
     case GetTotalTimeInfoInfoLoaded =>
-      sender() ! taxiTripTimeInfoStatMap.size
+//      sender() ! taxiTripTimeInfoStatMap.size
     case _ =>
       log.info(s"Received something else at ${self.path.name}")
 
@@ -85,17 +93,20 @@ class PersistentTaxiTripTimeInfo(id: String) extends PersistentActor with ActorL
   override def receiveRecover: Receive = {
     case TaxiTripTimeInfoStatCreatedEvent(statId,taxiTripTimeInfoStat) =>
       log.info(s"Recovering Trip Time Info Stat $taxiTripTimeInfoStat")
-      taxiTripTimeInfoStatMap = taxiTripTimeInfoStatMap + (statId -> taxiTripTimeInfoStat)
-      totalMinutesTrip += getMinutes(taxiTripTimeInfoStat)
+      state = taxiTripTimeInfoStat
+//      taxiTripTimeInfoStatMap = taxiTripTimeInfoStatMap + (statId -> taxiTripTimeInfoStat)
+//      totalMinutesTrip += getMinutes(taxiTripTimeInfoStat)
     case TaxiTripTimeInfoStatUpdatedEvent(statId,taxiTripTimeInfoStat) =>
       log.info(s"Recovering Update Trip Time Info Stat $taxiTripTimeInfoStat")
-      val currentMinutes = getMinutes(taxiTripTimeInfoStatMap(statId))
-      taxiTripTimeInfoStatMap = taxiTripTimeInfoStatMap + (statId -> taxiTripTimeInfoStat)
-      totalMinutesTrip +=  (getMinutes(taxiTripTimeInfoStatMap(statId)) - currentMinutes)
+      state = taxiTripTimeInfoStat
+//      val currentMinutes = getMinutes(taxiTripTimeInfoStatMap(statId))
+//      taxiTripTimeInfoStatMap = taxiTripTimeInfoStatMap + (statId -> taxiTripTimeInfoStat)
+//      totalMinutesTrip +=  (getMinutes(taxiTripTimeInfoStatMap(statId)) - currentMinutes)
     case DeletedTaxiTripTimeInfoStatEvent(statId) =>
       log.info(s"Recovering Deleted Trip Time Info Stat ")
-      val taxiTimeInfoDeleted: TaxiTripTimeInfoStat = taxiTripTimeInfoStatMap(statId).copy(deletedFlag = true)
-      taxiTripTimeInfoStatMap = taxiTripTimeInfoStatMap + (statId -> taxiTimeInfoDeleted)
+      state = state.copy(deletedFlag = true)
+//      val taxiTimeInfoDeleted: TaxiTripTimeInfoStat = taxiTripTimeInfoStatMap(statId).copy(deletedFlag = true)
+//      taxiTripTimeInfoStatMap = taxiTripTimeInfoStatMap + (statId -> taxiTimeInfoDeleted)
 
   }
 }

@@ -7,7 +7,7 @@ import com.tudux.taxi.actors.TaxiTripCommand.CreateTaxiStat
 import com.tudux.taxi.actors.TaxiTripCommand.CreateTaxiTripCommand
 import com.tudux.taxi.actors.TaxiTripPassengerInfoStatCommand.UpdateTaxiPassenger
 import com.tudux.taxi.actors.TaxiTripTimeInfoStatCommand.UpdateTaxiTripTimeInfoStat
-import com.tudux.taxi.actors.TaxiTripTimeResponses.TaxiTripAverageTimeMinutesResponse
+import com.tudux.taxi.actors.TimeAggregatorResponse.TaxiTripAverageTimeMinutesResponse
 import com.tudux.taxi.actors._
 import spray.json._
 

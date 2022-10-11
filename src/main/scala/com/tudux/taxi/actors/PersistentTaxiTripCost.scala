@@ -23,7 +23,7 @@ object TaxiCostStatCommand {
 
 sealed trait TaxiCostResponse
 object TaxiCostStatsResponse {
-  case class TotalTaxiCostStats(total: Int,totalAmount: Double) extends TaxiCostResponse
+  case object TaxiCostCreated
 }
 
 
@@ -43,13 +43,7 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
   import TaxiCostStatEvent._
   import TaxiCostStatsResponse._
 
-  //Persistent Actor State
-  //var statCostMap : Map[String,TaxiCostStat] = Map.empty
   var state : TaxiCostStat = TaxiCostStat(0,0,0,0,0,0,0,0,0,0)
-  //Used for calculate estimated cost
-  //var totalDistance : Double = 0
-  //var totalAmount : Double = 0
-  //var tipStats : Map[String,Double] = Map.empty
 
   override def persistenceId: String = id
 
@@ -60,6 +54,7 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
         state = taxiCostStat
         log.info(s"Created cost stat: $taxiCostStat")
       }
+      sender() ! s"${self.path} child actor registered"
 
     case GetTaxiCostStat(statId) =>
       log.info(s"Receiving request to return cost trip cost information ${self.path}")
@@ -98,21 +93,11 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
     case TaxiCostStatCreatedEvent(statId,taxiCostStat) =>
       log.info(s"Recovering Taxi Cost Created  $statId at ${self.path}")
       state = taxiCostStat
-      //statCostMap = statCostMap + (statId -> taxiCostStat)
-//      totalAmount += taxiCostStat.total_amount
-//      totalDistance += taxiCostStat.trip_distance
-      //if(taxiCostStat.tip_amount > 0) tipStats = tipStats + (statId -> taxiCostStat.tip_amount)
 
     case UpdatedTaxiCostStatEvent(statId,taxiCostStat) =>
       log.info(s"Recovering Taxi Cost Updated $statId at ${self.path}")
       state = taxiCostStat
-//      val prevAmount = statCostMap(statId).total_amount
-//      val prevDistance = statCostMap(statId).trip_distance
-//      statCostMap = statCostMap + (statId -> taxiCostStat)
-//      totalAmount += statCostMap(statId).total_amount - prevAmount
-//      totalDistance += statCostMap(statId).trip_distance - prevDistance
-//      if (tipStats.contains(statId) && (taxiCostStat.tip_amount > 0)) tipStats = (tipStats + (statId -> taxiCostStat.tip_amount))
-//      else if (tipStats.contains(statId) && (taxiCostStat.tip_amount == 0)) tipStats = (tipStats - statId)
+
     case DeletedTaxiCostStatEvent(statId) =>
       state = state.copy(deletedFlag = true)
   }

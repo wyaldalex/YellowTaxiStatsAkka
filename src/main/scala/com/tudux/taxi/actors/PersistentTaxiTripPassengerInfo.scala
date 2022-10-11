@@ -30,8 +30,6 @@ class PersistentTaxiTripPassengerInfo(id: String) extends PersistentActor with A
   import TaxiTripPassengerInfoStatCommand._
   import TaxiTripPassengerInfoStatEvent._
 
-  //Persistent Actor State
-  //var taxiTripPassengerInfoStatMap : Map[String,TaxiTripPassengerInfoStat] = Map.empty
   var state : TaxiTripPassengerInfoStat = TaxiTripPassengerInfoStat(0)
 
   override def persistenceId: String = id

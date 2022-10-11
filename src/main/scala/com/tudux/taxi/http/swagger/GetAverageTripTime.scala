@@ -1,7 +1,7 @@
 package com.tudux.taxi.http.swagger
 
 import akka.http.scaladsl.server.Route
-import com.tudux.taxi.actors.TaxiTripTimeResponses.TaxiTripAverageTimeMinutesResponse
+import com.tudux.taxi.actors.TimeAggregatorResponse.TaxiTripAverageTimeMinutesResponse
 import io.swagger.annotations._
 
 import javax.ws.rs.Path

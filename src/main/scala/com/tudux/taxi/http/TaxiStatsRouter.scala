@@ -14,8 +14,9 @@ import com.tudux.taxi.actors.TaxiExtraInfoStatCommand.{GetTaxiExtraInfoStat, Get
 import com.tudux.taxi.actors.TaxiTripCommand.DeleteTaxiStat
 import com.tudux.taxi.actors.TaxiStatResponseResponses.TaxiStatCreatedResponse
 import com.tudux.taxi.actors.TaxiTripPassengerInfoStatCommand.{GetTaxiPassengerInfoStat, GetTotalPassengerInfoLoaded}
-import com.tudux.taxi.actors.TaxiTripTimeInfoStatCommand.{GetAverageTripTime, GetTaxiTimeInfoStat, GetTotalTimeInfoInfoLoaded}
-import com.tudux.taxi.actors.TaxiTripTimeResponses.TaxiTripAverageTimeMinutesResponse
+import com.tudux.taxi.actors.TaxiTripTimeInfoStatCommand.{GetTaxiTimeInfoStat, GetTotalTimeInfoInfoLoaded}
+import com.tudux.taxi.actors.TimeAggregatorCommand.GetAverageTripTime
+import com.tudux.taxi.actors.TimeAggregatorResponse.TaxiTripAverageTimeMinutesResponse
 import com.tudux.taxi.actors._
 import com.tudux.taxi.http.RouteHelpers._
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
@@ -39,7 +40,7 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
   with GetTotalLoadedResponseProtocol
   {
   implicit val dispatcher: ExecutionContext = system.dispatcher
-  implicit val timeout: Timeout = Timeout(50.seconds)
+  implicit val timeout: Timeout = Timeout(2.seconds)
 
   def toHttpEntity(payload: String) = HttpEntity(ContentTypes.`application/json`, payload)
 

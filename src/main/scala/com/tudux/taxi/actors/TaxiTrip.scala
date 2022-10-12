@@ -135,16 +135,16 @@ class TaxiTripActor extends Actor with ActorLogging {
     //Individual Stats
     case getTotalCostLoaded@GetTotalCostLoaded =>
       log.info("To be implemented")
-//      taxiTripCostActor.forward(getTotalCostLoaded)
+      parentCostActor.forward(getTotalCostLoaded)
     case getTotalExtraInfoLoaded@GetTotalExtraInfoLoaded =>
       log.info("To be implemented")
-//      taxiExtraInfoActor.forward(getTotalExtraInfoLoaded)
+      parentExtraInfoActor.forward(getTotalExtraInfoLoaded)
     case getTotalTimeInfoInfoLoaded@GetTotalTimeInfoInfoLoaded =>
       log.info("To be implemented")
-//      taxiTimeInfoActor.forward(getTotalTimeInfoInfoLoaded)
+      parentTimeInfoActor.forward(getTotalTimeInfoInfoLoaded)
     case getTotalPassengerInfoLoaded@GetTotalPassengerInfoLoaded =>
       log.info("To be implemented")
-//      taxiPassengerInfoActor.forward(getTotalPassengerInfoLoaded)
+      parentPassengerInfo.forward(getTotalPassengerInfoLoaded)
 
     case printTimeToLoad@PrintTimeToLoad(_) =>
       log.info("Forwarding Total Time to Load Request")

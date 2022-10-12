@@ -57,10 +57,9 @@ class PersistentParentExtraInfo(id: String) extends PersistentActor with ActorLo
       taxiExtraInfoActor ! DeleteTaxiExtraInfo(statId)
 
     //Individual Stats
-
-    case getTotalExtraInfoLoaded@GetTotalExtraInfoLoaded =>
-      log.info("To be implemented")
-    //      taxiExtraInfoActor.forward(getTotalExtraInfoLoaded)
+    case GetTotalExtraInfoLoaded =>
+      log.info("Returning total cost info loaded size")
+      sender() ! state.extrainfo.size
 
     case message: String =>
       log.info(message)

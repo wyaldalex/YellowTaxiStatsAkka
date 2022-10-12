@@ -200,7 +200,7 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
           )
         }
       } ~
-      pathPrefix("api" / "yellowtaxi" /  "loaded" / "stat") {
+      pathPrefix("api" / "yellowtaxi" /  "actor" / "loaded") {
         get {
           val statTotalCostLoadedFuture: Future[Int] = (taxiTripActor ? GetTotalCostLoaded).mapTo[Int]
           val statTotalPassengerInfoLoadedFuture: Future[Int] = (taxiTripActor ? GetTotalPassengerInfoLoaded).mapTo[Int]

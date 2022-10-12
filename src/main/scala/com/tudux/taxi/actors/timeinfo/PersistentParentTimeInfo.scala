@@ -56,9 +56,9 @@ class PersistentParentTimeInfo(id: String) extends PersistentActor with ActorLog
       val taxiTimeInfoActor = state.timeinfo(statId)
       taxiTimeInfoActor ! DeleteTaxiTripTimeInfoStat(statId)
     //Individual Stats
-    case getTotalTimeInfoInfoLoaded@GetTotalTimeInfoInfoLoaded =>
-      log.info("To be implemented")
-    //      taxiTimeInfoActor.forward(getTotalTimeInfoInfoLoaded)
+    case GetTotalTimeInfoInfoLoaded =>
+        log.info("Returning total time info loaded size")
+        sender() ! state.timeinfo.size
     case printTimeToLoad@PrintTimeToLoad(_) =>
       log.info("Forwarding Total Time to Load Request")
     //      taxiTripCostActor.forward(printTimeToLoad)

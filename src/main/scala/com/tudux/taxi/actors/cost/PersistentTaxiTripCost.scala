@@ -76,8 +76,6 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
         state = state.copy(deletedFlag = true)
       }
 
-    case GetTotalCostLoaded =>
-      //sender() ! statCostMap.size
     case PrintTimeToLoad(startTimeMillis) =>
       log.info("Getting Load Time")
       val endTimeMillis = System.currentTimeMillis()

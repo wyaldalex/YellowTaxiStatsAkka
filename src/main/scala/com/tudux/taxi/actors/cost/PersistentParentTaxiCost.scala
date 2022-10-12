@@ -57,6 +57,10 @@ class PersistentParentTaxiCost(id: String) extends PersistentActor with ActorLog
     case deleteTaxiStat@DeleteTaxiStat(statId) =>
       val taxiTripCostActor = state.costs(statId)
       taxiTripCostActor ! DeleteTaxiCostStat(statId)
+
+    case GetTotalCostLoaded =>
+      log.info("Returning total cost info loaded size")
+      sender() ! state.costs.size
       
     //Individual Stats
     case message: String =>

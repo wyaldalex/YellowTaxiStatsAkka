@@ -57,8 +57,6 @@ class PersistentTaxiExtraInfo(id: String) extends PersistentActor with ActorLogg
       persist(DeletedTaxiExtraInfoEvent(statId)) { _ =>
         state = state.copy(deletedFlag = true)
       }
-    case GetTotalExtraInfoLoaded =>
-      //sender() ! statExtraInfoMap.size
     case _ =>
       log.info(s"Received something else at ${self.path.name}")
 

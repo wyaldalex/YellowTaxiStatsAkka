@@ -60,9 +60,9 @@ class PersistentParentPassengerInfo(id: String) extends PersistentActor with Act
       taxiPassengerInfoActor ! DeleteTaxiTripPassenger(statId)
 
     //Individual Stats
-    case getTotalPassengerInfoLoaded@GetTotalPassengerInfoLoaded =>
-      log.info("To be implemented")
-    //      taxiPassengerInfoActor.forward(getTotalPassengerInfoLoaded)
+    case GetTotalPassengerInfoLoaded =>
+      log.info("Returning total passenger info loaded size")
+      sender() ! state.passengerinfo.size
 
     case printTimeToLoad@PrintTimeToLoad(_) =>
       log.info("Forwarding Total Time to Load Request")

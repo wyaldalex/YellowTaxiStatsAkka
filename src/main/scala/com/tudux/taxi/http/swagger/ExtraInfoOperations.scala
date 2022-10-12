@@ -1,7 +1,7 @@
 package com.tudux.taxi.http.swagger
 
 import akka.http.scaladsl.server.Route
-import com.tudux.taxi.actors.TaxiExtraInfoStat
+import com.tudux.taxi.actors.extrainfo.TaxiExtraInfoStat
 import io.swagger.annotations._
 
 import javax.ws.rs.Path

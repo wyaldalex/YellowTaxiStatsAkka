@@ -1,4 +1,4 @@
-package com.tudux.taxi.actors
+package com.tudux.taxi.actors.cost
 
 import akka.actor.{ActorLogging, ActorRef, Props}
 import akka.persistence.PersistentActor
@@ -41,7 +41,6 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
 
   import TaxiCostStatCommand._
   import TaxiCostStatEvent._
-  import TaxiCostStatsResponse._
 
   var state : TaxiCostStat = TaxiCostStat(0,0,0,0,0,0,0,0,0,0)
 

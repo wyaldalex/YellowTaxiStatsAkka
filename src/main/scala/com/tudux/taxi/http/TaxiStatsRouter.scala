@@ -9,15 +9,19 @@ import akka.pattern.ask
 import akka.util.Timeout
 import com.tudux.taxi.actors.CostAggregatorCommand.{CalculateTripDistanceCost, GetAverageTipAmount}
 import com.tudux.taxi.actors.CostAggregatorResponse.{CalculateTripDistanceCostResponse, GetAverageTipAmountResponse}
-import com.tudux.taxi.actors.TaxiCostStatCommand._
-import com.tudux.taxi.actors.TaxiExtraInfoStatCommand.{GetTaxiExtraInfoStat, GetTotalExtraInfoLoaded}
+import com.tudux.taxi.actors.cost.TaxiCostStatCommand._
+import com.tudux.taxi.actors.extrainfo.TaxiExtraInfoStatCommand.{GetTaxiExtraInfoStat, GetTotalExtraInfoLoaded}
 import com.tudux.taxi.actors.TaxiTripCommand.DeleteTaxiStat
 import com.tudux.taxi.actors.TaxiStatResponseResponses.TaxiStatCreatedResponse
-import com.tudux.taxi.actors.TaxiTripPassengerInfoStatCommand.{GetTaxiPassengerInfoStat, GetTotalPassengerInfoLoaded}
-import com.tudux.taxi.actors.TaxiTripTimeInfoStatCommand.{GetTaxiTimeInfoStat, GetTotalTimeInfoInfoLoaded}
+import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfoStatCommand.{GetTaxiPassengerInfoStat, GetTotalPassengerInfoLoaded}
+import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfoStatCommand.{GetTaxiTimeInfoStat, GetTotalTimeInfoInfoLoaded}
 import com.tudux.taxi.actors.TimeAggregatorCommand.GetAverageTripTime
 import com.tudux.taxi.actors.TimeAggregatorResponse.TaxiTripAverageTimeMinutesResponse
 import com.tudux.taxi.actors._
+import com.tudux.taxi.actors.cost.TaxiCostStat
+import com.tudux.taxi.actors.extrainfo.TaxiExtraInfoStat
+import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfoStat
+import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfoStat
 import com.tudux.taxi.http.RouteHelpers._
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.generic.auto._

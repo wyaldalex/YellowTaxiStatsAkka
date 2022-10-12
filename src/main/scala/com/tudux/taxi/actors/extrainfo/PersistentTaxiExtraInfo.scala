@@ -1,4 +1,4 @@
-package com.tudux.taxi.actors
+package com.tudux.taxi.actors.extrainfo
 
 import akka.actor.{ActorLogging, Props}
 import akka.persistence.PersistentActor

@@ -1,6 +1,10 @@
 package com.tudux.taxi.actors.helpers
 
-import com.tudux.taxi.actors.{AggregatorStat, TaxiCostStat, TaxiExtraInfoStat, TaxiStat, TaxiTripPassengerInfoStat, TaxiTripTimeInfoStat}
+import com.tudux.taxi.actors.cost.TaxiCostStat
+import com.tudux.taxi.actors.extrainfo.TaxiExtraInfoStat
+import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfoStat
+import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfoStat
+import com.tudux.taxi.actors.{AggregatorStat, TaxiStat}
 
 object TaxiTripHelpers {
 

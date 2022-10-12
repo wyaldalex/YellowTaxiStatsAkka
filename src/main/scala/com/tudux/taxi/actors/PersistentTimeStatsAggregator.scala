@@ -2,6 +2,7 @@ package com.tudux.taxi.actors
 
 import akka.actor.{ActorLogging, Props}
 import akka.persistence.{PersistentActor, SaveSnapshotFailure, SaveSnapshotSuccess, SnapshotOffer}
+import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfoStat
 
 //commands
 sealed trait TimeAggregatorCommand
@@ -40,7 +41,7 @@ class PersistentTimeStatsAggregator(id: String) extends PersistentActor with Act
   var totalMinutesTrip : Double = 0
   var totalTrips : Int = 0
   var tripsWithoutCheckpoint = 0
-  val MAX_MESSAGES = 1000
+  val MAX_MESSAGES = 900
 
   override def persistenceId: String = id
   override def receiveCommand: Receive = {

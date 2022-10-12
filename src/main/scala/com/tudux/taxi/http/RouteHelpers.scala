@@ -1,14 +1,18 @@
 package com.tudux.taxi.http
 
 import com.tudux.taxi.actors.CostAggregatorResponse.{CalculateTripDistanceCostResponse, GetAverageTipAmountResponse}
-import com.tudux.taxi.actors.TaxiCostStatCommand._
-import com.tudux.taxi.actors.TaxiExtraInfoStatCommand.UpdateTaxiExtraInfoStat
+import com.tudux.taxi.actors.cost.TaxiCostStatCommand._
+import com.tudux.taxi.actors.extrainfo.TaxiExtraInfoStatCommand.UpdateTaxiExtraInfoStat
 import com.tudux.taxi.actors.TaxiTripCommand.CreateTaxiStat
 import com.tudux.taxi.actors.TaxiTripCommand.CreateTaxiTripCommand
-import com.tudux.taxi.actors.TaxiTripPassengerInfoStatCommand.UpdateTaxiPassenger
-import com.tudux.taxi.actors.TaxiTripTimeInfoStatCommand.UpdateTaxiTripTimeInfoStat
+import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfoStatCommand.UpdateTaxiPassenger
+import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfoStatCommand.UpdateTaxiTripTimeInfoStat
 import com.tudux.taxi.actors.TimeAggregatorResponse.TaxiTripAverageTimeMinutesResponse
 import com.tudux.taxi.actors._
+import com.tudux.taxi.actors.cost.TaxiCostStat
+import com.tudux.taxi.actors.extrainfo.TaxiExtraInfoStat
+import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfoStat
+import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfoStat
 import spray.json._
 
 object RouteHelpers {

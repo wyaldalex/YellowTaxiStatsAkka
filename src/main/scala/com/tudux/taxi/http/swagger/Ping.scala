@@ -7,7 +7,7 @@ import io.swagger.annotations._
 @Path("/ping")
 @Api(value = "/ping")
 @SwaggerDefinition(tags = Array(new Tag(name = "hello", description = "operations useful for debugging")))
-trait Base {
+trait Ping {
   @ApiOperation(value = "ping", tags = Array("ping"), httpMethod = "GET", notes = "This route will return a output pong")
   @ApiResponses(Array(
     new ApiResponse(code = 200, message = "OK"),

@@ -5,9 +5,6 @@ import akka.persistence.PersistentActor
 import com.tudux.taxi.actors.helpers.TaxiTripHelpers._
 import com.tudux.taxi.actors.{TaxiStatResponseResponses, TaxiTripCommand, TaxiTripEvent}
 
-
-
-
 object PersistentParentTaxiCost {
 
   def props(id: String) : Props = Props(new PersistentParentTaxiCost(id))

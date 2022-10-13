@@ -21,11 +21,6 @@ object TaxiCostStatCommand {
   case class PrintTimeToLoad(startTimeMillis: Long) extends TaxiCostCommand
 }
 
-sealed trait TaxiCostResponse
-object TaxiCostStatsResponse {
-  case object TaxiCostCreated
-}
-
 
 sealed trait TaxiCostEvent
 object TaxiCostStatEvent{

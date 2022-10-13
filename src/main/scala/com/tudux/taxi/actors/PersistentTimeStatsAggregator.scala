@@ -7,15 +7,15 @@ import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfoStat
 //commands
 sealed trait TimeAggregatorCommand
 object TimeAggregatorCommand  {
-  case class AddTimeAggregatorValues(time: TaxiTripTimeInfoStat)
+  case class AddTimeAggregatorValues(time: TaxiTripTimeInfoStat) extends TimeAggregatorCommand
   case object GetAverageTripTime extends TimeAggregatorCommand
-  case class UpdateTimeAggregatorValues(preTime: TaxiTripTimeInfoStat,newTime: TaxiTripTimeInfoStat)
+  case class UpdateTimeAggregatorValues(preTime: TaxiTripTimeInfoStat,newTime: TaxiTripTimeInfoStat) extends TimeAggregatorCommand
 }
 //events
 sealed trait TimeAggregatorEvent
 object TimeAggregatorEvent {
   case class AddedTimeAggregatorValuesEvent(time: TaxiTripTimeInfoStat) extends TimeAggregatorEvent
-  case class UpdatedTimeAggregatorValuesEvent(preTime: TaxiTripTimeInfoStat,newTime: TaxiTripTimeInfoStat)
+  case class UpdatedTimeAggregatorValuesEvent(preTime: TaxiTripTimeInfoStat,newTime: TaxiTripTimeInfoStat) extends TimeAggregatorEvent
 }
 
 //responses

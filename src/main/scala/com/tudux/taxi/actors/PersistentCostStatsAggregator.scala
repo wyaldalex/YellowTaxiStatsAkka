@@ -18,8 +18,8 @@ object  CostAggregatorCommand {
 //events
 sealed trait CostAggregatorEvent
 object CostAggregatorEvent{
-  case class AddedCostAggregatorValuesEvent(statId: String,stat: AggregatorStat)
-  case class UpdatedCostAggregatorValuesEvent(totalAmountDelta: Double, distanceDelta: Double, tipAmountDelta: Double, tipAmount: Double)
+  case class AddedCostAggregatorValuesEvent(statId: String,stat: AggregatorStat) extends CostAggregatorEvent
+  case class UpdatedCostAggregatorValuesEvent(totalAmountDelta: Double, distanceDelta: Double, tipAmountDelta: Double, tipAmount: Double) extends CostAggregatorEvent
 }
 //responses
 sealed trait CostAggregatorResponse

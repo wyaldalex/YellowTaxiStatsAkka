@@ -24,11 +24,6 @@ object TaxiTripTimeInfoStatEvent{
 }
 
 
-
-object TaxiTripTimeResponses {
-
-}
-
 object PersistentTaxiTripTimeInfo {
   def props(id: String): Props = Props(new PersistentTaxiTripTimeInfo(id))
 }

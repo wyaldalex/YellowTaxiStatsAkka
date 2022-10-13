@@ -1,6 +1,6 @@
 package com.tudux.taxi.http.swagger
 
-import akka.actor.{ActorSystem, ActorRefFactory}
+import akka.actor.ActorSystem
 import com.github.swagger.akka.SwaggerHttpService
 import com.github.swagger.akka.model.Info
 import com.typesafe.config.ConfigFactory

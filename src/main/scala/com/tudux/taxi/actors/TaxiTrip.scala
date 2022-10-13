@@ -34,7 +34,7 @@ object TaxiTripEvent {
 sealed trait TaxiStatResponse
 object TaxiStatResponseResponses {
   case class TaxiStatCreatedResponse(statId: String) extends TaxiStatResponse
-  case class ChildActorRegistered(message: String)
+  
 }
 
 object TaxiTripActor {

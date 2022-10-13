@@ -4,29 +4,29 @@ import akka.actor.{ActorLogging, ActorRef, Props}
 import akka.persistence.PersistentActor
 import com.tudux.taxi.actors.CostAggregatorCommand.UpdateCostAggregatorValues
 
-case class TaxiCostStat(vendorID: Int,
-                    tripDistance: Double,
-                    paymentType: Int, fareAmount: Double, extra: Double, mtaTax: Double,
-                    tipAmount: Double, tollsAmount: Double, improvementSurcharge: Double, totalAmount: Double, deletedFlag: Boolean = false)
+case class TaxiTripCost(vendorID: Int,
+                        tripDistance: Double,
+                        paymentType: Int, fareAmount: Double, extra: Double, mtaTax: Double,
+                        tipAmount: Double, tollsAmount: Double, improvementSurcharge: Double, totalAmount: Double, deletedFlag: Boolean = false)
 
 
 sealed trait TaxiCostCommand
-object TaxiCostStatCommand {
-  case class CreateTaxiCostStat(statId: String,taxiCostStat: TaxiCostStat) extends TaxiCostCommand
-  case class GetTaxiCostStat(statId: String) extends  TaxiCostCommand
-  case object GetTotalTaxiCostStats extends  TaxiCostCommand
-  case class UpdateTaxiCostStat(statId: String,taxiCostStat: TaxiCostStat, costAggregator: ActorRef = null) extends TaxiCostCommand
-  case class DeleteTaxiCostStat(statId: String) extends TaxiCostCommand
+object TaxiTripCostCommand {
+  case class CreateTaxiTripCost(statId: String, taxiTripCost: TaxiTripCost) extends TaxiCostCommand
+  case class GetTaxiTripCost(statId: String) extends  TaxiCostCommand
+  case object GetTotalTaxiTripCost extends  TaxiCostCommand
+  case class UpdateTaxiTripCost(statId: String, taxiTripCost: TaxiTripCost, costAggregator: ActorRef = null) extends TaxiCostCommand
+  case class DeleteTaxiTripCost(statId: String) extends TaxiCostCommand
   case object GetTotalCostLoaded extends TaxiCostCommand
   case class PrintTimeToLoad(startTimeMillis: Long) extends TaxiCostCommand
 }
 
 
 sealed trait TaxiCostEvent
-object TaxiCostStatEvent{
-  case class TaxiCostStatCreatedEvent(statId: String, taxiCostStat: TaxiCostStat) extends TaxiCostEvent
-  case class UpdatedTaxiCostStatEvent(statId: String,taxiCostStat: TaxiCostStat) extends TaxiCostEvent
-  case class DeletedTaxiCostStatEvent(statId: String) extends TaxiCostEvent
+object TaxiTripCostEvent{
+  case class TaxiTripCostCreatedEvent(statId: String, taxiTripCost: TaxiTripCost) extends TaxiCostEvent
+  case class UpdatedTaxiTripCostEvent(statId: String, taxiTripCost: TaxiTripCost) extends TaxiCostEvent
+  case class DeletedTaxiTripCostEvent(statId: String) extends TaxiCostEvent
 }
 
 object PersistentTaxiTripCost {
@@ -34,40 +34,40 @@ object PersistentTaxiTripCost {
 }
 class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLogging {
 
-  import TaxiCostStatCommand._
-  import TaxiCostStatEvent._
+  import TaxiTripCostCommand._
+  import TaxiTripCostEvent._
 
-  var state : TaxiCostStat = TaxiCostStat(0,0,0,0,0,0,0,0,0,0)
+  var state : TaxiTripCost = TaxiTripCost(0,0,0,0,0,0,0,0,0,0)
 
   override def persistenceId: String = id
 
   override def receiveCommand: Receive = {
-    case CreateTaxiCostStat(statId,taxiCostStat) =>
-      persist(TaxiCostStatCreatedEvent(statId,taxiCostStat)) { _ =>
-        log.info(s"Creating Taxi Cost Stat $taxiCostStat")
-        state = taxiCostStat
-        log.info(s"Created cost stat: $taxiCostStat")
+    case CreateTaxiTripCost(statId,taxiTripCost) =>
+      persist(TaxiTripCostCreatedEvent(statId,taxiTripCost)) { _ =>
+        log.info(s"Creating Taxi Cost $taxiTripCost")
+        state = taxiTripCost
+        log.info(s"Created cost stat: $taxiTripCost")
       }
       sender() ! s"${self.path} child actor registered"
 
-    case GetTaxiCostStat(statId) =>
+    case GetTaxiTripCost(statId) =>
       log.info(s"Receiving request to return cost trip cost information ${self.path}")
       sender() ! state
-    case UpdateTaxiCostStat(statId,taxiCostStat,costAggregator) =>
+    case UpdateTaxiTripCost(statId,taxiTripCost,costAggregator) =>
 
-      persist(UpdatedTaxiCostStatEvent(statId, taxiCostStat)) { _ =>
+      persist(UpdatedTaxiTripCostEvent(statId, taxiTripCost)) { _ =>
         costAggregator ! UpdateCostAggregatorValues(
-          taxiCostStat.totalAmount-state.totalAmount,
-          taxiCostStat.tripDistance-state.tripDistance,
-          taxiCostStat.totalAmount - state.tipAmount,
+          taxiTripCost.totalAmount-state.totalAmount,
+          taxiTripCost.tripDistance-state.tripDistance,
+          taxiTripCost.totalAmount - state.tipAmount,
           state.tipAmount)
-        state = taxiCostStat
-        log.info(s"Updated cost stat: $taxiCostStat")
+        state = taxiTripCost
+        log.info(s"Updated cost stat: $taxiTripCost")
         }
 
-    case DeleteTaxiCostStat(statId) =>
+    case DeleteTaxiTripCost(statId) =>
       log.info("Deleting taxi cost stat")
-      persist(DeletedTaxiCostStatEvent(statId)) { _ =>
+      persist(DeletedTaxiTripCostEvent(statId)) { _ =>
         state = state.copy(deletedFlag = true)
       }
 
@@ -82,15 +82,15 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
   }
 
   override def receiveRecover: Receive = {
-    case TaxiCostStatCreatedEvent(statId,taxiCostStat) =>
+    case TaxiTripCostCreatedEvent(statId,taxiTripCost) =>
       log.info(s"Recovering Taxi Cost Created  $statId ")
-      state = taxiCostStat
+      state = taxiTripCost
 
-    case UpdatedTaxiCostStatEvent(statId,taxiCostStat) =>
+    case UpdatedTaxiTripCostEvent(statId,taxiTripCost) =>
       log.info(s"Recovering Taxi Cost Updated $statId ")
-      state = taxiCostStat
+      state = taxiTripCost
 
-    case DeletedTaxiCostStatEvent(statId) =>
+    case DeletedTaxiTripCostEvent(statId) =>
       log.info(s"Recovering Taxi Cost Deleted for $statId ")
       state = state.copy(deletedFlag = true)
   }

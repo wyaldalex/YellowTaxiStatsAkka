@@ -4,23 +4,23 @@ import akka.actor.{ActorLogging, ActorRef, Props}
 import akka.persistence.PersistentActor
 import com.tudux.taxi.actors.TimeAggregatorCommand.UpdateTimeAggregatorValues
 
-case class TaxiTripTimeInfoStat(tpepPickupDatetime: String,tpepDropoffDatetime: String,deletedFlag: Boolean = false)
+case class TaxiTripTimeInfo(tpepPickupDatetime: String, tpepDropoffDatetime: String, deletedFlag: Boolean = false)
 
 sealed trait TaxiTripTimeInfoCommand
-object TaxiTripTimeInfoStatCommand {
-  case class CreateTaxiTripTimeInfoStat(statId: String,taxiTripTimeInfoStat: TaxiTripTimeInfoStat) extends TaxiTripTimeInfoCommand
-  case class GetTaxiTimeInfoStat(statId: String) extends TaxiTripTimeInfoCommand
-  case class UpdateTaxiTripTimeInfoStat(statId: String,taxiTripTimeInfoStat: TaxiTripTimeInfoStat, timeAggregator: ActorRef = null) extends TaxiTripTimeInfoCommand
-  case class DeleteTaxiTripTimeInfoStat(statId: String) extends TaxiTripTimeInfoCommand
+object TaxiTripTimeInfoCommand {
+  case class CreateTaxiTripTimeInfo(tripId: String, taxiTripTimeInfoStat: TaxiTripTimeInfo) extends TaxiTripTimeInfoCommand
+  case class GetTaxiTripTimeInfo(tripId: String) extends TaxiTripTimeInfoCommand
+  case class UpdateTaxiTripTimeInfo(tripId: String, taxiTripTimeInfoStat: TaxiTripTimeInfo, timeAggregator: ActorRef = null) extends TaxiTripTimeInfoCommand
+  case class DeleteTaxiTripTimeInfo(tripId: String) extends TaxiTripTimeInfoCommand
   case object GetTotalTimeInfoInfoLoaded
 }
 
 
 sealed trait TaxiTripTimeInfoEvent
 object TaxiTripTimeInfoStatEvent{
-  case class TaxiTripTimeInfoStatCreatedEvent(statId: String, taxiTripTimeInfoStat: TaxiTripTimeInfoStat) extends TaxiTripTimeInfoEvent
-  case class TaxiTripTimeInfoStatUpdatedEvent(statId: String, taxiTripTimeInfoStat: TaxiTripTimeInfoStat) extends TaxiTripTimeInfoEvent
-  case class DeletedTaxiTripTimeInfoStatEvent(statId: String) extends TaxiTripTimeInfoEvent
+  case class TaxiTripTimeInfoCreatedEvent(tripId: String, taxiTripTimeInfoStat: TaxiTripTimeInfo) extends TaxiTripTimeInfoEvent
+  case class TaxiTripTimeInfoUpdatedEvent(tripId: String, taxiTripTimeInfoStat: TaxiTripTimeInfo) extends TaxiTripTimeInfoEvent
+  case class DeletedTaxiTripTimeInfoEvent(tripId: String) extends TaxiTripTimeInfoEvent
 }
 
 
@@ -29,31 +29,31 @@ object PersistentTaxiTripTimeInfo {
 }
 class PersistentTaxiTripTimeInfo(id: String) extends PersistentActor with ActorLogging {
 
-  import TaxiTripTimeInfoStatCommand._
+  import TaxiTripTimeInfoCommand._
   import TaxiTripTimeInfoStatEvent._
 
 
-  var state : TaxiTripTimeInfoStat = TaxiTripTimeInfoStat("","")
+  var state : TaxiTripTimeInfo = TaxiTripTimeInfo("","")
 
   override def persistenceId: String = id
 
   override def receiveCommand: Receive = {
-    case CreateTaxiTripTimeInfoStat(statId,taxiTripTimeInfoStat) =>
-      persist(TaxiTripTimeInfoStatCreatedEvent(statId,taxiTripTimeInfoStat)) { _ =>
+    case CreateTaxiTripTimeInfo(tripId,taxiTripTimeInfoStat) =>
+      persist(TaxiTripTimeInfoCreatedEvent(tripId,taxiTripTimeInfoStat)) { _ =>
         log.info(s"Creating Trip Time Info Stat $taxiTripTimeInfoStat")
         state = taxiTripTimeInfoStat
       }
-    case UpdateTaxiTripTimeInfoStat(statId, taxiTripTimeInfoStat, timeAggregator) =>
+    case UpdateTaxiTripTimeInfo(tripId, taxiTripTimeInfoStat, timeAggregator) =>
       log.info("Updating Time Info ")
-      persist(TaxiTripTimeInfoStatUpdatedEvent(statId,taxiTripTimeInfoStat)) { _ =>
+      persist(TaxiTripTimeInfoUpdatedEvent(tripId,taxiTripTimeInfoStat)) { _ =>
         timeAggregator ! UpdateTimeAggregatorValues(state,taxiTripTimeInfoStat)
         state = taxiTripTimeInfoStat
       }
-    case GetTaxiTimeInfoStat(_) =>
+    case GetTaxiTripTimeInfo(_) =>
       sender() ! state
-    case DeleteTaxiTripTimeInfoStat(statId) =>
+    case DeleteTaxiTripTimeInfo(tripId) =>
       log.info("Deleting taxi cost stat")
-      persist(DeletedTaxiTripTimeInfoStatEvent(statId)) { _ =>
+      persist(DeletedTaxiTripTimeInfoEvent(tripId)) { _ =>
         state = state.copy(deletedFlag = true)
       }
 
@@ -63,16 +63,16 @@ class PersistentTaxiTripTimeInfo(id: String) extends PersistentActor with ActorL
   }
 
   override def receiveRecover: Receive = {
-    case TaxiTripTimeInfoStatCreatedEvent(statId,taxiTripTimeInfoStat) =>
-      log.info(s"Recovering Trip Time Info Stat $statId")
+    case TaxiTripTimeInfoCreatedEvent(tripId,taxiTripTimeInfoStat) =>
+      log.info(s"Recovering Trip Time Info Stat $tripId")
       state = taxiTripTimeInfoStat
 
-    case TaxiTripTimeInfoStatUpdatedEvent(statId,taxiTripTimeInfoStat) =>
-      log.info(s"Recovering Update Trip Time Info Stat $statId")
+    case TaxiTripTimeInfoUpdatedEvent(tripId,taxiTripTimeInfoStat) =>
+      log.info(s"Recovering Update Trip Time Info Stat $tripId")
       state = taxiTripTimeInfoStat
 
-    case DeletedTaxiTripTimeInfoStatEvent(statId) =>
-      log.info(s"Recovering Deleted Trip Time Info Stat $statId")
+    case DeletedTaxiTripTimeInfoEvent(tripId) =>
+      log.info(s"Recovering Deleted Trip Time Info Stat $tripId")
       state = state.copy(deletedFlag = true)
 
 

@@ -2,20 +2,20 @@ package com.tudux.taxi.actors
 
 import akka.actor.{ActorLogging, Props}
 import akka.persistence.{PersistentActor, SaveSnapshotFailure, SaveSnapshotSuccess, SnapshotOffer}
-import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfoStat
+import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfo
 
 //commands
 sealed trait TimeAggregatorCommand
 object TimeAggregatorCommand  {
-  case class AddTimeAggregatorValues(time: TaxiTripTimeInfoStat) extends TimeAggregatorCommand
+  case class AddTimeAggregatorValues(time: TaxiTripTimeInfo) extends TimeAggregatorCommand
   case object GetAverageTripTime extends TimeAggregatorCommand
-  case class UpdateTimeAggregatorValues(preTime: TaxiTripTimeInfoStat,newTime: TaxiTripTimeInfoStat) extends TimeAggregatorCommand
+  case class UpdateTimeAggregatorValues(preTime: TaxiTripTimeInfo, newTime: TaxiTripTimeInfo) extends TimeAggregatorCommand
 }
 //events
 sealed trait TimeAggregatorEvent
 object TimeAggregatorEvent {
-  case class AddedTimeAggregatorValuesEvent(time: TaxiTripTimeInfoStat) extends TimeAggregatorEvent
-  case class UpdatedTimeAggregatorValuesEvent(preTime: TaxiTripTimeInfoStat,newTime: TaxiTripTimeInfoStat) extends TimeAggregatorEvent
+  case class AddedTimeAggregatorValuesEvent(time: TaxiTripTimeInfo) extends TimeAggregatorEvent
+  case class UpdatedTimeAggregatorValuesEvent(preTime: TaxiTripTimeInfo, newTime: TaxiTripTimeInfo) extends TimeAggregatorEvent
 }
 
 //responses
@@ -34,7 +34,7 @@ class PersistentTimeStatsAggregator(id: String) extends PersistentActor with Act
   import TimeAggregatorEvent._
 
   val format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:SS")
-  def getMinutes (taxiTripTimeInfoStat: TaxiTripTimeInfoStat) : Int = {
+  def getMinutes (taxiTripTimeInfoStat: TaxiTripTimeInfo) : Int = {
     ((format.parse(taxiTripTimeInfoStat.tpepDropoffDatetime).getTime - format.parse(taxiTripTimeInfoStat.tpepPickupDatetime).getTime)/60000).toInt
   }
 

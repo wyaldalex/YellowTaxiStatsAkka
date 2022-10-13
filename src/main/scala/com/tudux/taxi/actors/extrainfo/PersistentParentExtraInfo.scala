@@ -3,7 +3,7 @@ package com.tudux.taxi.actors.extrainfo
 import akka.actor.{ActorLogging, ActorRef, Props}
 import akka.persistence.PersistentActor
 import com.tudux.taxi.actors.helpers.TaxiTripHelpers._
-import com.tudux.taxi.actors.{TaxiStatResponseResponses, TaxiTripCommand, TaxiTripEvent}
+import com.tudux.taxi.actors.{TaxiTripResponse, TaxiTripCommand, TaxiTripEvent}
 
 
 object PersistentParentExtraInfo {
@@ -13,8 +13,8 @@ object PersistentParentExtraInfo {
 class PersistentParentExtraInfo(id: String) extends PersistentActor with ActorLogging  {
 
   import PersistentParentExtraInfo._
-  import TaxiExtraInfoStatCommand._
-  import TaxiStatResponseResponses._
+  import TaxiTripExtraInfoCommand._
+  import TaxiTripResponse._
   import TaxiTripCommand._
   import TaxiTripEvent._
 
@@ -36,25 +36,25 @@ class PersistentParentExtraInfo(id: String) extends PersistentActor with ActorLo
       persist(CreatedTaxiTripEvent(statId)) { event =>
         state = state.copy(extrainfo = state.extrainfo + ((statId) -> newTaxiExtraInfoActor))
 
-        newTaxiExtraInfoActor ! CreateTaxiExtraInfoStat(statId, taxiStat)
+        newTaxiExtraInfoActor ! CreateTaxiTripExtraInfo(statId, taxiStat)
       }
-      sender() ! TaxiStatCreatedResponse(statId)
+      sender() ! TaxiTripCreatedResponse(statId)
 
-    case getTaxiExtraInfoStat@GetTaxiExtraInfoStat(statId) =>
+    case getTaxiExtraInfoStat@GetTaxiTripExtraInfo(statId) =>
       log.info(s"Receive Taxi Cost Inquiry, forwarding")
       val taxiExtraInfoActor = state.extrainfo(statId)
       taxiExtraInfoActor.forward(getTaxiExtraInfoStat)
 
     //Individual Updates
 
-    case updateTaxiExtraInfoStat@UpdateTaxiExtraInfoStat(statId, _) =>
+    case updateTaxiExtraInfoStat@UpdateTaxiTripExtraInfo(statId, _) =>
       val taxiExtraInfoActor = state.extrainfo(statId)
       taxiExtraInfoActor.forward(updateTaxiExtraInfoStat)
 
     //General Delete
-    case deleteTaxiStat@DeleteTaxiStat(statId) =>
+    case deleteTaxiStat@DeleteTaxiTrip(statId) =>
       val taxiExtraInfoActor = state.extrainfo(statId)
-      taxiExtraInfoActor ! DeleteTaxiExtraInfo(statId)
+      taxiExtraInfoActor ! DeleteTaxiTripExtraInfo(statId)
 
     //Individual Stats
     case GetTotalExtraInfoLoaded =>

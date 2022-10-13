@@ -3,7 +3,7 @@ package com.tudux.taxi.actors.timeinfo
 import akka.actor.{ActorLogging, ActorRef, Props}
 import akka.persistence.PersistentActor
 import com.tudux.taxi.actors.helpers.TaxiTripHelpers._
-import com.tudux.taxi.actors.{TaxiStatResponseResponses, TaxiTripCommand, TaxiTripEvent}
+import com.tudux.taxi.actors.{TaxiTripResponse, TaxiTripCommand, TaxiTripEvent}
 
 object PersistentParentTimeInfo {
   def props(id: String) : Props = Props(new PersistentParentTimeInfo(id))
@@ -15,11 +15,11 @@ object PersistentParentTimeInfo {
 class PersistentParentTimeInfo(id: String) extends PersistentActor with ActorLogging {
 
   import PersistentParentTimeInfo._
-  import TaxiStatResponseResponses._
+  import TaxiTripResponse._
   import TaxiTripCommand._
   import TaxiTripEvent._
-  import TaxiTripTimeInfoStatCommand._
-  import com.tudux.taxi.actors.cost.TaxiCostStatCommand._
+  import TaxiTripTimeInfoCommand._
+  import com.tudux.taxi.actors.cost.TaxiTripCostCommand._
 
   var state: TaxiTripTimeInfoState = TaxiTripTimeInfoState(Map.empty)
   
@@ -38,23 +38,23 @@ class PersistentParentTimeInfo(id: String) extends PersistentActor with ActorLog
       persist(CreatedTaxiTripEvent(statId)) { event =>
         state = state.copy(timeinfo = state.timeinfo + (statId -> newTaxiTimeInfoActor))
 
-        newTaxiTimeInfoActor ! CreateTaxiTripTimeInfoStat(statId, taxiStat)
+        newTaxiTimeInfoActor ! CreateTaxiTripTimeInfo(statId, taxiStat)
       }
-      sender() ! TaxiStatCreatedResponse(statId)
+      sender() ! TaxiTripCreatedResponse(statId)
 
     //Individual Gets
-    case getTaxiTimeInfoStat@GetTaxiTimeInfoStat(statId) =>
+    case getTaxiTimeInfoStat@GetTaxiTripTimeInfo(statId) =>
       log.info(s"Receive Taxi Cost Inquiry, forwarding")
       val taxiTimeInfoActor = state.timeinfo(statId)
       taxiTimeInfoActor.forward(getTaxiTimeInfoStat)
     //Individual Updates
-    case updateTaxiTripTimeInfoStat@UpdateTaxiTripTimeInfoStat(statId, taxiTripTimeInfoStat, timeAggregatorActor) =>
+    case updateTaxiTripTimeInfoStat@UpdateTaxiTripTimeInfo(statId, taxiTripTimeInfoStat, timeAggregatorActor) =>
       val taxiTimeInfoActor = state.timeinfo(statId)
-      taxiTimeInfoActor.forward(UpdateTaxiTripTimeInfoStat(statId, taxiTripTimeInfoStat, timeAggregatorActor))
+      taxiTimeInfoActor.forward(UpdateTaxiTripTimeInfo(statId, taxiTripTimeInfoStat, timeAggregatorActor))
     //General Delete
-    case deleteTaxiStat@DeleteTaxiStat(statId) =>
+    case deleteTaxiStat@DeleteTaxiTrip(statId) =>
       val taxiTimeInfoActor = state.timeinfo(statId)
-      taxiTimeInfoActor ! DeleteTaxiTripTimeInfoStat(statId)
+      taxiTimeInfoActor ! DeleteTaxiTripTimeInfo(statId)
     //Individual Stats
     case GetTotalTimeInfoInfoLoaded =>
         log.info("Returning total time info loaded size")

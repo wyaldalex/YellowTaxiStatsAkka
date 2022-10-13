@@ -3,7 +3,7 @@ package com.tudux.taxi.actors.cost
 import akka.actor.{ActorLogging, ActorRef, Props}
 import akka.persistence.PersistentActor
 import com.tudux.taxi.actors.helpers.TaxiTripHelpers._
-import com.tudux.taxi.actors.{TaxiStatResponseResponses, TaxiTripCommand, TaxiTripEvent}
+import com.tudux.taxi.actors.{TaxiTripResponse, TaxiTripCommand, TaxiTripEvent}
 
 object PersistentParentTaxiCost {
 
@@ -13,8 +13,8 @@ object PersistentParentTaxiCost {
 class PersistentParentTaxiCost(id: String) extends PersistentActor with ActorLogging {
 
   import PersistentParentTaxiCost._
-  import TaxiCostStatCommand._
-  import TaxiStatResponseResponses._
+  import TaxiTripCostCommand._
+  import TaxiTripResponse._
   import TaxiTripCommand._
   import TaxiTripEvent._
 
@@ -33,27 +33,27 @@ class PersistentParentTaxiCost(id: String) extends PersistentActor with ActorLog
       val newTaxiTripCostActor = createTaxiCostActor(statId)
       persist(CreatedTaxiTripEvent(statId)) { event =>
         state = state.copy(costs = state.costs + (statId -> newTaxiTripCostActor))
-        newTaxiTripCostActor ! CreateTaxiCostStat(statId, taxiStat)
+        newTaxiTripCostActor ! CreateTaxiTripCost(statId, taxiStat)
       }
-      sender() ! TaxiStatCreatedResponse(statId)
+      sender() ! TaxiTripCreatedResponse(statId)
 
-    case GetTotalTaxiCostStats =>
+    case GetTotalTaxiTripCost =>
       log.info("To be implemented")
       log.info(s"Received petition to return size which is: ${state.costs.size})")
     //Individual Gets
-    case getTaxiCostStat@GetTaxiCostStat(statId) =>
+    case getTaxiCostStat@GetTaxiTripCost(statId) =>
       log.info(s"Receive Taxi Cost Inquiry, forwarding")
       val taxiTripCostActor = state.costs(statId)
       taxiTripCostActor.forward(getTaxiCostStat)
       
     //Individual Updates
-    case updateTaxiCostStat@UpdateTaxiCostStat(statId, taxiCostStat, costAggregatorActor) =>
+    case updateTaxiCostStat@UpdateTaxiTripCost(statId, taxiCostStat, costAggregatorActor) =>
       val taxiTripCostActor = state.costs(statId)
-      taxiTripCostActor.forward(UpdateTaxiCostStat(statId, taxiCostStat, costAggregatorActor))
+      taxiTripCostActor.forward(UpdateTaxiTripCost(statId, taxiCostStat, costAggregatorActor))
     //General Delete
-    case deleteTaxiStat@DeleteTaxiStat(statId) =>
+    case deleteTaxiStat@DeleteTaxiTrip(statId) =>
       val taxiTripCostActor = state.costs(statId)
-      taxiTripCostActor ! DeleteTaxiCostStat(statId)
+      taxiTripCostActor ! DeleteTaxiTripCost(statId)
 
     case GetTotalCostLoaded =>
       log.info("Returning total cost info loaded size")

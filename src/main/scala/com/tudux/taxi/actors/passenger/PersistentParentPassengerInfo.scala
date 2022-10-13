@@ -2,9 +2,9 @@ package com.tudux.taxi.actors.passenger
 
 import akka.actor.{ActorLogging, ActorRef, Props}
 import akka.persistence.PersistentActor
-import com.tudux.taxi.actors.cost.TaxiCostStatCommand
+import com.tudux.taxi.actors.cost.TaxiTripCostCommand
 import com.tudux.taxi.actors.helpers.TaxiTripHelpers._
-import com.tudux.taxi.actors.{TaxiStatResponseResponses, TaxiTripCommand, TaxiTripEvent}
+import com.tudux.taxi.actors.{TaxiTripResponse, TaxiTripCommand, TaxiTripEvent}
 
 object PersistentParentPassengerInfo {
   def props(id: String): Props = Props(new PersistentParentPassengerInfo(id))
@@ -16,11 +16,11 @@ object PersistentParentPassengerInfo {
 class PersistentParentPassengerInfo(id: String) extends PersistentActor with ActorLogging  {
 
   import PersistentParentPassengerInfo._
-  import TaxiCostStatCommand._
-  import TaxiStatResponseResponses._
+  import TaxiTripCostCommand._
+  import TaxiTripResponse._
   import TaxiTripCommand._
   import TaxiTripEvent._
-  import TaxiTripPassengerInfoStatCommand._
+  import TaxiTripPassengerInfoCommand._
 
   var state: TaxiTripPassengerInfoState = TaxiTripPassengerInfoState(Map.empty)
 
@@ -40,21 +40,21 @@ class PersistentParentPassengerInfo(id: String) extends PersistentActor with Act
       persist(CreatedTaxiTripEvent(statId)) { event =>
         state = state.copy(passengerinfo = state.passengerinfo + (statId -> newTaxiPassengerInfoActor))
 
-        newTaxiPassengerInfoActor ! CreateTaxiTripPassengerInfoStat(statId, taxiStat)
+        newTaxiPassengerInfoActor ! CreateTaxiTripPassengerInfo(statId, taxiStat)
       }
-      sender() ! TaxiStatCreatedResponse(statId)
+      sender() ! TaxiTripCreatedResponse(statId)
 
-    case getTaxiPassengerInfoStat@GetTaxiPassengerInfoStat(statId) =>
+    case getTaxiPassengerInfoStat@GetTaxiTripPassengerInfo(statId) =>
       log.info(s"Receive Taxi Passenger Info Inquiry, forwarding")
       val taxiPassengerInfoActor = state.passengerinfo(statId)
       taxiPassengerInfoActor.forward(getTaxiPassengerInfoStat)
     //Individual Updates
-    case updateTaxiPassenger@UpdateTaxiPassenger(statId, _) =>
+    case updateTaxiPassenger@UpdateTaxiTripPassenger(statId, _) =>
       val taxiPassengerInfoActor = state.passengerinfo(statId)
       taxiPassengerInfoActor.forward(updateTaxiPassenger)
 
     //General Delete
-    case deleteTaxiStat@DeleteTaxiStat(statId) =>
+    case deleteTaxiStat@DeleteTaxiTrip(statId) =>
 
       val taxiPassengerInfoActor = state.passengerinfo(statId)
       taxiPassengerInfoActor ! DeleteTaxiTripPassenger(statId)

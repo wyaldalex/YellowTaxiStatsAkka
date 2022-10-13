@@ -1,28 +1,28 @@
 package com.tudux.taxi.http
 
 import com.tudux.taxi.actors.CostAggregatorResponse.{CalculateTripDistanceCostResponse, GetAverageTipAmountResponse}
-import com.tudux.taxi.actors.cost.TaxiCostStatCommand._
-import com.tudux.taxi.actors.extrainfo.TaxiExtraInfoStatCommand.UpdateTaxiExtraInfoStat
-import com.tudux.taxi.actors.TaxiTripCommand.CreateTaxiStat
+import com.tudux.taxi.actors.cost.TaxiTripCostCommand._
+import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfoCommand.UpdateTaxiTripExtraInfo
+import com.tudux.taxi.actors.TaxiTripCommand.CreateTaxiTrip
 import com.tudux.taxi.actors.TaxiTripCommand.CreateTaxiTripCommand
-import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfoStatCommand.UpdateTaxiPassenger
-import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfoStatCommand.UpdateTaxiTripTimeInfoStat
+import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfoCommand.UpdateTaxiTripPassenger
+import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfoCommand.UpdateTaxiTripTimeInfo
 import com.tudux.taxi.actors.TimeAggregatorResponse.TaxiTripAverageTimeMinutesResponse
 import com.tudux.taxi.actors._
-import com.tudux.taxi.actors.cost.TaxiCostStat
-import com.tudux.taxi.actors.extrainfo.TaxiExtraInfoStat
-import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfoStat
-import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfoStat
+import com.tudux.taxi.actors.cost.TaxiTripCost
+import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfo
+import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfo
+import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfo
 import spray.json._
 
 object RouteHelpers {
 
-  case class CreateTaxiStatRequest(vendorID: Int, tpepPickupDatetime: String, tpepDropoffDatetime: String, passengerCount: Int,
+  case class CreateTaxiTripRequest(vendorID: Int, tpepPickupDatetime: String, tpepDropoffDatetime: String, passengerCount: Int,
                                    tripDistance: Double, pickupLongitude: Double, pickupLatitude: Double, rateCodeID: Int,
                                    storeAndFwdFlag: String, dropoffLongitude: Double, dropoffLatitude: Double,
                                    paymentType: Int, fareAmount: Double, extra: Double, mtaTax: Double,
                                    tipAmount: Double, tollsAmount: Double, improvementSurcharge: Double, totalAmount: Double) {
-    def toCommand: CreateTaxiTripCommand = CreateTaxiTripCommand(TaxiStat(vendorID, tpepPickupDatetime, tpepDropoffDatetime, passengerCount,
+    def toCommand: CreateTaxiTripCommand = CreateTaxiTripCommand(TaxiTripEntry(vendorID, tpepPickupDatetime, tpepDropoffDatetime, passengerCount,
       tripDistance, pickupLongitude, pickupLatitude, rateCodeID,
       storeAndFwdFlag, dropoffLongitude, dropoffLatitude,
       paymentType, fareAmount, extra, mtaTax,
@@ -30,24 +30,24 @@ object RouteHelpers {
   }
 
   case class UpdatePassengerInfoRequest(passengerCount: Int) {
-    def toCommand(statId: String): UpdateTaxiPassenger = UpdateTaxiPassenger(statId, TaxiTripPassengerInfoStat(passengerCount))
+    def toCommand(tripId: String): UpdateTaxiTripPassenger = UpdateTaxiTripPassenger(tripId, TaxiTripPassengerInfo(passengerCount))
   }
 
   case class UpdateExtraInfoRequest(pickupLongitude: Double, pickupLatitude: Double, rateCodeID: Int,
                                     storeAndFwdFlag: String, dropoffLongitude: Double, dropoffLatitude: Double) {
-    def toCommand(statId: String): UpdateTaxiExtraInfoStat = UpdateTaxiExtraInfoStat(statId, TaxiExtraInfoStat(pickupLongitude, pickupLatitude, rateCodeID,
+    def toCommand(tripId: String): UpdateTaxiTripExtraInfo = UpdateTaxiTripExtraInfo(tripId, TaxiTripExtraInfo(pickupLongitude, pickupLatitude, rateCodeID,
       storeAndFwdFlag, dropoffLongitude, dropoffLatitude))
   }
 
   case class UpdateTimeInfoRequest(tpepPickupDatetime: String, tpepDropoffDatetime: String) {
-    def toCommand(statId: String): UpdateTaxiTripTimeInfoStat = UpdateTaxiTripTimeInfoStat(statId, TaxiTripTimeInfoStat(tpepPickupDatetime, tpepDropoffDatetime))
+    def toCommand(tripId: String): UpdateTaxiTripTimeInfo = UpdateTaxiTripTimeInfo(tripId, TaxiTripTimeInfo(tpepPickupDatetime, tpepDropoffDatetime))
   }
 
   case class UpdateCostInfoRequest(vendorID: Int,
                                    tripDistance: Double,
                                    paymentType: Int, fareAmount: Double, extra: Double, mtaTax: Double,
                                    tipAmount: Double, tollsAmount: Double, improvementSurcharge: Double, totalAmount: Double) {
-    def toCommand(statId: String): UpdateTaxiCostStat = UpdateTaxiCostStat(statId, TaxiCostStat(vendorID,
+    def toCommand(tripId: String): UpdateTaxiTripCost = UpdateTaxiTripCost(tripId, TaxiTripCost(vendorID,
       tripDistance,
       paymentType, fareAmount, extra, mtaTax,
       tipAmount, tollsAmount, improvementSurcharge, totalAmount))
@@ -56,19 +56,19 @@ object RouteHelpers {
   case class LoadedStatsResponse(totalCostLoaded: Int, totalExtraInfoLoaded: Int, totalTimeInfoLoaded: Int, totalPassengerInfo: Int)
 
   trait TaxiCostStatProtocol extends DefaultJsonProtocol {
-    implicit val taxiCostStatFormat = jsonFormat11(TaxiCostStat)
+    implicit val taxiCostStatFormat = jsonFormat11(TaxiTripCost)
   }
 
   trait TaxiTimeInfoStatProtocol extends DefaultJsonProtocol {
-    implicit val taxiTimeInfoFormat = jsonFormat3(TaxiTripTimeInfoStat)
+    implicit val taxiTimeInfoFormat = jsonFormat3(TaxiTripTimeInfo)
   }
 
   trait TaxiPassengerInfoProtocol extends DefaultJsonProtocol {
-    implicit val taxiPassengerFormat = jsonFormat2(TaxiTripPassengerInfoStat)
+    implicit val taxiPassengerFormat = jsonFormat2(TaxiTripPassengerInfo)
   }
 
   trait TaxiExtraInfoProtocol extends DefaultJsonProtocol {
-    implicit val taxiExtraInfoFormat = jsonFormat7(TaxiExtraInfoStat)
+    implicit val taxiExtraInfoFormat = jsonFormat7(TaxiTripExtraInfo)
   }
 
   trait CalculateDistanceCostProtocol extends DefaultJsonProtocol {

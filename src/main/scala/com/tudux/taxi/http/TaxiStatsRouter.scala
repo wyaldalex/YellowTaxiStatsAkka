@@ -9,18 +9,18 @@ import akka.pattern.ask
 import akka.util.Timeout
 import com.tudux.taxi.actors.CostAggregatorCommand.{CalculateTripDistanceCost, GetAverageTipAmount}
 import com.tudux.taxi.actors.CostAggregatorResponse.{CalculateTripDistanceCostResponse, GetAverageTipAmountResponse}
-import com.tudux.taxi.actors.TaxiStatResponseResponses.TaxiStatCreatedResponse
-import com.tudux.taxi.actors.TaxiTripCommand.DeleteTaxiStat
+import com.tudux.taxi.actors.TaxiTripResponse.TaxiTripCreatedResponse
+import com.tudux.taxi.actors.TaxiTripCommand.DeleteTaxiTrip
 import com.tudux.taxi.actors.TimeAggregatorCommand.GetAverageTripTime
 import com.tudux.taxi.actors.TimeAggregatorResponse.TaxiTripAverageTimeMinutesResponse
-import com.tudux.taxi.actors.cost.TaxiCostStat
-import com.tudux.taxi.actors.cost.TaxiCostStatCommand._
-import com.tudux.taxi.actors.extrainfo.TaxiExtraInfoStat
-import com.tudux.taxi.actors.extrainfo.TaxiExtraInfoStatCommand.{GetTaxiExtraInfoStat, GetTotalExtraInfoLoaded}
-import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfoStat
-import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfoStatCommand.{GetTaxiPassengerInfoStat, GetTotalPassengerInfoLoaded}
-import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfoStat
-import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfoStatCommand.{GetTaxiTimeInfoStat, GetTotalTimeInfoInfoLoaded}
+import com.tudux.taxi.actors.cost.TaxiTripCost
+import com.tudux.taxi.actors.cost.TaxiTripCostCommand._
+import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfo
+import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfoCommand.{GetTaxiTripExtraInfo, GetTotalExtraInfoLoaded}
+import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfo
+import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfoCommand.{GetTaxiTripPassengerInfo, GetTotalPassengerInfoLoaded}
+import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfo
+import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfoCommand.{GetTaxiTripTimeInfo, GetTotalTimeInfoInfoLoaded}
 import com.tudux.taxi.http.RouteHelpers._
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.generic.auto._
@@ -50,45 +50,45 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
   val routes: Route = {
     pathPrefix("api" / "yellowtaxi" / "taxitrip") {
         post {
-            entity(as[CreateTaxiStatRequest]) { request =>
-              val statCreatedFuture: Future[TaxiStatCreatedResponse] = (taxiTripActor ? request.toCommand).mapTo[TaxiStatCreatedResponse]
+            entity(as[CreateTaxiTripRequest]) { request =>
+              val statCreatedFuture: Future[TaxiTripCreatedResponse] = (taxiTripActor ? request.toCommand).mapTo[TaxiTripCreatedResponse]
               println(s"Received http post to create stat $request")
               complete(statCreatedFuture.map { r =>
                 HttpResponse(
                   StatusCodes.Created,
                   entity = HttpEntity(
                     ContentTypes.`text/html(UTF-8)`,
-                    s"Stat created with Id ${r.statId.toString}"
+                    s"Taxi Trip created with Id: ${r.tripId.toString}"
                   )
                 )
               })
             }
         } ~
         delete {
-          path(Segment) { statId =>
-            taxiTripActor ! DeleteTaxiStat(statId)
+          path(Segment) { tripId =>
+            taxiTripActor ! DeleteTaxiTrip(tripId)
             complete(StatusCodes.OK)
           }
         }
     } ~
     pathPrefix("api" / "yellowtaxi" / "cost") {
       get {
-        path(Segment) { statId =>
-          println(s"Received some statID $statId")
+        path(Segment) { tripId =>
+          println(s"Received some statID $tripId")
           complete(
-            (taxiTripActor ? GetTaxiCostStat(statId.toString))
+            (taxiTripActor ? GetTaxiTripCost(tripId.toString))
               //.mapTo[Option[TaxiCostStat]]
-              .mapTo[TaxiCostStat]
+              .mapTo[TaxiTripCost]
               .map(_.toJson.prettyPrint)
               .map(toHttpEntity)
           )
         }
       } ~
       put {
-        path(Segment) { statId =>
+        path(Segment) { tripId =>
           put {
             entity(as[UpdateCostInfoRequest]) { request =>
-              taxiTripActor ! request.toCommand(statId)
+              taxiTripActor ! request.toCommand(tripId)
               complete(StatusCodes.OK)
             }
           }
@@ -97,22 +97,22 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
     } ~
     pathPrefix("api" / "yellowtaxi" / "time") {
       get {
-        path(Segment) { statId =>
-          println(s"Received some statID $statId")
+        path(Segment) { tripId =>
+          println(s"Received some statID $tripId")
           complete(
-            (taxiTripActor ? GetTaxiTimeInfoStat(statId.toString))
+            (taxiTripActor ? GetTaxiTripTimeInfo(tripId.toString))
              // .mapTo[Option[TaxiTripTimeInfoStat]]
-              .mapTo[TaxiTripTimeInfoStat]
+              .mapTo[TaxiTripTimeInfo]
               .map(_.toJson.prettyPrint)
               .map(toHttpEntity)
           )
         }
       } ~
       put {
-        path(Segment) { statId =>
+        path(Segment) { tripId =>
           put {
             entity(as[UpdateTimeInfoRequest]) { request =>
-              taxiTripActor ! request.toCommand(statId)
+              taxiTripActor ! request.toCommand(tripId)
               complete(StatusCodes.OK)
             }
           }
@@ -121,21 +121,21 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
     } ~
     pathPrefix("api" / "yellowtaxi" / "passenger") {
       get {
-        path(Segment) { statId =>
-          println(s"Received some statID $statId")
+        path(Segment) { tripId =>
+          println(s"Received some statID $tripId")
           complete(
-            (taxiTripActor ? GetTaxiPassengerInfoStat(statId.toString))
-              .mapTo[TaxiTripPassengerInfoStat]
+            (taxiTripActor ? GetTaxiTripPassengerInfo(tripId.toString))
+              .mapTo[TaxiTripPassengerInfo]
               .map(_.toJson.prettyPrint)
               .map(toHttpEntity)
           )
         }
       } ~
       put {
-        path(Segment) { statId =>
+        path(Segment) { tripId =>
           put {
             entity(as[UpdatePassengerInfoRequest]) { request =>
-              taxiTripActor ! request.toCommand(statId)
+              taxiTripActor ! request.toCommand(tripId)
               complete(StatusCodes.OK)
             }
           }
@@ -144,22 +144,22 @@ class TaxiStatsRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem) ext
     } ~
     pathPrefix("api" / "yellowtaxi" / "extrainfo") {
       get {
-        path(Segment) { statId =>
-          println(s"Received some statID $statId")
+        path(Segment) { tripId =>
+          println(s"Received some statID $tripId")
           complete(
-            (taxiTripActor ? GetTaxiExtraInfoStat(statId.toString))
+            (taxiTripActor ? GetTaxiTripExtraInfo(tripId.toString))
               //.mapTo[Option[TaxiExtraInfoStat]]
-              .mapTo[TaxiExtraInfoStat]
+              .mapTo[TaxiTripExtraInfo]
               .map(_.toJson.prettyPrint)
               .map(toHttpEntity)
           )
         }
       } ~
       put {
-        path(Segment) { statId =>
+        path(Segment) { tripId =>
           put {
             entity(as[UpdateExtraInfoRequest]) { request =>
-              taxiTripActor ! request.toCommand(statId)
+              taxiTripActor ! request.toCommand(tripId)
               complete(StatusCodes.OK)
             }
           }

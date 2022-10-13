@@ -11,7 +11,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/cost/e2cbd1f8-ef78-4f8e-a976-8fe820b15e88",
+					"raw": "http://localhost:10001/api/yellowtaxi/cost/cc519a4f-3e8a-4d65-8cfd-d10916c8b560",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -21,29 +21,7 @@
 						"api",
 						"yellowtaxi",
 						"cost",
-						"e2cbd1f8-ef78-4f8e-a976-8fe820b15e88"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "DeleteTaxiTripCost",
-			"request": {
-				"method": "DELETE",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/cost/553f2202-07f9-4e86-ae42-38178bc2bec6",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "10001",
-					"path": [
-						"api",
-						"yellowtaxi",
-						"cost",
-						"553f2202-07f9-4e86-ae42-38178bc2bec6"
+						"cc519a4f-3e8a-4d65-8cfd-d10916c8b560"
 					]
 				}
 			},
@@ -56,7 +34,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"VendorID\": 2,\r\n    \"deletedFlag\": false,\r\n    \"extra\": 9.0,\r\n    \"fare_amount\": 9.0,\r\n    \"improvement_surcharge\": 0.3,\r\n    \"mta_tax\": 0.5,\r\n    \"payment_type\": 2,\r\n    \"tip_amount\": 0.0,\r\n    \"tolls_amount\": 0.0,\r\n    \"total_amount\": 20.8,\r\n    \"trip_distance\": 1.53\r\n}",
+					"raw": "{\r\n  \"extra\": 1,\r\n  \"fareAmount\": 9,\r\n  \"improvementSurcharge\": 0.3,\r\n  \"mtaTax\": 0.5,\r\n  \"paymentType\": 2,\r\n  \"tipAmount\": 2.56,\r\n  \"tollsAmount\": 2,\r\n  \"totalAmount\": 2,\r\n  \"tripDistance\": 1.53,\r\n  \"vendorID\": 2\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -64,7 +42,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/cost/acbc2428-689b-4375-9422-0633302a1ebd",
+					"raw": "http://localhost:10001/api/yellowtaxi/cost/cc519a4f-3e8a-4d65-8cfd-d10916c8b560",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -74,7 +52,7 @@
 						"api",
 						"yellowtaxi",
 						"cost",
-						"acbc2428-689b-4375-9422-0633302a1ebd"
+						"cc519a4f-3e8a-4d65-8cfd-d10916c8b560"
 					]
 				}
 			},
@@ -87,7 +65,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": " {\r\n   \"VendorID\": 2,\r\n   \"tpep_pickup_datetime\": \"2015-01-15 19:05:42\",\r\n   \"tpep_dropoff_datetime\": \"2015-01-15 21:16:18\",\r\n   \"passenger_count\": 1,\r\n   \"trip_distance\": 1.53,\r\n   \"pickup_longitude\": \"-73.991127014160156\",\r\n   \"pickup_latitude\": \"40.750080108642578\",\r\n   \"RateCodeID\": 1,\r\n   \"store_and_fwd_flag\": \"N\",\r\n   \"dropoff_longitude\": \"-73.988609313964844\",\r\n   \"dropoff_latitude\": \"40.734889984130859\",\r\n   \"payment_type\": 2,\r\n   \"fare_amount\": 9,\r\n   \"extra\": 1,\r\n   \"mta_tax\": 0.5,\r\n   \"tip_amount\": 10000.0,\r\n   \"tolls_amount\": 0,\r\n   \"improvement_surcharge\": 0.3,\r\n   \"total_amount\": 10.8\r\n }",
+					"raw": "{\r\n  \"vendorID\": 2,\r\n  \"tpepPickupDatetime\": \"2015-01-15 19:05:42\",\r\n  \"tpepDropoffDatetime\": \"2015-01-15 19:16:18\",\r\n  \"passengerCount\": 1,\r\n  \"tripDistance\": 1.53,\r\n  \"pickupLongitude\": \"-73.991127014160156\",\r\n  \"pickupLatitude\": \"40.750080108642578\",\r\n  \"rateCodeID\": 1,\r\n  \"storeAndFwdFlag\": \"N\",\r\n  \"dropoffLongitude\": \"-73.988609313964844\",\r\n  \"dropoffLatitude\": \"40.734889984130859\",\r\n  \"paymentType\": 2,\r\n  \"fareAmount\": 9,\r\n  \"extra\": 1,\r\n  \"mtaTax\": 0.5,\r\n  \"tipAmount\": 14.0,\r\n  \"tollsAmount\": 0,\r\n  \"improvementSurcharge\": 0.3,\r\n  \"totalAmount\": 2.0\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -95,7 +73,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/stat",
+					"raw": "http://localhost:10001/api/yellowtaxi/taxitrip",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -104,7 +82,7 @@
 					"path": [
 						"api",
 						"yellowtaxi",
-						"stat"
+						"taxitrip"
 					]
 				}
 			},
@@ -115,17 +93,8 @@
 			"request": {
 				"method": "DELETE",
 				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": " {\r\n   \"VendorID\": 2,\r\n   \"tpep_pickup_datetime\": \"2015-01-15 19:05:42\",\r\n   \"tpep_dropoff_datetime\": \"2015-01-15 19:16:18\",\r\n   \"passenger_count\": 1,\r\n   \"trip_distance\": 1.53,\r\n   \"pickup_longitude\": \"-73.991127014160156\",\r\n   \"pickup_latitude\": \"40.750080108642578\",\r\n   \"RateCodeID\": 1,\r\n   \"store_and_fwd_flag\": \"N\",\r\n   \"dropoff_longitude\": \"-73.988609313964844\",\r\n   \"dropoff_latitude\": \"40.734889984130859\",\r\n   \"payment_type\": 2,\r\n   \"fare_amount\": 9,\r\n   \"extra\": 1,\r\n   \"mta_tax\": 0.5,\r\n   \"tip_amount\": 0,\r\n   \"tolls_amount\": 0,\r\n   \"improvement_surcharge\": 0.3,\r\n   \"total_amount\": 10.8\r\n }",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
 				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/stat/553f2202-07f9-4e86-ae42-38178bc2bec6",
+					"raw": "http://localhost:10001/api/yellowtaxi/taxitrip/cc519a4f-3e8a-4d65-8cfd-d10916c8b560",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -134,8 +103,8 @@
 					"path": [
 						"api",
 						"yellowtaxi",
-						"stat",
-						"553f2202-07f9-4e86-ae42-38178bc2bec6"
+						"taxitrip",
+						"cc519a4f-3e8a-4d65-8cfd-d10916c8b560"
 					]
 				}
 			},
@@ -159,7 +128,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/time/553f2202-07f9-4e86-ae42-38178bc2bec6",
+					"raw": "http://localhost:10001/api/yellowtaxi/time/cc519a4f-3e8a-4d65-8cfd-d10916c8b560",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -169,7 +138,7 @@
 						"api",
 						"yellowtaxi",
 						"time",
-						"553f2202-07f9-4e86-ae42-38178bc2bec6"
+						"cc519a4f-3e8a-4d65-8cfd-d10916c8b560"
 					]
 				}
 			},
@@ -182,7 +151,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"deletedFlag\": false,\r\n    \"tpep_dropoff_datetime\": \"2015-01-15 21:16:18\",\r\n    \"tpep_pickup_datetime\": \"2015-01-15 19:05:42\"\r\n}",
+					"raw": "{\r\n  \"deletedFlag\": true,\r\n  \"tpepDropoffDatetime\": \"2015-01-15 19:21:18\",\r\n  \"tpepPickupDatetime\": \"2015-01-15 19:05:42\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -190,7 +159,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/time/4b3df2c9-fe5e-45c7-86a0-58746bfd57f8",
+					"raw": "http://localhost:10001/api/yellowtaxi/time/cc519a4f-3e8a-4d65-8cfd-d10916c8b560",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -200,7 +169,7 @@
 						"api",
 						"yellowtaxi",
 						"time",
-						"4b3df2c9-fe5e-45c7-86a0-58746bfd57f8"
+						"cc519a4f-3e8a-4d65-8cfd-d10916c8b560"
 					]
 				}
 			},
@@ -224,7 +193,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/passenger/553f2202-07f9-4e86-ae42-38178bc2bec6",
+					"raw": "http://localhost:10001/api/yellowtaxi/passenger/cc519a4f-3e8a-4d65-8cfd-d10916c8b560",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -234,7 +203,7 @@
 						"api",
 						"yellowtaxi",
 						"passenger",
-						"553f2202-07f9-4e86-ae42-38178bc2bec6"
+						"cc519a4f-3e8a-4d65-8cfd-d10916c8b560"
 					]
 				}
 			},
@@ -247,7 +216,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": " {\r\n   \"passenger_count\": 1001\r\n }",
+					"raw": " {\r\n   \"passengerCount\": 3\r\n }",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -255,7 +224,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/passenger/4b3df2c9-fe5e-45c7-86a0-58746bfd57f8",
+					"raw": "http://localhost:10001/api/yellowtaxi/passenger/cc519a4f-3e8a-4d65-8cfd-d10916c8b560",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -265,7 +234,7 @@
 						"api",
 						"yellowtaxi",
 						"passenger",
-						"4b3df2c9-fe5e-45c7-86a0-58746bfd57f8"
+						"cc519a4f-3e8a-4d65-8cfd-d10916c8b560"
 					]
 				}
 			},
@@ -289,7 +258,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/extrainfo/e2cbd1f8-ef78-4f8e-a976-8fe820b15e88",
+					"raw": "http://localhost:10001/api/yellowtaxi/extrainfo/cc519a4f-3e8a-4d65-8cfd-d10916c8b560",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -299,7 +268,7 @@
 						"api",
 						"yellowtaxi",
 						"extrainfo",
-						"e2cbd1f8-ef78-4f8e-a976-8fe820b15e88"
+						"cc519a4f-3e8a-4d65-8cfd-d10916c8b560"
 					]
 				}
 			},
@@ -312,7 +281,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"RateCodeID\": 2,\r\n    \"deletedFlag\": false,\r\n    \"dropoff_latitude\": 40.73488998413086,\r\n    \"dropoff_longitude\": -73.98860931396484,\r\n    \"pickup_latitude\": 40.75008010864258,\r\n    \"pickup_longitude\": -73.99112701416016,\r\n    \"store_and_fwd_flag\": \"N\"\r\n}",
+					"raw": "{\r\n    \"dropoffLatitude\": 40.73488998413086,\r\n    \"dropoffLongitude\": -73.98860931396484,\r\n    \"pickupLatitude\": 40.75008010864258,\r\n    \"pickupLongitude\": -73.99112701416016,\r\n    \"rateCodeID\": 1,\r\n    \"storeAndFwdFlag\": \"Y\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -320,7 +289,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/extrainfo/4b3df2c9-fe5e-45c7-86a0-58746bfd57f8",
+					"raw": "http://localhost:10001/api/yellowtaxi/extrainfo/cc519a4f-3e8a-4d65-8cfd-d10916c8b560",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -330,7 +299,7 @@
 						"api",
 						"yellowtaxi",
 						"extrainfo",
-						"4b3df2c9-fe5e-45c7-86a0-58746bfd57f8"
+						"cc519a4f-3e8a-4d65-8cfd-d10916c8b560"
 					]
 				}
 			},
@@ -354,7 +323,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/service/calculate-distance-cost/2",
+					"raw": "http://localhost:10001/api/yellowtaxi/service/calculate-distance-cost/10",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -365,7 +334,7 @@
 						"yellowtaxi",
 						"service",
 						"calculate-distance-cost",
-						"2"
+						"10"
 					]
 				}
 			},
@@ -445,7 +414,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/loaded/stat",
+					"raw": "http://localhost:10001/api/yellowtaxi/actor/loaded",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -454,8 +423,8 @@
 					"path": [
 						"api",
 						"yellowtaxi",
-						"loaded",
-						"stat"
+						"actor",
+						"loaded"
 					]
 				}
 			},

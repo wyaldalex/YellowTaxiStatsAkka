@@ -14,7 +14,6 @@ sealed trait TaxiCostCommand
 object TaxiTripCostCommand {
   case class CreateTaxiTripCost(statId: String, taxiTripCost: TaxiTripCost) extends TaxiCostCommand
   case class GetTaxiTripCost(statId: String) extends  TaxiCostCommand
-  case object GetTotalTaxiTripCost extends  TaxiCostCommand
   case class UpdateTaxiTripCost(statId: String, taxiTripCost: TaxiTripCost, costAggregator: ActorRef = null) extends TaxiCostCommand
   case class DeleteTaxiTripCost(statId: String) extends TaxiCostCommand
   case object GetTotalCostLoaded extends TaxiCostCommand

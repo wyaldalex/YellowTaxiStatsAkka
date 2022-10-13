@@ -87,9 +87,6 @@ class TaxiTripActor extends Actor with ActorLogging {
 
     sender() ! TaxiTripCreatedResponse(tripId)
 
-    case GetTotalTaxiTripCost =>
-//      log.info("To be implemented")
-//      log.info(s"Received petition to return size which is: ${state.costs.size})")
     //Individual Gets
     case GetTaxiTripCost(tripId) =>
       log.info(s"Receive Taxi Cost Inquiry, forwarding")
@@ -127,23 +124,18 @@ class TaxiTripActor extends Actor with ActorLogging {
       log.info("Received CalculateTripDistanceCost request")
       costAggregatorActor.forward(calculateTripDistanceCost)
     case getAverageTripTime@GetAverageTripTime =>
-      log.info("To be implemented")
       timeAggregatorActor.forward(getAverageTripTime)
     case getAverageTipAmount@GetAverageTipAmount =>
       log.info("Received GetAverageTipAmount request")
       costAggregatorActor.forward(getAverageTipAmount)
     //Individual Stats
     case getTotalCostLoaded@GetTotalCostLoaded =>
-      log.info("To be implemented")
       parentCostActor.forward(getTotalCostLoaded)
     case getTotalExtraInfoLoaded@GetTotalExtraInfoLoaded =>
-      log.info("To be implemented")
       parentExtraInfoActor.forward(getTotalExtraInfoLoaded)
     case getTotalTimeInfoInfoLoaded@GetTotalTimeInfoInfoLoaded =>
-      log.info("To be implemented")
       parentTimeInfoActor.forward(getTotalTimeInfoInfoLoaded)
     case getTotalPassengerInfoLoaded@GetTotalPassengerInfoLoaded =>
-      log.info("To be implemented")
       parentPassengerInfo.forward(getTotalPassengerInfoLoaded)
 
     case printTimeToLoad@PrintTimeToLoad(_) =>
@@ -191,7 +183,6 @@ object TaxiStatAppLoader extends App {
   //Operations testing
 
   taxiTripActor ! PrintTimeToLoad(startTimeMillis)
-  taxiTripActor ! GetTotalTaxiTripCost
   //cb17c9a7-31d1-4863-ab1f-11bb7ed115f5
   taxiTripActor ! GetTaxiTripCost("2d4c8a0d-948f-4d69-a438-57c54abb2a84")
 

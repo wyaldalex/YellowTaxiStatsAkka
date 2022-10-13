@@ -36,10 +36,6 @@ class PersistentParentTaxiCost(id: String) extends PersistentActor with ActorLog
         newTaxiTripCostActor ! CreateTaxiTripCost(statId, taxiStat)
       }
       sender() ! TaxiTripCreatedResponse(statId)
-
-    case GetTotalTaxiTripCost =>
-      log.info("To be implemented")
-      log.info(s"Received petition to return size which is: ${state.costs.size})")
     //Individual Gets
     case getTaxiCostStat@GetTaxiTripCost(statId) =>
       log.info(s"Receive Taxi Cost Inquiry, forwarding")

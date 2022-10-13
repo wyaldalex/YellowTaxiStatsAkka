@@ -59,7 +59,7 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
         costAggregator ! UpdateCostAggregatorValues(
           taxiTripCost.totalAmount-state.totalAmount,
           taxiTripCost.tripDistance-state.tripDistance,
-          taxiTripCost.totalAmount - state.tipAmount,
+          taxiTripCost.tipAmount - state.tipAmount, //new minus old
           state.tipAmount)
         state = taxiTripCost
         log.info(s"Updated cost stat: $taxiTripCost")

@@ -88,14 +88,15 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
 
   override def receiveRecover: Receive = {
     case TaxiCostStatCreatedEvent(statId,taxiCostStat) =>
-      log.info(s"Recovering Taxi Cost Created  $statId at ${self.path}")
+      log.info(s"Recovering Taxi Cost Created  $statId ")
       state = taxiCostStat
 
     case UpdatedTaxiCostStatEvent(statId,taxiCostStat) =>
-      log.info(s"Recovering Taxi Cost Updated $statId at ${self.path}")
+      log.info(s"Recovering Taxi Cost Updated $statId ")
       state = taxiCostStat
 
     case DeletedTaxiCostStatEvent(statId) =>
+      log.info(s"Recovering Taxi Cost Deleted for $statId ")
       state = state.copy(deletedFlag = true)
   }
 }

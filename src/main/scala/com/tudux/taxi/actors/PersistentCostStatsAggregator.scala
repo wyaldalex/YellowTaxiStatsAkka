@@ -1,9 +1,7 @@
 package com.tudux.taxi.actors
 
 import akka.actor.{ActorLogging, Props}
-import akka.persistence.PersistentActor
-
-import akka.persistence.PersistentActor
+import akka.persistence.{PersistentActor, SaveSnapshotFailure, SaveSnapshotSuccess, SnapshotOffer}
 
 //classes
 case class AggregatorStat(totalAmount: Double, distance: Double, tipAmount: Double)
@@ -42,6 +40,8 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
   var totalAmount : Double = 0
   var numberOfTips : Int = 0
   var totalTipAmount : Double = 0
+  var commandsWithoutCheckpoint = 0
+  val MAX_MESSAGES = 900
 
   override def persistenceId: String = id
 
@@ -55,6 +55,7 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
           totalTipAmount += stat.tipAmount
           numberOfTips += 1
         }
+        maybeCheckpoint()
 
       }
     case CalculateTripDistanceCost(distance) =>
@@ -74,7 +75,13 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
         } else {
           totalTipAmount += tipAmountDelta
         }
+        maybeCheckpoint()
       }
+    //SNAPSHOT related
+    case SaveSnapshotSuccess(metadata) =>
+      log.info(s"saving snapshot succeeded: $metadata")
+    case SaveSnapshotFailure(metadata, reason) =>
+      log.warning(s"saving snapshot $metadata failed because of $reason")
   }
 
   override def receiveRecover: Receive = {
@@ -95,6 +102,24 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
       } else {
         totalTipAmount += tipAmountDelta
       }
+    case SnapshotOffer(metadata, contents) =>
+      //WARNING: Saved state has to match with the state update operations
+      //saveSnapshot((totalDistance,totalAmount,numberOfTips,totalTipAmount))
+      log.info(s"Recovered snapshot: $metadata")
+      val snapState = contents.asInstanceOf[Tuple4[Double, Double,Int,Double]]
+      totalDistance = snapState._1
+      totalAmount = snapState._2
+      numberOfTips = snapState._3
+      totalTipAmount = snapState._4
+  }
+
+  def maybeCheckpoint(): Unit = {
+    commandsWithoutCheckpoint += 1
+    if (commandsWithoutCheckpoint >= MAX_MESSAGES) {
+      log.info("Saving checkpoint...")
+      saveSnapshot((totalDistance,totalAmount,numberOfTips,totalTipAmount)) // save a tuple with the current actor state
+      commandsWithoutCheckpoint = 0
+    }
   }
 
 }

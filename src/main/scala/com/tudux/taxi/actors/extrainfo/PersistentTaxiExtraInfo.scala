@@ -64,13 +64,13 @@ class PersistentTaxiExtraInfo(id: String) extends PersistentActor with ActorLogg
 
   override def receiveRecover: Receive = {
     case TaxiExtraInfoStatCreatedEvent(statId,taxiExtraInfoStat) =>
-      log.info(s"Recovering Extra Info Stat $taxiExtraInfoStat")
+      log.info(s"Recovering Extra Info Stat $statId")
       state = taxiExtraInfoStat
     case TaxiExtraInfoStatUpdatedEvent(statId,taxiExtraInfoStat) =>
-      log.info(s"Recovering Updated Extra Info Stat $taxiExtraInfoStat")
+      log.info(s"Recovering Updated Extra Info Stat $statId")
       state = taxiExtraInfoStat
     case DeletedTaxiExtraInfoEvent(statId) =>
-      log.info(s"Recovering Deleted Extra Info Stat")
+      log.info(s"Recovering Deleted Extra Info Stat for $statId")
       state = state.copy(deletedFlag = true)
 
   }

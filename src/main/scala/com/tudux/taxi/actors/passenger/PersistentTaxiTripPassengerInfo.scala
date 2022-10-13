@@ -60,7 +60,7 @@ class PersistentTaxiTripPassengerInfo(id: String) extends PersistentActor with A
 
   override def receiveRecover: Receive = {
     case TaxiTripPassengerInfoStatCreatedEvent(statId,taxiTripPassengerInfoStat) =>
-      log.info(s"Recovering Passenger Info Stat $taxiTripPassengerInfoStat")
+      log.info(s"Recovering Passenger Info Stat $statId")
       state = taxiTripPassengerInfoStat
     case   UpdatedTaxiPassengerEvent(statId,taxiTripPassengerInfoStat) =>
       log.info(s"Recovered Update Event applied for Passenger info Id: $statId")

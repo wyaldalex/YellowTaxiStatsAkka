@@ -118,10 +118,10 @@ class TaxiTripActor extends Actor with ActorLogging {
        parentCostActor.forward(UpdateTaxiCostStat(statId.concat(costActorIdSuffix), taxiCostStat , costAggregatorActor))
     //General Delete
     case deleteTaxiStat@DeleteTaxiStat(statId) =>
-      parentCostActor ! DeleteTaxiCostStat(statId.concat(costActorIdSuffix))
-      parentExtraInfoActor ! DeleteTaxiExtraInfo(statId.concat(extraInfoActorIdSuffix))
-      parentPassengerInfo ! DeleteTaxiTripPassenger(statId.concat(passengerActorIdSuffix))
-      parentTimeInfoActor ! DeleteTaxiTripTimeInfoStat(statId.concat(timeActorIdSuffix))
+      parentCostActor ! DeleteTaxiStat(statId.concat(costActorIdSuffix))
+      parentExtraInfoActor ! DeleteTaxiStat(statId.concat(extraInfoActorIdSuffix))
+      parentPassengerInfo ! DeleteTaxiStat(statId.concat(passengerActorIdSuffix))
+      parentTimeInfoActor ! DeleteTaxiStat(statId.concat(timeActorIdSuffix))
     //Domain Specific Operations
     case calculateTripDistanceCost@CalculateTripDistanceCost(_) =>
       log.info("Received CalculateTripDistanceCost request")

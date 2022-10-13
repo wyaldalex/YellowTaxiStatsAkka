@@ -22,7 +22,7 @@ class PersistentParentTaxiCost(id: String) extends PersistentActor with ActorLog
   import TaxiTripEvent._
 
   var state: TaxiTripCostState = TaxiTripCostState(Map.empty)
-  
+
   def createTaxiCostActor(id: String): ActorRef = {
     context.actorOf(PersistentTaxiTripCost.props(id), id)
   }
@@ -61,7 +61,7 @@ class PersistentParentTaxiCost(id: String) extends PersistentActor with ActorLog
     case GetTotalCostLoaded =>
       log.info("Returning total cost info loaded size")
       sender() ! state.costs.size
-      
+
     //Individual Stats
     case message: String =>
       log.info(message)

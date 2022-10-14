@@ -23,7 +23,7 @@ trait GetTaxiPassenger {
 
 }
 
-import com.tudux.taxi.http.RouteHelpers.UpdatePassengerInfoRequest
+import com.tudux.taxi.http.helpers.RoutePayloads.UpdatePassengerInfoRequest
 import io.swagger.models.Operation
 
 

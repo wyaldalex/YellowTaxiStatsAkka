@@ -2,7 +2,7 @@ package com.tudux.taxi.http.swagger
 
 import akka.http.scaladsl.server.Route
 import com.tudux.taxi.actors.cost.TaxiTripCost
-import com.tudux.taxi.http.RouteHelpers.UpdateCostInfoRequest
+import com.tudux.taxi.http.helpers.RoutePayloads.UpdateCostInfoRequest
 import io.swagger.annotations._
 import io.swagger.models.Operation
 

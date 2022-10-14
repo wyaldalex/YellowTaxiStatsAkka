@@ -23,7 +23,7 @@ trait GetTaxiExtraInfo {
 
 }
 
-import com.tudux.taxi.http.RouteHelpers.UpdateExtraInfoRequest
+import com.tudux.taxi.http.helpers.RoutePayloads.UpdateExtraInfoRequest
 import io.swagger.models.Operation
 
 @Path("/api/yellowtaxi/extrainfo/{tripId}")

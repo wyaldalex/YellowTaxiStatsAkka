@@ -19,15 +19,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 case class TaxiTripRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem, dispatcher: ExecutionContext,timeout: Timeout ) extends SprayJsonSupport
 {
-
-  def validateRequest[R: Validator](request: R)(routeIfValid: Route): Route = {
-    validateEntity(request) match {
-      case Validated.Valid(_) => routeIfValid
-      case Validated.Invalid(failures) =>
-        complete(StatusCodes.BadRequest, FailureResponse(failures.toList.map(_.errorMessage).mkString(", ")))
-    }
-  }
-
   val routes: Route = {
     pathPrefix("api" / "yellowtaxi" / "taxitrip") {
       post {

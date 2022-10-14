@@ -10,7 +10,6 @@ import akka.util.Timeout
 import cats.data.Validated
 import com.tudux.taxi.actors.TaxiTripCommand.DeleteTaxiTrip
 import com.tudux.taxi.actors.TaxiTripResponse.TaxiTripCreatedResponse
-import com.tudux.taxi.http.helpers.RouteFormatters._
 import com.tudux.taxi.http.helpers.RoutePayloads._
 import com.tudux.taxi.http.validation.Validation.{Validator, validateEntity}
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
@@ -18,18 +17,7 @@ import io.circe.generic.auto._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-
-
-
 case class TaxiTripRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem, dispatcher: ExecutionContext,timeout: Timeout ) extends SprayJsonSupport
-  with TaxiCostStatProtocol
-  with TaxiTimeInfoStatProtocol
-  with TaxiPassengerInfoProtocol
-  with TaxiExtraInfoProtocol
-  with CalculateDistanceCostProtocol
-  with CalculateAverageTripTimeProtocol
-  with GetAverageTipAmountProtocol
-  with GetTotalLoadedResponseProtocol
 {
 
   def validateRequest[R: Validator](request: R)(routeIfValid: Route): Route = {

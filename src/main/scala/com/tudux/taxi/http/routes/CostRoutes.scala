@@ -21,15 +21,7 @@ import scala.concurrent.ExecutionContext
 
 case class CostRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem, dispatcher: ExecutionContext,timeout: Timeout ) extends SprayJsonSupport
   with TaxiCostStatProtocol
-  with TaxiTimeInfoStatProtocol
-  with TaxiPassengerInfoProtocol
-  with TaxiExtraInfoProtocol
-  with CalculateDistanceCostProtocol
-  with CalculateAverageTripTimeProtocol
-  with GetAverageTipAmountProtocol
-  with GetTotalLoadedResponseProtocol
 {
-
 
   def validateRequest[R: Validator](request: R)(routeIfValid: Route): Route = {
     validateEntity(request) match {

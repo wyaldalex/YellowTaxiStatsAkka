@@ -17,18 +17,8 @@ import spray.json._
 
 import scala.concurrent.ExecutionContext
 
-
-
-
 case class ExtraInfoRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem, dispatcher: ExecutionContext,timeout: Timeout ) extends SprayJsonSupport
-  with TaxiCostStatProtocol
-  with TaxiTimeInfoStatProtocol
-  with TaxiPassengerInfoProtocol
   with TaxiExtraInfoProtocol
-  with CalculateDistanceCostProtocol
-  with CalculateAverageTripTimeProtocol
-  with GetAverageTipAmountProtocol
-  with GetTotalLoadedResponseProtocol
 {
 
   val routes: Route = {

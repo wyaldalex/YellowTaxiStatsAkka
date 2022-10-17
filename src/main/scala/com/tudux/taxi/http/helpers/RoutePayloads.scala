@@ -21,6 +21,37 @@ import io.circe.generic.auto._
 
 object RoutePayloads {
 
+//object CreateTaxiTripRequest {
+//  implicit val validator: Validator[CreateTaxiTripRequest] = new Validator[CreateTaxiTripRequest] {
+//    override def validate(request: CreateTaxiTripRequest): ValidationResult[CreateTaxiTripRequest] = {
+//
+//      val vendorIDValidation = validateRequired(request.vendorID, "vendorID")
+//      val tpepPickupDatetimeValidation = validatePairDates(request.tpepPickupDatetime, request.tpepPickupDatetime, request.tpepDropoffDatetime, "tpepPickupDatetime", "tpepDropoffDatetime")
+//      val tpepDropoffDatetimeValidation = validatePairDates(request.tpepPickupDatetime, request.tpepPickupDatetime, request.tpepDropoffDatetime, "tpepPickupDatetime", "tpepDropoffDatetime")
+//      val passengerCountValidation = validateRequired(request.passengerCount, "passengerCount")
+//      val tripDistanceValidation = validateRequired(request.tripDistance, "tripDistance")
+//      val pickupLongitudeValidation = validateRequired(request.pickupLongitude, "pickupLongitude")
+//      val pickupLatitudeValidation = validateRequired(request.pickupLatitude, "pickupLatitude")
+//      val rateCodeIDValidation = validateRequired(request.rateCodeID, "rateCodeID")
+//      val storeAndFwdFlagValidation = validateRequired(request.storeAndFwdFlag, "storeAndFwdFlag")
+//      val dropoffLongitudeValidation = validateRequired(request.dropoffLongitude, "dropoffLongitude")
+//      val dropoffLatitudeValidation = validateRequired(request.dropoffLatitude, "dropoffLatitude")
+//      val paymentTypeValidation = validateRequired(request.paymentType, "paymentType")
+//      val fareAmountValidation = validateRequired(request.fareAmount, "fareAmount")
+//      val extraValidation = validateRequired(request.extra, "extra")
+//      val mtaTaxValidation = validateRequired(request.mtaTax, "mtaTax")
+//      val tipAmountValidation = validateMinimum(request.tipAmount, 0, "tipAmount")
+//      val tollsAmountValidation = validateRequired(request.tollsAmount, "tollsAmount")
+//      val improvementSurchargeValidation = validateRequired(request.improvementSurcharge, "improvementSurcharge")
+//      val totalAmountValidation = validateMinimum(request.totalAmount, 0, "totalAmount")
+//
+//      (vendorIDValidation, tpepPickupDatetimeValidation, tpepDropoffDatetimeValidation, passengerCountValidation, tripDistanceValidation,
+//        pickupLongitudeValidation, pickupLatitudeValidation, rateCodeIDValidation, storeAndFwdFlagValidation, dropoffLongitudeValidation,
+//        dropoffLatitudeValidation, paymentTypeValidation, fareAmountValidation, extraValidation, mtaTaxValidation, tipAmountValidation,
+//        tollsAmountValidation, improvementSurchargeValidation, totalAmountValidation).mapN(CreateTaxiTripRequest.apply)
+//    }
+//  }
+//}
   object CreateTaxiTripRequest {
     implicit val validator: Validator[CreateTaxiTripRequest] = createTaxiTripRequestValidator
   }
@@ -46,6 +77,9 @@ object RoutePayloads {
       storeAndFwdFlag, dropoffLongitude, dropoffLatitude))
   }
 
+  object UpdateTimeInfoRequest {
+    implicit val validator: Validator[UpdateTimeInfoRequest] = updateTimeInfoRequestValidator
+  }
   case class UpdateTimeInfoRequest(tpepPickupDatetime: String, tpepDropoffDatetime: String) {
     def toCommand(tripId: String): UpdateTaxiTripTimeInfo = UpdateTaxiTripTimeInfo(tripId, TaxiTripTimeInfo(tpepPickupDatetime, tpepDropoffDatetime))
   }
@@ -73,6 +107,16 @@ object RoutePayloads {
       case Validated.Valid(_) => routeIfValid
       case Validated.Invalid(failures) =>
         complete(StatusCodes.BadRequest, FailureResponse(failures.toList.map(_.errorMessage).mkString(", ")))
+    }
+  }
+
+  case class ValidatedRequestResponse(flag: Boolean, routeResult: Route)
+  def validateRequest2[R: Validator](request: R, validRoute: Route): ValidatedRequestResponse = {
+    validateEntity(request) match {
+      case Validated.Valid(_) => ValidatedRequestResponse(true,validRoute)
+      case Validated.Invalid(failures) =>
+        ValidatedRequestResponse(false,
+        complete(StatusCodes.BadRequest, FailureResponse(failures.toList.map(_.errorMessage).mkString(", "))))
     }
   }
 

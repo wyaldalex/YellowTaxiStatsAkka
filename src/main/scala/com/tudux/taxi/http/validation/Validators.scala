@@ -1,16 +1,17 @@
 package com.tudux.taxi.http.validation
 
 import cats.implicits._
-import com.tudux.taxi.http.helpers.RoutePayloads.{CreateTaxiTripRequest, UpdateCostInfoRequest}
+import com.tudux.taxi.http.helpers.RoutePayloads.{CreateTaxiTripRequest, UpdateCostInfoRequest, UpdateTimeInfoRequest}
 
 object Validators {
 
   import Validation._
-  
+
   def createTaxiTripRequestValidator : Validator[CreateTaxiTripRequest] = (request: CreateTaxiTripRequest) => {
+
     val vendorIDValidation = validateRequired(request.vendorID, "vendorID")
-    val tpepPickupDatetimeValidation = validateRequired(request.tpepPickupDatetime, "tpepPickupDatetime")
-    val tpepDropoffDatetimeValidation = validateRequired(request.tpepDropoffDatetime, "tpepDropoffDatetime")
+    val tpepPickupDatetimeValidation = validatePairDates(request.tpepPickupDatetime,request.tpepPickupDatetime,request.tpepDropoffDatetime,"tpepPickupDatetime","tpepDropoffDatetime")
+    val tpepDropoffDatetimeValidation = validatePairDates(request.tpepPickupDatetime,request.tpepPickupDatetime,request.tpepDropoffDatetime,"tpepPickupDatetime","tpepDropoffDatetime")
     val passengerCountValidation = validateRequired(request.passengerCount, "passengerCount")
     val tripDistanceValidation = validateRequired(request.tripDistance, "tripDistance")
     val pickupLongitudeValidation = validateRequired(request.pickupLongitude, "pickupLongitude")
@@ -50,6 +51,15 @@ object Validators {
 
     (vendorIDValidation,tripDistanceValidation,paymentTypeValidation,fareAmountValidation,extraValidation,mtaTaxValidation,tipAmountValidation
     ,tollsAmountValidation,improvementSurchargeValidation,totalAmountValidation).mapN(UpdateCostInfoRequest.apply)
+  }
+
+  def updateTimeInfoRequestValidator : Validator[UpdateTimeInfoRequest] = (request: UpdateTimeInfoRequest) => {
+    //value: A,date1: String, date2: String, fieldName: String, fieldName2 : String)
+    val tpepPickupDatetimeValidation = validatePairDates(request.tpepPickupDatetime,request.tpepPickupDatetime,request.tpepDropoffDatetime,"tpepPickupDatetime","tpepDropoffDatetime")
+    val tpepDropoffDatetimeValidation = validatePairDates(request.tpepPickupDatetime,request.tpepPickupDatetime,request.tpepDropoffDatetime,"tpepPickupDatetime","tpepDropoffDatetime")
+
+    (tpepPickupDatetimeValidation,tpepDropoffDatetimeValidation).mapN(UpdateTimeInfoRequest.apply)
+
   }
 
 

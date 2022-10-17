@@ -49,8 +49,13 @@ case class TimeRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem, dis
             path(Segment) { tripId =>
               put {
                 entity(as[UpdateTimeInfoRequest]) { request =>
-                  taxiTripActor ! request.toCommand(tripId)
-                  complete(StatusCodes.OK)
+                  val validatedRequestResponse = validateRequest2(request,
+                    {
+                      complete(StatusCodes.OK)
+                    }
+                  )
+                  if (validatedRequestResponse.flag) taxiTripActor ! request.toCommand(tripId)
+                  validatedRequestResponse.routeResult
                 }
               }
             }

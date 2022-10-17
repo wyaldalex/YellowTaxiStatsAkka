@@ -19,22 +19,26 @@ import scala.concurrent.{ExecutionContext, Future}
 
 case class TaxiTripRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem, dispatcher: ExecutionContext,timeout: Timeout ) extends SprayJsonSupport
 {
+  def createTaxiTripCreatedResponse(createTaxiTripRequest: CreateTaxiTripRequest): Future[TaxiTripCreatedResponse] = {
+    println(s"Received http post to create stat $createTaxiTripRequest")
+    (taxiTripActor ? createTaxiTripRequest.toCommand).mapTo[TaxiTripCreatedResponse]
+  }
+
   val routes: Route = {
     pathPrefix("api" / "yellowtaxi" / "taxitrip") {
       post {
         entity(as[CreateTaxiTripRequest]) { request =>
           validateRequest(request) {
-            val statCreatedFuture: Future[TaxiTripCreatedResponse] = (taxiTripActor ? request.toCommand).mapTo[TaxiTripCreatedResponse]
-            println(s"Received http post to create stat $request")
-            complete(statCreatedFuture.map { r =>
-              HttpResponse(
-                StatusCodes.Created,
-                entity = HttpEntity(
-                  ContentTypes.`text/html(UTF-8)`,
-                  s"Taxi Trip created with Id: ${r.tripId.toString}"
-                )
-              )
-            })
+            onSuccess(createTaxiTripCreatedResponse(request)) {
+              case TaxiTripCreatedResponse(tripId) =>
+                complete(HttpResponse(
+                  StatusCodes.Created,
+                  entity = HttpEntity(
+                    ContentTypes.`text/html(UTF-8)`,
+                    s"Taxi Trip created with Id: ${tripId.toString}"
+                  )
+                ))
+            }
           }
         }
       } ~

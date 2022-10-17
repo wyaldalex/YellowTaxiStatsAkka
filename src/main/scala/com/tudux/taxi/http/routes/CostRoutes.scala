@@ -15,7 +15,7 @@ import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.generic.auto._
 import spray.json._
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 case class CostRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem, dispatcher: ExecutionContext,timeout: Timeout ) extends SprayJsonSupport
   with TaxiCostStatProtocol
@@ -38,10 +38,13 @@ case class CostRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem, dis
             path(Segment) { tripId =>
               put {
                 entity(as[UpdateCostInfoRequest]) { request =>
-                  validateRequest(request) {
-                    taxiTripActor ! request.toCommand(tripId)
+               val validatedRequestResponse = validateRequest2(request ,
+                    {
                     complete(StatusCodes.OK)
-                  }
+                    }
+                  )
+                  if (validatedRequestResponse.flag) taxiTripActor ! request.toCommand(tripId)
+                  validatedRequestResponse.routeResult
                 }
               }
             }

@@ -1,4 +1,4 @@
-package com.tudux.taxi.actors
+package com.tudux.taxi.actors.aggregators
 
 import akka.actor.{ActorLogging, Props}
 import akka.persistence.{PersistentActor, SaveSnapshotFailure, SaveSnapshotSuccess, SnapshotOffer}
@@ -69,9 +69,13 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
       persist(UpdatedCostAggregatorValuesEvent(totalAmountDelta, distanceDelta, tipAmountDelta, tipAmount)) { _ =>
         totalAmount += totalAmountDelta
         totalDistance += distanceDelta
-        if (tipAmountDelta == 0) {
-          numberOfTips -= 1
-          totalTipAmount -= tipAmount
+        //new 140 old 100 n = +40
+        //new 100 old 140 n = -40
+        //new 100 old 0 = (+1)  (+tipAmount)
+        //new 0 old n = (-1) (-tipAmountDelta)
+        if (tipAmountDelta == tipAmount) { //new tip
+          numberOfTips += 1
+          totalTipAmount += tipAmount
         } else {
           totalTipAmount += tipAmountDelta
         }
@@ -96,9 +100,9 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
     case UpdatedCostAggregatorValuesEvent(totalAmountDelta, distanceDelta, tipAmountDelta, tipAmount)  =>
       totalAmount += totalAmountDelta
       totalDistance += distanceDelta
-      if (tipAmountDelta == 0) {
-        numberOfTips -= 1
-        totalTipAmount -= tipAmount
+      if (tipAmountDelta == tipAmount) { //new tip
+        numberOfTips += 1
+        totalTipAmount += tipAmount
       } else {
         totalTipAmount += tipAmountDelta
       }

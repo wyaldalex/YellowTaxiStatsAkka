@@ -1,4 +1,4 @@
-package com.tudux.taxi.actors
+package com.tudux.taxi.actors.aggregators
 
 import akka.actor.{ActorLogging, Props}
 import akka.persistence.{PersistentActor, SaveSnapshotFailure, SaveSnapshotSuccess, SnapshotOffer}
@@ -30,8 +30,8 @@ object PersistentTimeStatsAggregator {
 class PersistentTimeStatsAggregator(id: String) extends PersistentActor with ActorLogging{
 
   import TimeAggregatorCommand._
-  import TimeAggregatorResponse._
   import TimeAggregatorEvent._
+  import TimeAggregatorResponse._
 
   val format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:SS")
   def getMinutes (taxiTripTimeInfoStat: TaxiTripTimeInfo) : Int = {

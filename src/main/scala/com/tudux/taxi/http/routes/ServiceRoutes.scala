@@ -6,10 +6,10 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
-import com.tudux.taxi.actors.CostAggregatorCommand.{CalculateTripDistanceCost, GetAverageTipAmount}
-import com.tudux.taxi.actors.CostAggregatorResponse.{CalculateTripDistanceCostResponse, GetAverageTipAmountResponse}
-import com.tudux.taxi.actors.TimeAggregatorCommand.GetAverageTripTime
-import com.tudux.taxi.actors.TimeAggregatorResponse.TaxiTripAverageTimeMinutesResponse
+import com.tudux.taxi.actors.aggregators.CostAggregatorCommand.{CalculateTripDistanceCost, GetAverageTipAmount}
+import com.tudux.taxi.actors.aggregators.CostAggregatorResponse.{CalculateTripDistanceCostResponse, GetAverageTipAmountResponse}
+import com.tudux.taxi.actors.aggregators.TimeAggregatorCommand.GetAverageTripTime
+import com.tudux.taxi.actors.aggregators.TimeAggregatorResponse.TaxiTripAverageTimeMinutesResponse
 import com.tudux.taxi.actors.cost.TaxiTripCostCommand._
 import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfoCommand.GetTotalExtraInfoLoaded
 import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfoCommand.GetTotalPassengerInfoLoaded

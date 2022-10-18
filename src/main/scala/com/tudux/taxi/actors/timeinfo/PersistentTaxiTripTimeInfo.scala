@@ -2,7 +2,7 @@ package com.tudux.taxi.actors.timeinfo
 
 import akka.actor.{ActorLogging, ActorRef, Props}
 import akka.persistence.PersistentActor
-import com.tudux.taxi.actors.TimeAggregatorCommand.UpdateTimeAggregatorValues
+import com.tudux.taxi.actors.aggregators.TimeAggregatorCommand.UpdateTimeAggregatorValues
 
 case class TaxiTripTimeInfo(tpepPickupDatetime: String, tpepDropoffDatetime: String, deletedFlag: Boolean = false)
 

@@ -2,7 +2,7 @@ package com.tudux.taxi.actors.cost
 
 import akka.actor.{ActorLogging, ActorRef, Props}
 import akka.persistence.PersistentActor
-import com.tudux.taxi.actors.CostAggregatorCommand.UpdateCostAggregatorValues
+import com.tudux.taxi.actors.aggregators.CostAggregatorCommand.UpdateCostAggregatorValues
 
 case class TaxiTripCost(vendorID: Int,
                         tripDistance: Double,

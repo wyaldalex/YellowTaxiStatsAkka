@@ -4,7 +4,8 @@ import com.tudux.taxi.actors.cost.TaxiTripCost
 import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfo
 import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfo
 import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfo
-import com.tudux.taxi.actors.{AggregatorStat, TaxiTripEntry}
+import com.tudux.taxi.actors.TaxiTripEntry
+import com.tudux.taxi.actors.aggregators.AggregatorStat
 
 object TaxiTripHelpers {
 

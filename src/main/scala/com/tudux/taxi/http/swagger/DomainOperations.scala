@@ -1,7 +1,7 @@
 package com.tudux.taxi.http.swagger
 
 import akka.http.scaladsl.server.Route
-import com.tudux.taxi.actors.CostAggregatorResponse.GetAverageTipAmountResponse
+import com.tudux.taxi.actors.aggregators.CostAggregatorResponse.GetAverageTipAmountResponse
 import io.swagger.annotations._
 
 import javax.ws.rs.Path
@@ -19,7 +19,7 @@ trait GetAverageTipAmount {
   def getAverageTipAmountResponseSwagger: Option[Route] = None
 }
 
-import com.tudux.taxi.actors.TimeAggregatorResponse.TaxiTripAverageTimeMinutesResponse
+import com.tudux.taxi.actors.aggregators.TimeAggregatorResponse.TaxiTripAverageTimeMinutesResponse
 
 @Path("/api/yellowtaxi/service/average-trip-time")
 @Api(value = "/service")
@@ -49,7 +49,7 @@ trait GetLoadedStats {
   def getAverageTripTimeSwagger: Option[Route] = None
 }
 
-import com.tudux.taxi.actors.CostAggregatorResponse.CalculateTripDistanceCostResponse
+import com.tudux.taxi.actors.aggregators.CostAggregatorResponse.CalculateTripDistanceCostResponse
 
 @Path("/api/yellowtaxi/service/calculate-distance-cost/{distance}")
 @Api(value = "/service")

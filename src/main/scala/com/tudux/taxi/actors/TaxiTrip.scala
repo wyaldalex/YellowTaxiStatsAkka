@@ -2,6 +2,7 @@ package com.tudux.taxi.actors
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
 import akka.util.Timeout
+import com.tudux.taxi.actors.aggregators.{PersistentCostStatsAggregator, PersistentTimeStatsAggregator}
 import com.tudux.taxi.actors.cost.PersistentParentTaxiCost
 import com.tudux.taxi.actors.extrainfo.PersistentParentExtraInfo
 import com.tudux.taxi.actors.helpers.TaxiTripHelpers._
@@ -43,10 +44,10 @@ object TaxiTripActor {
 }
 class TaxiTripActor extends Actor with ActorLogging {
 
-  import CostAggregatorCommand._
+  import com.tudux.taxi.actors.aggregators.CostAggregatorCommand._
   import TaxiTripResponse._
   import TaxiTripCommand._
-  import TimeAggregatorCommand._
+  import com.tudux.taxi.actors.aggregators.TimeAggregatorCommand._
   import com.tudux.taxi.actors.cost.TaxiTripCostCommand._
   import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfoCommand._
   import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfoCommand._

@@ -2,149 +2,153 @@ package com.tudux.taxi.actors
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
 import akka.util.Timeout
-import com.tudux.taxi.actors.TaxiStatResponseResponses.TaxiStatCreatedResponse
+import com.tudux.taxi.actors.aggregators.{PersistentCostStatsAggregator, PersistentTimeStatsAggregator}
+import com.tudux.taxi.actors.cost.PersistentParentTaxiCost
+import com.tudux.taxi.actors.extrainfo.PersistentParentExtraInfo
+import com.tudux.taxi.actors.helpers.TaxiTripHelpers._
+import com.tudux.taxi.actors.passenger.PersistentParentPassengerInfo
+import com.tudux.taxi.actors.timeinfo.PersistentParentTimeInfo
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.io.Source
 
-object TaxiTripActor {
-  def props: Props = Props(new TaxiTripActor)
+
+case class TaxiTripEntry(vendorID: Int, tpepPickupDatetime: String, tpepDropoffDatetime: String, passengerCount: Int,
+                         tripDistance: Double, pickupLongitude: Double, pickupLatitude: Double, rateCodeID: Int,
+                         storeAndFwdFlag: String, dropoffLongitude: Double, dropoffLatitude: Double,
+                         paymentType: Int, fareAmount: Double, extra: Double, mtaTax: Double,
+                         tipAmount: Double, tollsAmount: Double, improvementSurcharge: Double, totalAmount: Double)
+
+sealed trait TaxiTripCommand
+object TaxiTripCommand {
+  case class CreateTaxiTripCommand(taxiTrip: TaxiTripEntry, tripId: String = null) extends  TaxiTripCommand
+  case class CreateTaxiTrip(taxiTrip: TaxiTripEntry) extends TaxiTripCommand
+  case class DeleteTaxiTrip(tripId: String) extends TaxiTripCommand
+}
+sealed trait TaxiTripEvent
+object TaxiTripEvent {
+  case class CreatedTaxiTripEvent(tripId: String) extends  TaxiTripEvent
 }
 
+sealed trait TaxiTripResponse
+object TaxiTripResponse {
+  case class TaxiTripCreatedResponse(tripId: String) extends TaxiTripResponse
+
+}
+
+object TaxiTripActor {
+  def props: Props = Props(new TaxiTripActor)
+
+}
 class TaxiTripActor extends Actor with ActorLogging {
 
-  import TaxiCostStatCommand._
-  import TaxiExtraInfoStatCommand._
-  import TaxiStatCommand._
-  import TaxiTripPassengerInfoStatCommand._
-  import TaxiTripTimeInfoStatCommand._
+  import com.tudux.taxi.actors.aggregators.CostAggregatorCommand._
+  import TaxiTripResponse._
+  import TaxiTripCommand._
+  import com.tudux.taxi.actors.aggregators.TimeAggregatorCommand._
+  import com.tudux.taxi.actors.cost.TaxiTripCostCommand._
+  import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfoCommand._
+  import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfoCommand._
+  import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfoCommand._
 
-  implicit def toTaxiCost(taxiStat: TaxiStat) : TaxiCostStat = {
-    TaxiCostStat(taxiStat.VendorID, taxiStat.trip_distance,
-      taxiStat.payment_type, taxiStat.fare_amount, taxiStat.fare_amount, taxiStat.mta_tax,
-      taxiStat.tip_amount, taxiStat.tolls_amount, taxiStat.improvement_surcharge, taxiStat.total_amount)
-  }
+  val costActorIdSuffix = "-cost"
+  val extraInfoActorIdSuffix = "-extrainfo"
+  val timeActorIdSuffix = "-time"
+  val passengerActorIdSuffix = "-passenger"
 
-  implicit def toTaxiExtraInfo(taxiStat: TaxiStat): TaxiExtraInfoStat = {
-    TaxiExtraInfoStat(taxiStat.pickup_longitude, taxiStat.pickup_latitude,
-      taxiStat.RateCodeID, taxiStat.store_and_fwd_flag, taxiStat.dropoff_longitude, taxiStat.dropoff_latitude)
-  }
+  //Parent Actors
+  val parentCostActor : ActorRef = context.actorOf(PersistentParentTaxiCost.props("parent-cost"), "parent-cost")
+  val parentExtraInfoActor : ActorRef = context.actorOf(PersistentParentExtraInfo.props("parent-extrainfo"), "parent-extrainfo")
+  val parentTimeInfoActor : ActorRef = context.actorOf(PersistentParentTimeInfo.props("parent-timeinfo"), "parent-timeinfo")
+  val parentPassengerInfo : ActorRef = context.actorOf(PersistentParentPassengerInfo.props("parent-passengerinfo"), "parent-passengerinfo")
 
-  implicit def toTaxiPassengerInfo(taxiStat: TaxiStat): TaxiTripPassengerInfoStat = {
-    TaxiTripPassengerInfoStat(taxiStat.passenger_count)
-  }
+  //Aggregators
+  val costAggregatorActor : ActorRef = context.actorOf(PersistentCostStatsAggregator.props("cost-aggregator"), "cost-aggregator")
+  val timeAggregatorActor : ActorRef = context.actorOf(PersistentTimeStatsAggregator.props("time-aggregator"), "time-aggregator")
 
-  implicit def toTaxiTimeInfoStat(taxiStat: TaxiStat): TaxiTripTimeInfoStat = {
-    TaxiTripTimeInfoStat(taxiStat.tpep_pickup_datetime, taxiStat.tpep_dropoff_datetime)
-  }
-
-  //var idStat : Int = 1
-
-  //split main Taxi payload into different actors
-  private val taxiTripCostActor: ActorRef = createTaxiCostActor()
-  private val taxiExtraInfoActor: ActorRef = createTaxiExtraInfoActor()
-  private val taxiPassengerInfoActor: ActorRef = createPassengerInfoActor()
-  private val taxiTimeInfoActor: ActorRef = createTimeInfoActor()
-
-  def createTaxiCostActor() : ActorRef = {
-    val taxiTripActorId = "persistent-taxi-cost-stats-actor"
-    context.actorOf(PersistentTaxiTripCost.props(taxiTripActorId), taxiTripActorId)
-  }
-
-  def createTaxiExtraInfoActor(): ActorRef = {
-    val taxiTripActorId = "persistent-taxi-extra-info-stats-actor"
-    context.actorOf(PersistentTaxiExtraInfo.props(taxiTripActorId), taxiTripActorId)
-  }
-
-  def createPassengerInfoActor(): ActorRef = {
-    val taxiTripActorId = "persistent-passenger-info-stats-actor"
-    context.actorOf(PersistentTaxiTripPassengerInfo.props(taxiTripActorId), taxiTripActorId)
-  }
-
-  def createTimeInfoActor(): ActorRef = {
-    val taxiTripActorId = "persistent-time-info-stats-actor"
-    context.actorOf(PersistentTaxiTripTimeInfo.props(taxiTripActorId), taxiTripActorId)
-  }
-  override def receive: Receive = {
-    case CreateTaxiStat(taxiStat) =>
+  override def receive : Receive = {
+    case CreateTaxiTripCommand(taxiTrip,_) =>
       //generate new stat ID to avoid conflicts
-      val idStat = UUID.randomUUID().toString
-      log.info(s"Received $taxiStat to create")
-      //taxiTripCostActor.forward(CreateTaxiCostStat(idStat,taxiStat))
-      taxiTripCostActor  ! CreateTaxiCostStat(idStat,taxiStat)
-      taxiExtraInfoActor ! CreateTaxiExtraInfoStat(idStat,taxiStat)
-      taxiPassengerInfoActor ! CreateTaxiTripPassengerInfoStat(idStat,taxiStat)
-      taxiTimeInfoActor ! CreateTaxiTripTimeInfoStat(idStat,taxiStat)
-      sender() ! TaxiStatCreatedResponse(idStat)
-    case GetTotalTaxiCostStats =>
-      //candidate to be a forward operation
-      taxiTripCostActor ! GetTotalTaxiCostStats
+      val tripId = UUID.randomUUID().toString
+      log.info(s"Received $taxiTrip to create")
+      //taxiTripCostActor.forward(CreateTaxiCostStat(idStat,taxiTrip))
+
+      /*
+      new state modification
+       */
+        //O.O Avoid same Id for persistent actors! Circle and Infinite Loop Warning!!!
+      parentCostActor ! CreateTaxiTripCommand(taxiTrip,tripId.concat(costActorIdSuffix))
+      parentExtraInfoActor ! CreateTaxiTripCommand(taxiTrip,tripId.concat(extraInfoActorIdSuffix))
+      parentPassengerInfo ! CreateTaxiTripCommand(taxiTrip,tripId.concat(passengerActorIdSuffix))
+      parentTimeInfoActor ! CreateTaxiTripCommand(taxiTrip,tripId.concat(timeActorIdSuffix))
+      costAggregatorActor ! AddCostAggregatorValues(tripId,taxiTrip)
+      timeAggregatorActor ! AddTimeAggregatorValues(taxiTrip)
+
+    sender() ! TaxiTripCreatedResponse(tripId)
+
     //Individual Gets
-    case getTaxiCostStat@GetTaxiCostStat(_) =>
+    case GetTaxiTripCost(tripId) =>
       log.info(s"Receive Taxi Cost Inquiry, forwarding")
-      taxiTripCostActor.forward(getTaxiCostStat)
-    case getTaxiExtraInfoStat@GetTaxiExtraInfoStat(_) =>
-      log.info(s"Receive Taxi Cost Inquiry, forwarding")
-      taxiExtraInfoActor.forward(getTaxiExtraInfoStat)
-    case getTaxiTimeInfoStat@GetTaxiTimeInfoStat(statId) =>
-      log.info(s"Receive Taxi Cost Inquiry, forwarding")
-      taxiTimeInfoActor.forward(getTaxiTimeInfoStat)
-    case getTaxiPassengerInfoStat@GetTaxiPassengerInfoStat(_) =>
-      log.info(s"Receive Taxi Cost Inquiry, forwarding")
-      taxiPassengerInfoActor.forward(getTaxiPassengerInfoStat)
+      parentCostActor.forward(GetTaxiTripCost(tripId.concat(costActorIdSuffix)))
+    case GetTaxiTripExtraInfo(tripId) =>
+      log.info(s"Receive Taxi Extra Info Inquiry, forwarding")
+      parentExtraInfoActor.forward(GetTaxiTripExtraInfo(tripId.concat(extraInfoActorIdSuffix)))
+    case GetTaxiTripTimeInfo(tripId) =>
+      log.info(s"Receive Taxi Time Info Inquiry, forwarding")
+      parentTimeInfoActor.forward(GetTaxiTripTimeInfo(tripId.concat(timeActorIdSuffix)))
+    case GetTaxiTripPassengerInfo(tripId) =>
+      log.info(s"Receive Taxi Passenger Info Inquiry, forwarding")
+      parentPassengerInfo.forward(GetTaxiTripPassengerInfo(tripId.concat(passengerActorIdSuffix)))
     //Individual Updates
-    case updateTaxiPassenger@UpdateTaxiPassenger(_,_) =>
-      taxiPassengerInfoActor.forward(updateTaxiPassenger)
-    case updateTaxiTripTimeInfoStat@UpdateTaxiTripTimeInfoStat(_,_) =>
-      taxiTimeInfoActor.forward(updateTaxiTripTimeInfoStat)
-    case updateTaxiExtraInfoStat@UpdateTaxiExtraInfoStat(_,_) =>
-      taxiExtraInfoActor.forward(updateTaxiExtraInfoStat)
-    case updateTaxiCostStat@UpdateTaxiCostStat(_,_) =>
-      taxiTripCostActor.forward(updateTaxiCostStat)
+    case UpdateTaxiTripPassenger(tripId,taxiTripPassengerInfoStat) =>
+      log.info(s"Received Taxi Passenger Info request for $tripId")
+      parentPassengerInfo.forward(UpdateTaxiTripPassenger(tripId.concat(passengerActorIdSuffix), taxiTripPassengerInfoStat))
+    case UpdateTaxiTripTimeInfo(tripId,taxiTripTimeInfoStat,_) =>
+      log.info(s"Received Taxi Passenger Info request for $tripId")
+      parentTimeInfoActor.forward(UpdateTaxiTripTimeInfo(tripId.concat(timeActorIdSuffix), taxiTripTimeInfoStat, timeAggregatorActor))
+    case UpdateTaxiTripExtraInfo(tripId,taxiExtraInfoStat) =>
+      log.info(s"Received Taxi Passenger Info request for $tripId")
+      parentExtraInfoActor.forward(UpdateTaxiTripExtraInfo(tripId.concat(extraInfoActorIdSuffix),taxiExtraInfoStat))
+    case UpdateTaxiTripCost(tripId,taxiCostStat,_) =>
+      log.info(s"Received Taxi Passenger Info request for $tripId")
+       parentCostActor.forward(UpdateTaxiTripCost(tripId.concat(costActorIdSuffix), taxiCostStat , costAggregatorActor))
     //General Delete
-    case DeleteTaxiStat(statId) =>
-      taxiTripCostActor ! DeleteTaxiCostStat(statId)
-      taxiExtraInfoActor ! DeleteTaxiExtraInfo(statId)
-      taxiPassengerInfoActor ! DeleteTaxiTripPassenger(statId)
-      taxiTimeInfoActor ! DeleteTaxiTripTimeInfoStat(statId)
+    case deleteTaxiStat@DeleteTaxiTrip(tripId) =>
+      parentCostActor ! DeleteTaxiTrip(tripId.concat(costActorIdSuffix))
+      parentExtraInfoActor ! DeleteTaxiTrip(tripId.concat(extraInfoActorIdSuffix))
+      parentPassengerInfo ! DeleteTaxiTrip(tripId.concat(passengerActorIdSuffix))
+      parentTimeInfoActor ! DeleteTaxiTrip(tripId.concat(timeActorIdSuffix))
     //Domain Specific Operations
     case calculateTripDistanceCost@CalculateTripDistanceCost(_) =>
-      taxiTripCostActor.forward(calculateTripDistanceCost)
+      log.info("Received CalculateTripDistanceCost request")
+      costAggregatorActor.forward(calculateTripDistanceCost)
     case getAverageTripTime@GetAverageTripTime =>
-      taxiTimeInfoActor.forward(getAverageTripTime)
+      timeAggregatorActor.forward(getAverageTripTime)
     case getAverageTipAmount@GetAverageTipAmount =>
       log.info("Received GetAverageTipAmount request")
-      taxiTripCostActor.forward(getAverageTipAmount)
+      costAggregatorActor.forward(getAverageTipAmount)
     //Individual Stats
     case getTotalCostLoaded@GetTotalCostLoaded =>
-      taxiTripCostActor.forward(getTotalCostLoaded)
+      parentCostActor.forward(getTotalCostLoaded)
     case getTotalExtraInfoLoaded@GetTotalExtraInfoLoaded =>
-      taxiExtraInfoActor.forward(getTotalExtraInfoLoaded)
+      parentExtraInfoActor.forward(getTotalExtraInfoLoaded)
     case getTotalTimeInfoInfoLoaded@GetTotalTimeInfoInfoLoaded =>
-      taxiTimeInfoActor.forward(getTotalTimeInfoInfoLoaded)
+      parentTimeInfoActor.forward(getTotalTimeInfoInfoLoaded)
     case getTotalPassengerInfoLoaded@GetTotalPassengerInfoLoaded =>
-      taxiPassengerInfoActor.forward(getTotalPassengerInfoLoaded)
-    //Individual Deletes
-    /*
-    case deleteTaxiCostStat@DeleteTaxiCostStat(_) =>
-      taxiTripCostActor ! deleteTaxiCostStat
-    case deleteTaxiExtraInfo@DeleteTaxiExtraInfo(_) =>
-      taxiExtraInfoActor ! deleteTaxiExtraInfo
-    case deleteTaxiTripPassenger@DeleteTaxiTripPassenger(_) =>
-      taxiPassengerInfoActor ! deleteTaxiTripPassenger
-    case deleteTaxiTripTimeInfoStat@DeleteTaxiTripTimeInfoStat(_) =>
-      taxiTimeInfoActor ! deleteTaxiTripTimeInfoStat */
+      parentPassengerInfo.forward(getTotalPassengerInfoLoaded)
+
     case printTimeToLoad@PrintTimeToLoad(_) =>
       log.info("Forwarding Total Time to Load Request")
-      taxiTripCostActor.forward(printTimeToLoad)
+//      taxiTripCostActor.forward(printTimeToLoad)
+    case message: String =>
+      log.info(message)
     case _ => log.info("Received something else at parent actor")
 
   }
 
 }
-
 
 object TaxiStatAppLoader extends App {
 
@@ -159,20 +163,20 @@ object TaxiStatAppLoader extends App {
 
   import kantan.csv._
   import kantan.csv.ops._ // Automatic derivation of codecs.
-  implicit val decoder: RowDecoder[TaxiStat] = RowDecoder.ordered(TaxiStat.apply _)
+  implicit val decoder: RowDecoder[TaxiTripEntry] = RowDecoder.ordered(TaxiTripEntry.apply _)
   //Start Processing including reading of the file
   val startTimeMillis = System.currentTimeMillis()
   //val source_csv = Source.fromResource("smallset.csv").mkString
   //val source_csv = Source.fromResource("100ksample.csv").mkString
   val source_csv = Source.fromResource("1ksample.csv").mkString
   //val source_csv = Source.fromResource("1millSample.csv").mkString
-  val reader = source_csv.asCsvReader[TaxiStat](rfc)
+  val reader = source_csv.asCsvReader[TaxiTripEntry](rfc)
 
-  import TaxiCostStatCommand._
-  import TaxiStatCommand._
+  import TaxiTripCommand._
+  import com.tudux.taxi.actors.cost.TaxiTripCostCommand._
   //Data loading:
   reader.foreach(either => {
-    taxiTripActor ! CreateTaxiStat((either.right.getOrElse(TaxiStat(
+    taxiTripActor ! CreateTaxiTripCommand((either.right.getOrElse(TaxiTripEntry(
       2,"2015-01-15 19:05:39","2015-01-15 19:23:42",1,1.59,-73.993896484375,40.750110626220703,1,"N",-73.974784851074219,40.750617980957031,1,12,1,0.5,3.25,0,0.3,17.05
     ))))
   })
@@ -180,7 +184,8 @@ object TaxiStatAppLoader extends App {
   //Operations testing
 
   taxiTripActor ! PrintTimeToLoad(startTimeMillis)
-  taxiTripActor ! GetTotalTaxiCostStats
+  //cb17c9a7-31d1-4863-ab1f-11bb7ed115f5
+  taxiTripActor ! GetTaxiTripCost("2d4c8a0d-948f-4d69-a438-57c54abb2a84")
 
 
 

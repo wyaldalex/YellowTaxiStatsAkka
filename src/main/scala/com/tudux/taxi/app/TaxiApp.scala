@@ -19,6 +19,8 @@ object TaxiApp extends App {
     implicit val scheduler: ExecutionContext = system.dispatcher
 
     val router = new MainRouter(taxiAppActor)
+    // if the sub domain parent actors need to be accessed directly then , the actor reference has to be provided here
+    // for the corresponding routes, who will monitor those parents? if they are created here then there is no parent actor
     val routes = router.routes  ~ Swagger(system).routes ~ getFromResourceDirectory("swagger-ui")
 
     val bindingFuture = Http().newServerAt("localhost", 10001).bind(routes)

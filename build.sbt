@@ -30,8 +30,11 @@ libraryDependencies ++= Seq(
   //"com.github.swagger-akka-http" % "swagger-akka-http_2.11" % "0.14.0",
   //"com.typesafe.akka" % "akka-http-testkit_2.11" % "10.0.9" % "test",
  // "com.typesafe.akka" %% "akka-http-testkit" % "10.1.7" % Test,
-
-
+  //clustering related
+  "com.typesafe.akka" %% "akka-remote" % akkaVersion,
+  "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
+  "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion,
+  "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
 
   // optional, if you want to add tests
   "com.typesafe.akka" %% "akka-http-testkit"          % akkaHttpVersion % Test,

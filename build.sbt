@@ -3,6 +3,9 @@ name := "YellowTaxiStatsAkka"
 version := "1.0.0-SNAPSHOT"
 
 lazy val akkaHttpVersion = "10.2.8"
+//lazy val akkaHttpVersion = "10.1.8"
+//lazy val akkaVersion = "2.5.21"
+//lazy val protobufVersion = "3.6.1"
 lazy val akkaVersion     = "2.6.9"
 lazy val circeVersion    = "0.14.1"
 
@@ -35,9 +38,14 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
   "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion,
   "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
+  "com.typesafe.akka" %% "akka-cluster-typed" % akkaVersion,
+  //"io.aeron" % "aeron-driver" % "1.38.1",
+  //"io.aeron" % "aeron-client" % "1.38.1",
+  "io.aeron" % "aeron-driver" % "1.15.0",
+  "io.aeron" % "aeron-client" % "1.15.0",
 
   // optional, if you want to add tests
   "com.typesafe.akka" %% "akka-http-testkit"          % akkaHttpVersion % Test,
   "com.typesafe.akka" %% "akka-actor-testkit-typed"   % akkaVersion     % Test,
-  "org.scalatest"     %% "scalatest"                  % "3.2.9"         % Test
+  ///"org.scalatest"     %% "scalatest"                  % "3.2.9"         % Test
 )

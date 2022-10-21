@@ -14,8 +14,8 @@ import com.tudux.taxi.actors.cost.TaxiTripCostCommand._
 import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfoCommand.GetTotalExtraInfoLoaded
 import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfoCommand.GetTotalPassengerInfoLoaded
 import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfoCommand.GetTotalTimeInfoInfoLoaded
-import com.tudux.taxi.http.helpers.RouteFormatters._
-import com.tudux.taxi.http.helpers.RoutePayloads._
+import com.tudux.taxi.http.formatters.RouteFormatters._
+import com.tudux.taxi.http.payloads.RoutePayloads._
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.generic.auto._
 import spray.json._

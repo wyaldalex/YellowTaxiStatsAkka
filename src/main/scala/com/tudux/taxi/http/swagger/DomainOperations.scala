@@ -34,7 +34,7 @@ trait GetAverageTripTime {
   def getAverageTripTimeSwagger: Option[Route] = None
 }
 
-import com.tudux.taxi.http.helpers.RoutePayloads.LoadedStatsResponse
+import com.tudux.taxi.http.payloads.RoutePayloads.LoadedStatsResponse
 
 @Path("/api/yellowtaxi/actor/loaded")
 @Api(value = "/loaded")

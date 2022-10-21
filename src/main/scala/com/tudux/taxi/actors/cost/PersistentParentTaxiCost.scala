@@ -1,9 +1,42 @@
 package com.tudux.taxi.actors.cost
 
 import akka.actor.{ActorLogging, ActorRef, Props}
+import akka.cluster.sharding.ShardRegion
 import akka.persistence.PersistentActor
 import com.tudux.taxi.actors.helpers.TaxiTripHelpers._
-import com.tudux.taxi.actors.{TaxiTripResponse, TaxiTripCommand, TaxiTripEvent}
+import com.tudux.taxi.actors.{TaxiTripCommand, TaxiTripEvent, TaxiTripResponse}
+
+
+object CostActorShardingSettings {
+
+  import TaxiTripCommand._
+  import TaxiTripCostCommand._
+
+  val numberOfShards = 10 // use 10x number of nodes in your cluster
+  val numberOfEntities = 100 //10x number of shards
+  //this help to map the corresponding message to a respective entity
+  val extractEntityId: ShardRegion.ExtractEntityId = {
+    case createTaxiTripCommand@CreateTaxiTripCommand(taxiStat, statId) =>
+      val entityId = statId.hashCode.abs % numberOfEntities
+      (entityId.toString, createTaxiTripCommand)
+    case msg@GetTaxiTripCost(statId) =>
+      val shardId = statId.hashCode.abs % numberOfEntities
+      (shardId.toString, msg)
+  }
+
+  //this help to map the corresponding message to a respective shard
+  val extractShardId: ShardRegion.ExtractShardId = {
+    case CreateTaxiTripCommand(taxiStat, statId) =>
+      val shardId = statId.hashCode.abs % numberOfShards
+      shardId.toString
+    case GetTaxiTripCost(statId) =>
+      val shardId = statId.hashCode.abs % numberOfShards
+      shardId.toString
+    case ShardRegion.StartEntity(entityId) =>
+      (entityId.toLong % numberOfShards).toString
+  }
+
+}
 
 object PersistentParentTaxiCost {
 
@@ -12,7 +45,6 @@ object PersistentParentTaxiCost {
   case class TaxiTripCostState(costs: Map[String, ActorRef])
 }
 class PersistentParentTaxiCost(id: String) extends PersistentActor with ActorLogging {
-  import akka.cluster.sharding.ShardRegion.Passivate
 
   override def preStart(): Unit = {
     super.preStart()
@@ -20,10 +52,10 @@ class PersistentParentTaxiCost(id: String) extends PersistentActor with ActorLog
   }
 
   import PersistentParentTaxiCost._
-  import TaxiTripCostCommand._
-  import TaxiTripResponse._
   import TaxiTripCommand._
+  import TaxiTripCostCommand._
   import TaxiTripEvent._
+  import TaxiTripResponse._
 
   var state: TaxiTripCostState = TaxiTripCostState(Map.empty)
 

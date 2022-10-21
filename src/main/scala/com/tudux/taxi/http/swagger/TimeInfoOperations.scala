@@ -2,7 +2,7 @@ package com.tudux.taxi.http.swagger
 
 import akka.http.scaladsl.server.Route
 import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfo
-import com.tudux.taxi.http.helpers.RoutePayloads.UpdateTimeInfoRequest
+import com.tudux.taxi.http.payloads.RoutePayloads.UpdateTimeInfoRequest
 import io.swagger.annotations._
 import io.swagger.models.Operation
 

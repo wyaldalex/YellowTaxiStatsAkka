@@ -1,7 +1,7 @@
 package com.tudux.taxi.http.swagger
 
 import akka.http.scaladsl.server.Route
-import com.tudux.taxi.http.helpers.RoutePayloads.CreateTaxiTripRequest
+import com.tudux.taxi.http.payloads.RoutePayloads.CreateTaxiTripRequest
 import io.swagger.annotations._
 import io.swagger.models.Operation
 

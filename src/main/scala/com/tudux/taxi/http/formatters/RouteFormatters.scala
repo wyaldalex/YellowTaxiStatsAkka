@@ -1,13 +1,13 @@
-package com.tudux.taxi.http.helpers
+package com.tudux.taxi.http.formatters
 
-import spray.json.DefaultJsonProtocol
-import RoutePayloads._
 import com.tudux.taxi.actors.aggregators.CostAggregatorResponse.{CalculateTripDistanceCostResponse, GetAverageTipAmountResponse}
 import com.tudux.taxi.actors.aggregators.TimeAggregatorResponse.TaxiTripAverageTimeMinutesResponse
 import com.tudux.taxi.actors.cost.TaxiTripCost
 import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfo
 import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfo
 import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfo
+import com.tudux.taxi.http.payloads.RoutePayloads.LoadedStatsResponse
+import spray.json.DefaultJsonProtocol
 
 object RouteFormatters {
 

@@ -3,14 +3,14 @@ package com.tudux.taxi.http.routes
 import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpResponse, StatusCodes}
-import akka.http.scaladsl.server.Directives.{entity, _}
+import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
 import cats.data.Validated
 import com.tudux.taxi.actors.TaxiTripCommand.DeleteTaxiTrip
 import com.tudux.taxi.actors.TaxiTripResponse.TaxiTripCreatedResponse
-import com.tudux.taxi.http.helpers.RoutePayloads._
+import com.tudux.taxi.http.payloads.RoutePayloads._
 import com.tudux.taxi.http.validation.Validation.{Validator, validateEntity}
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.generic.auto._

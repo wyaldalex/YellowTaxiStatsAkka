@@ -1,11 +1,41 @@
 package com.tudux.taxi.actors.extrainfo
 
 import akka.actor.{ActorLogging, ActorRef, Props}
+import akka.cluster.sharding.ShardRegion
 import akka.persistence.PersistentActor
 import com.tudux.taxi.actors.helpers.TaxiTripHelpers._
 import com.tudux.taxi.actors.{TaxiTripResponse, TaxiTripCommand, TaxiTripEvent}
 
 
+object ExtraInfoActorShardingSettings {
+  import TaxiTripCommand._
+  import TaxiTripExtraInfoCommand._
+
+  val numberOfShards = 10 // use 10x number of nodes in your cluster
+  val numberOfEntities = 100 //10x number of shards
+  //this help to map the corresponding message to a respective entity
+  val extractEntityId: ShardRegion.ExtractEntityId = {
+    case createTaxiTripCommand@CreateTaxiTripCommand(taxiStat, statId) =>
+      val entityId = statId.hashCode.abs % numberOfEntities
+      (entityId.toString, createTaxiTripCommand)
+    case msg@GetTaxiTripExtraInfo(statId) =>
+      val shardId = statId.hashCode.abs % numberOfEntities
+      (shardId.toString, msg)
+  }
+
+  //this help to map the corresponding message to a respective shard
+  val extractShardId: ShardRegion.ExtractShardId = {
+    case CreateTaxiTripCommand(taxiStat, statId) =>
+      val shardId = statId.hashCode.abs % numberOfShards
+      shardId.toString
+    case GetTaxiTripExtraInfo(statId) =>
+      val shardId = statId.hashCode.abs % numberOfShards
+      shardId.toString
+    case ShardRegion.StartEntity(entityId) =>
+      (entityId.toLong % numberOfShards).toString
+  }
+
+}
 object PersistentParentExtraInfo {
   def props(id: String) : Props = Props(new PersistentParentExtraInfo(id))
   case class TaxiTripExtraInfoState(extrainfo: Map[String, ActorRef])
@@ -18,6 +48,11 @@ class PersistentParentExtraInfo(id: String) extends PersistentActor with ActorLo
   import TaxiTripCommand._
   import TaxiTripEvent._
 
+  override def preStart(): Unit = {
+    super.preStart()
+    log.info("Sharded Parent ExtraInfo Started")
+  }
+
   var state: TaxiTripExtraInfoState = TaxiTripExtraInfoState(Map.empty)
 
   def createTaxiExtraInfoActor(id: String): ActorRef = {
@@ -25,13 +60,13 @@ class PersistentParentExtraInfo(id: String) extends PersistentActor with ActorLo
   }
   
 
-  override def persistenceId: String = id
+  //override def persistenceId: String = id
+  override def persistenceId: String = context.parent.path.name + "-" + self.path.name;
 
   override def receiveCommand: Receive = {
     case CreateTaxiTripCommand(taxiStat,statId) =>
       //generate new stat ID to avoid conflicts
       log.info(s"Received $taxiStat to create")
-      //taxiTripCostActor.forward(CreateTaxiCostStat(idStat,taxiStat))
       val newTaxiExtraInfoActor = createTaxiExtraInfoActor(statId)
       persist(CreatedTaxiTripEvent(statId)) { event =>
         state = state.copy(extrainfo = state.extrainfo + ((statId) -> newTaxiExtraInfoActor))
@@ -41,7 +76,7 @@ class PersistentParentExtraInfo(id: String) extends PersistentActor with ActorLo
       sender() ! TaxiTripCreatedResponse(statId)
 
     case getTaxiExtraInfoStat@GetTaxiTripExtraInfo(statId) =>
-      log.info(s"Receive Taxi Cost Inquiry, forwarding")
+      log.info(s"Receive Taxi ExtraInfo Inquiry, forwarding")
       val taxiExtraInfoActor = state.extrainfo(statId)
       taxiExtraInfoActor.forward(getTaxiExtraInfoStat)
 
@@ -58,7 +93,7 @@ class PersistentParentExtraInfo(id: String) extends PersistentActor with ActorLo
 
     //Individual Stats
     case GetTotalExtraInfoLoaded =>
-      log.info("Returning total cost info loaded size")
+      log.info("Returning total Extra info info loaded size")
       sender() ! state.extrainfo.size
 
     case message: String =>

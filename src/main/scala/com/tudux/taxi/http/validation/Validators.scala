@@ -1,7 +1,7 @@
 package com.tudux.taxi.http.validation
 
 import cats.implicits._
-import com.tudux.taxi.http.helpers.RoutePayloads.{CreateTaxiTripRequest, UpdateCostInfoRequest, UpdateTimeInfoRequest}
+import com.tudux.taxi.http.payloads.RoutePayloads.{CreateTaxiTripRequest, UpdateCostInfoRequest, UpdateTimeInfoRequest}
 
 object Validators {
 

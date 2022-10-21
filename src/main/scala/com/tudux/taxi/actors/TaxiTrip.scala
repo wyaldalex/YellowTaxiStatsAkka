@@ -6,6 +6,7 @@ import akka.util.Timeout
 import com.tudux.taxi.actors.TaxiTripCommand.CreateTaxiTripCommand
 import com.tudux.taxi.actors.aggregators.{PersistentCostStatsAggregator, PersistentTimeStatsAggregator}
 import com.tudux.taxi.actors.cost.PersistentParentTaxiCost
+import com.tudux.taxi.actors.cost.TaxiTripCostCommand.GetTaxiTripCost
 import com.tudux.taxi.actors.extrainfo.PersistentParentExtraInfo
 import com.tudux.taxi.actors.helpers.TaxiTripHelpers._
 import com.tudux.taxi.actors.passenger.PersistentParentPassengerInfo
@@ -171,11 +172,17 @@ object TaxiStatAppLoader extends App {
       case createTaxiTripCommand@CreateTaxiTripCommand(taxiStat,statId) =>
         val entityId = statId.hashCode.abs % numberOfEntities
         (entityId.toString, createTaxiTripCommand)
+      case msg@GetTaxiTripCost(statId) =>
+        val shardId = statId.hashCode.abs % numberOfShards
+        (shardId.toString,msg)
     }
 
     //this help to map the corresponding message to a respective shard
     val extractShardId: ShardRegion.ExtractShardId = {
       case CreateTaxiTripCommand(taxiStat,statId) =>
+        val shardId = statId.hashCode.abs % numberOfShards
+        shardId.toString
+      case GetTaxiTripCost(statId) =>
         val shardId = statId.hashCode.abs % numberOfShards
         shardId.toString
       case ShardRegion.StartEntity(entityId) =>
@@ -186,7 +193,7 @@ object TaxiStatAppLoader extends App {
 
   //Somehow create the cost actor sharded version
   val parentCostShardRegionRef: ActorRef = ClusterSharding(system).start(
-    typeName = "OysterCardValidator",
+    typeName = "ShardedParentCostActor",
     //entityProps = Props[PersistentParentTaxiCost],
     entityProps = PersistentParentTaxiCost.props("parent-cost"),
     settings = ClusterShardingSettings(system).withRememberEntities(true),

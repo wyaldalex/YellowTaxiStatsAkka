@@ -61,7 +61,7 @@ class PersistentParentExtraInfo(id: String) extends PersistentActor with ActorLo
   
 
   //override def persistenceId: String = id
-  override def persistenceId: String = context.parent.path.name + "-" + self.path.name;
+  override def persistenceId: String = "ExtraInfo" + "-" + context.parent.path.name + "-" + self.path.name;
 
   override def receiveCommand: Receive = {
     case CreateTaxiTripCommand(taxiStat,statId) =>

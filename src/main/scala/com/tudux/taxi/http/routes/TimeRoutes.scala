@@ -37,7 +37,7 @@ case class TimeRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem, dis
           path(Segment) { tripId =>
             println(s"Received some statID $tripId")
             complete(
-              (taxiTripActor ? GetTaxiTripTimeInfo(tripId.toString))
+              (taxiTripActor ? GetTaxiTripTimeInfo(tripId.toString.concat(timeActorIdSuffix)))
                 // .mapTo[Option[TaxiTripTimeInfoStat]]
                 .mapTo[TaxiTripTimeInfo]
                 .map(_.toJson.prettyPrint)
@@ -54,7 +54,7 @@ case class TimeRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem, dis
                       complete(StatusCodes.OK)
                     }
                   )
-                  if (validatedRequestResponse.flag) taxiTripActor ! request.toCommand(tripId)
+                  if (validatedRequestResponse.flag) taxiTripActor ! request.toCommand(tripId.concat(timeActorIdSuffix))
                   validatedRequestResponse.routeResult
                 }
               }

@@ -11,7 +11,8 @@ import com.tudux.taxi.actors.extrainfo.PersistentParentExtraInfo
 import com.tudux.taxi.actors.helpers.TaxiTripHelpers._
 import com.tudux.taxi.actors.passenger.PersistentParentPassengerInfo
 import com.tudux.taxi.actors.timeinfo.PersistentParentTimeInfo
-import com.tudux.taxi.app.ShardedActorsGenerator.{createShardedParentCostActor, createShardedParentExtraInfoActor}
+import com.tudux.taxi.app.ShardedActorsGenerator.{createShardedParentCostActor, createShardedParentExtraInfoActor, createShardedParentPassengerInfoActor, createShardedParentTimeInfoActor}
+import com.typesafe.config.ConfigFactory
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext
@@ -43,11 +44,14 @@ object TaxiTripResponse {
 }
 
 object TaxiTripActor {
-  def props(parentCostShardedActor: ActorRef,parentExtraInfoShardedActor: ActorRef): Props =
-    Props(new TaxiTripActor(parentCostShardedActor,parentExtraInfoShardedActor))
+  def props(parentCostShardedActor: ActorRef,parentExtraInfoShardedActor: ActorRef,
+            parentPassengerShardedActor: ActorRef,parentTimeShardedActor: ActorRef): Props =
+    Props(new TaxiTripActor(parentCostShardedActor,parentExtraInfoShardedActor,
+      parentPassengerShardedActor, parentTimeShardedActor))
 
 }
-class TaxiTripActor(parentCostShardedActor: ActorRef,parentExtraInfoShardedActor: ActorRef) extends Actor with ActorLogging {
+class TaxiTripActor(parentCostShardedActor: ActorRef,parentExtraInfoShardedActor: ActorRef,
+                    parentPassengerShardedActor: ActorRef,parentTimeShardedActor: ActorRef) extends Actor with ActorLogging {
 
   import com.tudux.taxi.actors.aggregators.CostAggregatorCommand._
   import TaxiTripResponse._
@@ -66,8 +70,8 @@ class TaxiTripActor(parentCostShardedActor: ActorRef,parentExtraInfoShardedActor
   //Parent Actors
   //val parentCostActor : ActorRef = context.actorOf(PersistentParentTaxiCost.props("parent-cost"), "parent-cost")
   //val parentExtraInfoActor : ActorRef = context.actorOf(PersistentParentExtraInfo.props("parent-extrainfo"), "parent-extrainfo")
-  val parentTimeInfoActor : ActorRef = context.actorOf(PersistentParentTimeInfo.props("parent-timeinfo"), "parent-timeinfo")
-  val parentPassengerInfo : ActorRef = context.actorOf(PersistentParentPassengerInfo.props("parent-passengerinfo"), "parent-passengerinfo")
+  //val parentTimeInfoActor : ActorRef = context.actorOf(PersistentParentTimeInfo.props("parent-timeinfo"), "parent-timeinfo")
+  //val parentPassengerInfo : ActorRef = context.actorOf(PersistentParentPassengerInfo.props("parent-passengerinfo"), "parent-passengerinfo")
 
   //Aggregators
   val costAggregatorActor : ActorRef = context.actorOf(PersistentCostStatsAggregator.props("cost-aggregator"), "cost-aggregator")
@@ -86,8 +90,8 @@ class TaxiTripActor(parentCostShardedActor: ActorRef,parentExtraInfoShardedActor
         //O.O Avoid same Id for persistent actors! Circle and Infinite Loop Warning!!!
       parentCostShardedActor ! CreateTaxiTripCommand(taxiTrip,tripId.concat(costActorIdSuffix))
       parentExtraInfoShardedActor ! CreateTaxiTripCommand(taxiTrip,tripId.concat(extraInfoActorIdSuffix))
-      parentPassengerInfo ! CreateTaxiTripCommand(taxiTrip,tripId.concat(passengerActorIdSuffix))
-      parentTimeInfoActor ! CreateTaxiTripCommand(taxiTrip,tripId.concat(timeActorIdSuffix))
+      parentPassengerShardedActor ! CreateTaxiTripCommand(taxiTrip,tripId.concat(passengerActorIdSuffix))
+      parentTimeShardedActor ! CreateTaxiTripCommand(taxiTrip,tripId.concat(timeActorIdSuffix))
       costAggregatorActor ! AddCostAggregatorValues(tripId,taxiTrip)
       timeAggregatorActor ! AddTimeAggregatorValues(taxiTrip)
 
@@ -102,17 +106,17 @@ class TaxiTripActor(parentCostShardedActor: ActorRef,parentExtraInfoShardedActor
       parentExtraInfoShardedActor.forward(GetTaxiTripExtraInfo(tripId.concat(extraInfoActorIdSuffix)))
     case GetTaxiTripTimeInfo(tripId) =>
       log.info(s"Receive Taxi Time Info Inquiry, forwarding")
-      parentTimeInfoActor.forward(GetTaxiTripTimeInfo(tripId.concat(timeActorIdSuffix)))
+      parentTimeShardedActor.forward(GetTaxiTripTimeInfo(tripId.concat(timeActorIdSuffix)))
     case GetTaxiTripPassengerInfo(tripId) =>
       log.info(s"Receive Taxi Passenger Info Inquiry, forwarding")
-      parentPassengerInfo.forward(GetTaxiTripPassengerInfo(tripId.concat(passengerActorIdSuffix)))
+      parentPassengerShardedActor.forward(GetTaxiTripPassengerInfo(tripId.concat(passengerActorIdSuffix)))
     //Individual Updates
     case UpdateTaxiTripPassenger(tripId,taxiTripPassengerInfoStat) =>
       log.info(s"Received Taxi Passenger Info request for $tripId")
-      parentPassengerInfo.forward(UpdateTaxiTripPassenger(tripId.concat(passengerActorIdSuffix), taxiTripPassengerInfoStat))
+      parentPassengerShardedActor.forward(UpdateTaxiTripPassenger(tripId.concat(passengerActorIdSuffix), taxiTripPassengerInfoStat))
     case UpdateTaxiTripTimeInfo(tripId,taxiTripTimeInfoStat,_) =>
       log.info(s"Received Taxi Passenger Info request for $tripId")
-      parentTimeInfoActor.forward(UpdateTaxiTripTimeInfo(tripId.concat(timeActorIdSuffix), taxiTripTimeInfoStat, timeAggregatorActor))
+      parentTimeShardedActor.forward(UpdateTaxiTripTimeInfo(tripId.concat(timeActorIdSuffix), taxiTripTimeInfoStat, timeAggregatorActor))
     case UpdateTaxiTripExtraInfo(tripId,taxiExtraInfoStat) =>
       log.info(s"Received Taxi Passenger Info request for $tripId")
       parentExtraInfoShardedActor.forward(UpdateTaxiTripExtraInfo(tripId.concat(extraInfoActorIdSuffix),taxiExtraInfoStat))
@@ -123,8 +127,8 @@ class TaxiTripActor(parentCostShardedActor: ActorRef,parentExtraInfoShardedActor
     case deleteTaxiStat@DeleteTaxiTrip(tripId) =>
       parentCostShardedActor ! DeleteTaxiTrip(tripId.concat(costActorIdSuffix))
       parentExtraInfoShardedActor ! DeleteTaxiTrip(tripId.concat(extraInfoActorIdSuffix))
-      parentPassengerInfo ! DeleteTaxiTrip(tripId.concat(passengerActorIdSuffix))
-      parentTimeInfoActor ! DeleteTaxiTrip(tripId.concat(timeActorIdSuffix))
+      parentPassengerShardedActor ! DeleteTaxiTrip(tripId.concat(passengerActorIdSuffix))
+      parentTimeShardedActor ! DeleteTaxiTrip(tripId.concat(timeActorIdSuffix))
     //Domain Specific Operations
     case calculateTripDistanceCost@CalculateTripDistanceCost(_) =>
       log.info("Received CalculateTripDistanceCost request")
@@ -140,9 +144,9 @@ class TaxiTripActor(parentCostShardedActor: ActorRef,parentExtraInfoShardedActor
     case getTotalExtraInfoLoaded@GetTotalExtraInfoLoaded =>
       parentExtraInfoShardedActor.forward(getTotalExtraInfoLoaded)
     case getTotalTimeInfoInfoLoaded@GetTotalTimeInfoInfoLoaded =>
-      parentTimeInfoActor.forward(getTotalTimeInfoInfoLoaded)
+      parentTimeShardedActor.forward(getTotalTimeInfoInfoLoaded)
     case getTotalPassengerInfoLoaded@GetTotalPassengerInfoLoaded =>
-      parentPassengerInfo.forward(getTotalPassengerInfoLoaded)
+      parentPassengerShardedActor.forward(getTotalPassengerInfoLoaded)
 
     case printTimeToLoad@PrintTimeToLoad(_) =>
       log.info("Forwarding Total Time to Load Request")
@@ -157,7 +161,13 @@ class TaxiTripActor(parentCostShardedActor: ActorRef,parentExtraInfoShardedActor
 
 object TaxiStatAppLoader extends App {
 
-  implicit val system: ActorSystem = ActorSystem("TaxiLoader")
+  //testing sharding of cost actor
+  val config = ConfigFactory.parseString(
+    s"""
+       |akka.remote.artery.canonical.port = 2551
+""".stripMargin).withFallback(ConfigFactory.load("sharded/shardedConfigSettings.conf"))
+
+  val system: ActorSystem = ActorSystem("YellowTaxiCluster", config)
   implicit val timeout: Timeout = Timeout(2.seconds)
   implicit val scheduler: ExecutionContext = system.dispatcher
   /*
@@ -195,8 +205,11 @@ object TaxiStatAppLoader extends App {
   //Somehow create the cost actor sharded version
   val parentCostShardRegionRef: ActorRef = createShardedParentCostActor(system)
   val parentExtraInfoShardRegionRef: ActorRef = createShardedParentExtraInfoActor(system)
+  val parentPassengerShardRegionRef: ActorRef = createShardedParentPassengerInfoActor(system)
+  val parentTimeInfoShardRegionRef: ActorRef = createShardedParentTimeInfoActor(system)
 
-  val taxiTripActor = system.actorOf(TaxiTripActor.props(parentCostShardRegionRef,parentExtraInfoShardRegionRef), "parentTaxiActor")
+  val taxiTripActor = system.actorOf(TaxiTripActor.props(parentCostShardRegionRef,parentExtraInfoShardRegionRef,
+    parentPassengerShardRegionRef,parentTimeInfoShardRegionRef), "parentTaxiActor")
 
   import kantan.csv._
   import kantan.csv.ops._ // Automatic derivation of codecs.

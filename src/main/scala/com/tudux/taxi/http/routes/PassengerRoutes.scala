@@ -26,7 +26,7 @@ case class PassengerRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem
           path(Segment) { tripId =>
             println(s"Received some statID $tripId")
             complete(
-              (taxiTripActor ? GetTaxiTripPassengerInfo(tripId.toString))
+              (taxiTripActor ? GetTaxiTripPassengerInfo(tripId.toString.concat(passengerActorIdSuffix)))
                 .mapTo[TaxiTripPassengerInfo]
                 .map(_.toJson.prettyPrint)
                 .map(toHttpEntity)
@@ -37,7 +37,7 @@ case class PassengerRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem
             path(Segment) { tripId =>
               put {
                 entity(as[UpdatePassengerInfoRequest]) { request =>
-                  taxiTripActor ! request.toCommand(tripId)
+                  taxiTripActor ! request.toCommand(tripId.concat(passengerActorIdSuffix))
                   complete(StatusCodes.OK)
                 }
               }

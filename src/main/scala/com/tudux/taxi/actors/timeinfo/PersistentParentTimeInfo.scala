@@ -1,9 +1,41 @@
 package com.tudux.taxi.actors.timeinfo
 
 import akka.actor.{ActorLogging, ActorRef, Props}
+import akka.cluster.sharding.ShardRegion
 import akka.persistence.PersistentActor
 import com.tudux.taxi.actors.helpers.TaxiTripHelpers._
-import com.tudux.taxi.actors.{TaxiTripResponse, TaxiTripCommand, TaxiTripEvent}
+import com.tudux.taxi.actors.{TaxiTripCommand, TaxiTripEvent, TaxiTripResponse}
+
+
+object TimeInfoActorShardingSettings {
+  import TaxiTripCommand._
+  import TaxiTripTimeInfoCommand._
+
+  val numberOfShards = 10 // use 10x number of nodes in your cluster
+  val numberOfEntities = 100 //10x number of shards
+  //this help to map the corresponding message to a respective entity
+  val extractEntityId: ShardRegion.ExtractEntityId = {
+    case createTaxiTripCommand@CreateTaxiTripCommand(taxiStat, statId) =>
+      val entityId = statId.hashCode.abs % numberOfEntities
+      (entityId.toString, createTaxiTripCommand)
+    case msg@GetTaxiTripTimeInfo(statId) =>
+      val shardId = statId.hashCode.abs % numberOfEntities
+      (shardId.toString, msg)
+  }
+
+  //this help to map the corresponding message to a respective shard
+  val extractShardId: ShardRegion.ExtractShardId = {
+    case CreateTaxiTripCommand(taxiStat, statId) =>
+      val shardId = statId.hashCode.abs % numberOfShards
+      shardId.toString
+    case GetTaxiTripTimeInfo(statId) =>
+      val shardId = statId.hashCode.abs % numberOfShards
+      shardId.toString
+    case ShardRegion.StartEntity(entityId) =>
+      (entityId.toLong % numberOfShards).toString
+  }
+
+}
 
 object PersistentParentTimeInfo {
   def props(id: String) : Props = Props(new PersistentParentTimeInfo(id))
@@ -22,12 +54,18 @@ class PersistentParentTimeInfo(id: String) extends PersistentActor with ActorLog
   import com.tudux.taxi.actors.cost.TaxiTripCostCommand._
 
   var state: TaxiTripTimeInfoState = TaxiTripTimeInfoState(Map.empty)
+
+  override def preStart(): Unit = {
+    super.preStart()
+    log.info("Sharded Parent Time Info Started")
+  }
   
   def createTimeInfoActor(id: String): ActorRef = {
     context.actorOf(PersistentTaxiTripTimeInfo.props(id), id)
   }
 
-  override def persistenceId: String = id
+  //override def persistenceId: String = id
+  override def persistenceId: String = "TimeInfo" + "-" + context.parent.path.name + "-" + self.path.name;
 
   override def receiveCommand: Receive = {
     case CreateTaxiTripCommand(taxiStat,statId) =>

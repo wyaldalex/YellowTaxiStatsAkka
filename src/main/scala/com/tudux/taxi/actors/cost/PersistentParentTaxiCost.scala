@@ -65,7 +65,7 @@ class PersistentParentTaxiCost(id: String) extends PersistentActor with ActorLog
   
   //override def persistenceId: String = id
   //override def persistenceId: String = "ShardedParentCostActor-" + self.path.name
-  override def persistenceId: String = context.parent.path.name + "-" + self.path.name;
+  override def persistenceId: String = "Cost" + "-" + context.parent.path.name + "-" + self.path.name
 
   override def receiveCommand: Receive = {
     case CreateTaxiTripCommand(taxiStat,statId) =>

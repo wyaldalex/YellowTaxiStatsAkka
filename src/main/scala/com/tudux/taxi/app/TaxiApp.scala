@@ -56,7 +56,7 @@ object TaxiApp extends App {
         val entityId = statId.hashCode.abs % numberOfEntities
         (entityId.toString, createTaxiTripCommand)
       case msg@GetTaxiTripCost(statId) =>
-        val shardId = statId.hashCode.abs % numberOfShards
+        val shardId = statId.hashCode.abs % numberOfEntities
         (shardId.toString,msg)
     }
 

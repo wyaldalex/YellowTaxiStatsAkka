@@ -120,5 +120,10 @@ object RoutePayloads {
     }
   }
 
+  val costActorIdSuffix = "-cost"
+  val extraInfoActorIdSuffix = "-extrainfo"
+  val timeActorIdSuffix = "-time"
+  val passengerActorIdSuffix = "-passenger"
+
 
 }

@@ -43,7 +43,7 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
   override def receiveCommand: Receive = {
     case CreateTaxiTripCost(statId,taxiTripCost) =>
       persist(TaxiTripCostCreatedEvent(statId,taxiTripCost)) { _ =>
-        log.info(s"Creating Taxi Cost $taxiTripCost")
+        log.info(s"Creating Taxi Cost $statId at location ${self.path.name}")
         state = taxiTripCost
         log.info(s"Created cost stat: $taxiTripCost")
       }

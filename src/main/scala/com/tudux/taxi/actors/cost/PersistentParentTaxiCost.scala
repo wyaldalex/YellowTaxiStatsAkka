@@ -12,6 +12,7 @@ object PersistentParentTaxiCost {
   case class TaxiTripCostState(costs: Map[String, ActorRef])
 }
 class PersistentParentTaxiCost(id: String) extends PersistentActor with ActorLogging {
+  import akka.cluster.sharding.ShardRegion.Passivate
 
   override def preStart(): Unit = {
     super.preStart()
@@ -30,7 +31,9 @@ class PersistentParentTaxiCost(id: String) extends PersistentActor with ActorLog
     context.actorOf(PersistentTaxiTripCost.props(id), id)
   }
   
-  override def persistenceId: String = id
+  //override def persistenceId: String = id
+  //override def persistenceId: String = "ShardedParentCostActor-" + self.path.name
+  override def persistenceId: String = context.parent.path.name + "-" + self.path.name;
 
   override def receiveCommand: Receive = {
     case CreateTaxiTripCommand(taxiStat,statId) =>
@@ -44,7 +47,7 @@ class PersistentParentTaxiCost(id: String) extends PersistentActor with ActorLog
       sender() ! TaxiTripCreatedResponse(statId)
     //Individual Gets
     case getTaxiCostStat@GetTaxiTripCost(statId) =>
-      log.info(s"Receive Taxi Cost Inquiry, forwarding")
+      log.info(s"Receive Taxi Cost Inquiry, forwarding at ${self.path}")
       val taxiTripCostActor = state.costs(statId)
       taxiTripCostActor.forward(getTaxiCostStat)
       

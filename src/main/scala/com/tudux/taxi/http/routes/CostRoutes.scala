@@ -26,7 +26,7 @@ case class CostRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem, dis
           path(Segment) { tripId =>
             println(s"Received some statID $tripId")
             complete(
-              (taxiTripActor ? GetTaxiTripCost(tripId.toString))
+              (taxiTripActor ? GetTaxiTripCost(tripId.toString.concat(costActorIdSuffix)))
                 //.mapTo[Option[TaxiCostStat]]
                 .mapTo[TaxiTripCost]
                 .map(_.toJson.prettyPrint)
@@ -43,7 +43,7 @@ case class CostRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem, dis
                     complete(StatusCodes.OK)
                     }
                   )
-                  if (validatedRequestResponse.flag) taxiTripActor ! request.toCommand(tripId)
+                  if (validatedRequestResponse.flag) taxiTripActor ! request.toCommand(tripId.concat(costActorIdSuffix))
                   validatedRequestResponse.routeResult
                 }
               }

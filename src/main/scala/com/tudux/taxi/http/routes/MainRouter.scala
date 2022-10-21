@@ -9,14 +9,14 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
 
 
-class MainRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem)
+class MainRouter(taxiTripActor: ActorRef, shardedParentCostActor : ActorRef)(implicit system: ActorSystem)
   {
 
   implicit val dispatcher: ExecutionContext = system.dispatcher
   implicit val timeout: Timeout = Timeout(2.seconds)
 
   val taxiTripRoutes = TaxiTripRoutes(taxiTripActor)
-  val costRoutes = CostRoutes(taxiTripActor)
+  val costRoutes = CostRoutes(shardedParentCostActor)
   val timeRoutes = TimeRoutes(taxiTripActor)
   val passengerRoutes = PassengerRoutes(taxiTripActor)
   val extraInfoRoutes = ExtraInfoRoutes(taxiTripActor)

@@ -8,9 +8,15 @@ import com.tudux.taxi.actors.{TaxiTripResponse, TaxiTripCommand, TaxiTripEvent}
 object PersistentParentTaxiCost {
 
   def props(id: String) : Props = Props(new PersistentParentTaxiCost(id))
+  //a big state, candidate for sharding????
   case class TaxiTripCostState(costs: Map[String, ActorRef])
 }
 class PersistentParentTaxiCost(id: String) extends PersistentActor with ActorLogging {
+
+  override def preStart(): Unit = {
+    super.preStart()
+    log.info("Sharded Parent Cost Started")
+  }
 
   import PersistentParentTaxiCost._
   import TaxiTripCostCommand._

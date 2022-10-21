@@ -1,13 +1,16 @@
 package com.tudux.taxi.actors
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
+import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings, ShardRegion}
 import akka.util.Timeout
+import com.tudux.taxi.actors.TaxiTripCommand.CreateTaxiTripCommand
 import com.tudux.taxi.actors.aggregators.{PersistentCostStatsAggregator, PersistentTimeStatsAggregator}
 import com.tudux.taxi.actors.cost.PersistentParentTaxiCost
 import com.tudux.taxi.actors.extrainfo.PersistentParentExtraInfo
 import com.tudux.taxi.actors.helpers.TaxiTripHelpers._
 import com.tudux.taxi.actors.passenger.PersistentParentPassengerInfo
 import com.tudux.taxi.actors.timeinfo.PersistentParentTimeInfo
+import com.tudux.taxi.app.TaxiApp.{CostActorShardingSettings, system}
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext
@@ -39,10 +42,10 @@ object TaxiTripResponse {
 }
 
 object TaxiTripActor {
-  def props: Props = Props(new TaxiTripActor)
+  def props(parentCostShardedActor: ActorRef): Props = Props(new TaxiTripActor(parentCostShardedActor))
 
 }
-class TaxiTripActor extends Actor with ActorLogging {
+class TaxiTripActor(parentCostShardedActor: ActorRef) extends Actor with ActorLogging {
 
   import com.tudux.taxi.actors.aggregators.CostAggregatorCommand._
   import TaxiTripResponse._
@@ -59,7 +62,7 @@ class TaxiTripActor extends Actor with ActorLogging {
   val passengerActorIdSuffix = "-passenger"
 
   //Parent Actors
-  val parentCostActor : ActorRef = context.actorOf(PersistentParentTaxiCost.props("parent-cost"), "parent-cost")
+  //val parentCostActor : ActorRef = context.actorOf(PersistentParentTaxiCost.props("parent-cost"), "parent-cost")
   val parentExtraInfoActor : ActorRef = context.actorOf(PersistentParentExtraInfo.props("parent-extrainfo"), "parent-extrainfo")
   val parentTimeInfoActor : ActorRef = context.actorOf(PersistentParentTimeInfo.props("parent-timeinfo"), "parent-timeinfo")
   val parentPassengerInfo : ActorRef = context.actorOf(PersistentParentPassengerInfo.props("parent-passengerinfo"), "parent-passengerinfo")
@@ -79,7 +82,7 @@ class TaxiTripActor extends Actor with ActorLogging {
       new state modification
        */
         //O.O Avoid same Id for persistent actors! Circle and Infinite Loop Warning!!!
-      parentCostActor ! CreateTaxiTripCommand(taxiTrip,tripId.concat(costActorIdSuffix))
+      parentCostShardedActor ! CreateTaxiTripCommand(taxiTrip,tripId.concat(costActorIdSuffix))
       parentExtraInfoActor ! CreateTaxiTripCommand(taxiTrip,tripId.concat(extraInfoActorIdSuffix))
       parentPassengerInfo ! CreateTaxiTripCommand(taxiTrip,tripId.concat(passengerActorIdSuffix))
       parentTimeInfoActor ! CreateTaxiTripCommand(taxiTrip,tripId.concat(timeActorIdSuffix))
@@ -91,7 +94,7 @@ class TaxiTripActor extends Actor with ActorLogging {
     //Individual Gets
     case GetTaxiTripCost(tripId) =>
       log.info(s"Receive Taxi Cost Inquiry, forwarding")
-      parentCostActor.forward(GetTaxiTripCost(tripId.concat(costActorIdSuffix)))
+      parentCostShardedActor.forward(GetTaxiTripCost(tripId.concat(costActorIdSuffix)))
     case GetTaxiTripExtraInfo(tripId) =>
       log.info(s"Receive Taxi Extra Info Inquiry, forwarding")
       parentExtraInfoActor.forward(GetTaxiTripExtraInfo(tripId.concat(extraInfoActorIdSuffix)))
@@ -113,10 +116,10 @@ class TaxiTripActor extends Actor with ActorLogging {
       parentExtraInfoActor.forward(UpdateTaxiTripExtraInfo(tripId.concat(extraInfoActorIdSuffix),taxiExtraInfoStat))
     case UpdateTaxiTripCost(tripId,taxiCostStat,_) =>
       log.info(s"Received Taxi Passenger Info request for $tripId")
-       parentCostActor.forward(UpdateTaxiTripCost(tripId.concat(costActorIdSuffix), taxiCostStat , costAggregatorActor))
+      parentCostShardedActor.forward(UpdateTaxiTripCost(tripId.concat(costActorIdSuffix), taxiCostStat , costAggregatorActor))
     //General Delete
     case deleteTaxiStat@DeleteTaxiTrip(tripId) =>
-      parentCostActor ! DeleteTaxiTrip(tripId.concat(costActorIdSuffix))
+      parentCostShardedActor ! DeleteTaxiTrip(tripId.concat(costActorIdSuffix))
       parentExtraInfoActor ! DeleteTaxiTrip(tripId.concat(extraInfoActorIdSuffix))
       parentPassengerInfo ! DeleteTaxiTrip(tripId.concat(passengerActorIdSuffix))
       parentTimeInfoActor ! DeleteTaxiTrip(tripId.concat(timeActorIdSuffix))
@@ -131,7 +134,7 @@ class TaxiTripActor extends Actor with ActorLogging {
       costAggregatorActor.forward(getAverageTipAmount)
     //Individual Stats
     case getTotalCostLoaded@GetTotalCostLoaded =>
-      parentCostActor.forward(getTotalCostLoaded)
+      parentCostShardedActor.forward(getTotalCostLoaded)
     case getTotalExtraInfoLoaded@GetTotalExtraInfoLoaded =>
       parentExtraInfoActor.forward(getTotalExtraInfoLoaded)
     case getTotalTimeInfoInfoLoaded@GetTotalTimeInfoInfoLoaded =>
@@ -159,7 +162,40 @@ object TaxiStatAppLoader extends App {
    val localStoreActorSystem = ActorSystem("cassandraSystem", ConfigFactory.load().getConfig("cassandraDemo"))
    *///
   //val persistentTaxiStatActor = system.actorOf(PersistentTaxiStatActor.props, "quickPersistentActorTest")
-  val taxiTripActor = system.actorOf(TaxiTripActor.props, "parentTaxiActor")
+  object CostActorShardingSettings {
+
+    val numberOfShards = 10 // use 10x number of nodes in your cluster
+    val numberOfEntities = 100 //10x number of shards
+    //this help to map the corresponding message to a respective entity
+    val extractEntityId: ShardRegion.ExtractEntityId = {
+      case createTaxiTripCommand@CreateTaxiTripCommand(taxiStat,statId) =>
+        val entityId = statId.hashCode.abs % numberOfEntities
+        (entityId.toString, createTaxiTripCommand)
+    }
+
+    //this help to map the corresponding message to a respective shard
+    val extractShardId: ShardRegion.ExtractShardId = {
+      case CreateTaxiTripCommand(taxiStat,statId) =>
+        val shardId = statId.hashCode.abs % numberOfShards
+        shardId.toString
+      case ShardRegion.StartEntity(entityId) =>
+        (entityId.toLong % numberOfShards).toString
+    }
+
+  }
+
+  //Somehow create the cost actor sharded version
+  val parentCostShardRegionRef: ActorRef = ClusterSharding(system).start(
+    typeName = "OysterCardValidator",
+    //entityProps = Props[PersistentParentTaxiCost],
+    entityProps = PersistentParentTaxiCost.props("parent-cost"),
+    settings = ClusterShardingSettings(system).withRememberEntities(true),
+    extractEntityId = CostActorShardingSettings.extractEntityId,
+    extractShardId = CostActorShardingSettings.extractShardId
+  )
+
+
+  val taxiTripActor = system.actorOf(TaxiTripActor.props(parentCostShardRegionRef), "parentTaxiActor")
 
   import kantan.csv._
   import kantan.csv.ops._ // Automatic derivation of codecs.

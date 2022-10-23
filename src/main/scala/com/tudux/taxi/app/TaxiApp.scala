@@ -7,6 +7,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.util.Timeout
 import com.tudux.taxi.actors.TaxiTripActor
 import com.tudux.taxi.actors.TaxiTripCommand.CreateTaxiTripCommand
+import com.tudux.taxi.actors.aggregators.{PersistentCostStatsAggregator, PersistentTimeStatsAggregator}
 import com.tudux.taxi.actors.cost.{CostActorShardingSettings, PersistentParentTaxiCost}
 import com.tudux.taxi.actors.cost.TaxiTripCostCommand.GetTaxiTripCost
 import com.tudux.taxi.actors.extrainfo.{ExtraInfoActorShardingSettings, PersistentParentExtraInfo}
@@ -57,17 +58,22 @@ object TaxiApp extends App {
   implicit val system: ActorSystem = ActorSystem("YellowTaxiCluster", config)
 
   import ShardedActorsGenerator._
-  //Somehow create the cost actor sharded version
-  val parentCostShardRegionRef: ActorRef = createShardedParentCostActor(system)
+  //Create the aggregators
+  val costAggregatorActor : ActorRef = system.actorOf(PersistentCostStatsAggregator.props("cost-aggregator"), "cost-aggregator")
+  val timeAggregatorActor : ActorRef = system.actorOf(PersistentTimeStatsAggregator.props("time-aggregator"), "time-aggregator")
+
+  //Create the sharded version of the parent actors
+  val parentCostShardRegionRef: ActorRef = createShardedParentCostActor(system,costAggregatorActor)
   val parentExtraInfoShardedRegionRef : ActorRef = createShardedParentExtraInfoActor(system)
   val parentPassengerShardRegionRef: ActorRef = createShardedParentPassengerInfoActor(system)
-  val parentTimeInfoShardRegionRef: ActorRef = createShardedParentTimeInfoActor(system)
+  val parentTimeInfoShardRegionRef: ActorRef = createShardedParentTimeInfoActor(system,timeAggregatorActor)
 
   val taxiAppActor = system.actorOf(TaxiTripActor.props(
     parentCostShardRegionRef,
     parentExtraInfoShardedRegionRef,
     parentPassengerShardRegionRef,
-    parentTimeInfoShardRegionRef), "taxiParentAppActor")
+    parentTimeInfoShardRegionRef,
+    costAggregatorActor, timeAggregatorActor), "taxiParentAppActor")
 
   startHttpServer(taxiAppActor,parentCostShardRegionRef,parentExtraInfoShardedRegionRef ,
     parentPassengerShardRegionRef, parentTimeInfoShardRegionRef)
@@ -82,11 +88,11 @@ object TaxiApp extends App {
 
 object ShardedActorsGenerator {
 
-  def createShardedParentCostActor(system: ActorSystem) : ActorRef = {
+  def createShardedParentCostActor(system: ActorSystem,costAggregator: ActorRef) : ActorRef = {
     ClusterSharding(system).start(
       typeName = "ShardedParentCostActor",
       //entityProps = Props[PersistentParentTaxiCost],
-      entityProps = PersistentParentTaxiCost.props("parent-cost"),
+      entityProps = PersistentParentTaxiCost.props("parent-cost",costAggregator),
       settings = ClusterShardingSettings(system).withRememberEntities(true),
       extractEntityId = CostActorShardingSettings.extractEntityId,
       extractShardId = CostActorShardingSettings.extractShardId
@@ -115,11 +121,11 @@ object ShardedActorsGenerator {
     )
   }
 
-  def createShardedParentTimeInfoActor(system: ActorSystem): ActorRef = {
+  def createShardedParentTimeInfoActor(system: ActorSystem, timeAggregator: ActorRef): ActorRef = {
     ClusterSharding(system).start(
       typeName = "ShardedParentTimeInfoActor",
       //entityProps = Props[PersistentParentTaxiCost],
-      entityProps = PersistentParentTimeInfo.props("parent-time-info"),
+      entityProps = PersistentParentTimeInfo.props("parent-time-info",timeAggregator),
       settings = ClusterShardingSettings(system).withRememberEntities(true),
       extractEntityId = TimeInfoActorShardingSettings.extractEntityId,
       extractShardId = TimeInfoActorShardingSettings.extractShardId

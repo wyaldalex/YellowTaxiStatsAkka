@@ -38,13 +38,13 @@ object TimeInfoActorShardingSettings {
 }
 
 object PersistentParentTimeInfo {
-  def props(id: String) : Props = Props(new PersistentParentTimeInfo(id))
+  def props(id: String, timeAggregator: ActorRef) : Props = Props(new PersistentParentTimeInfo(id,timeAggregator))
 
   case class TaxiTripTimeInfoState(
                            timeinfo: Map[String, ActorRef]
                           )
 }
-class PersistentParentTimeInfo(id: String) extends PersistentActor with ActorLogging {
+class PersistentParentTimeInfo(id: String,timeAggregator: ActorRef) extends PersistentActor with ActorLogging {
 
   import PersistentParentTimeInfo._
   import TaxiTripResponse._
@@ -86,11 +86,11 @@ class PersistentParentTimeInfo(id: String) extends PersistentActor with ActorLog
       val taxiTimeInfoActor = state.timeinfo(statId)
       taxiTimeInfoActor.forward(getTaxiTimeInfoStat)
     //Individual Updates
-    case updateTaxiTripTimeInfoStat@UpdateTaxiTripTimeInfo(statId, taxiTripTimeInfoStat, timeAggregatorActor) =>
+    case UpdateTaxiTripTimeInfo(statId, taxiTripTimeInfoStat, _) =>
       val taxiTimeInfoActor = state.timeinfo(statId)
-      taxiTimeInfoActor.forward(UpdateTaxiTripTimeInfo(statId, taxiTripTimeInfoStat, timeAggregatorActor))
+      taxiTimeInfoActor.forward(UpdateTaxiTripTimeInfo(statId, taxiTripTimeInfoStat, timeAggregator))
     //General Delete
-    case deleteTaxiStat@DeleteTaxiTrip(statId) =>
+    case DeleteTaxiTrip(statId) =>
       val taxiTimeInfoActor = state.timeinfo(statId)
       taxiTimeInfoActor ! DeleteTaxiTripTimeInfo(statId)
     //Individual Stats

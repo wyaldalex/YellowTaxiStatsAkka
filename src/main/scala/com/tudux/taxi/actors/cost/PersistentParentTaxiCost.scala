@@ -40,11 +40,11 @@ object CostActorShardingSettings {
 
 object PersistentParentTaxiCost {
 
-  def props(id: String) : Props = Props(new PersistentParentTaxiCost(id))
+  def props(id: String,costAggregator: ActorRef) : Props = Props(new PersistentParentTaxiCost(id,costAggregator))
   //a big state, candidate for sharding????
   case class TaxiTripCostState(costs: Map[String, ActorRef])
 }
-class PersistentParentTaxiCost(id: String) extends PersistentActor with ActorLogging {
+class PersistentParentTaxiCost(id: String, costAggregator: ActorRef) extends PersistentActor with ActorLogging {
 
   override def preStart(): Unit = {
     super.preStart()
@@ -84,9 +84,9 @@ class PersistentParentTaxiCost(id: String) extends PersistentActor with ActorLog
       taxiTripCostActor.forward(getTaxiCostStat)
       
     //Individual Updates
-    case updateTaxiCostStat@UpdateTaxiTripCost(statId, taxiCostStat, costAggregatorActor) =>
+    case UpdateTaxiTripCost(statId, taxiCostStat, _) =>
       val taxiTripCostActor = state.costs(statId)
-      taxiTripCostActor.forward(UpdateTaxiTripCost(statId, taxiCostStat, costAggregatorActor))
+      taxiTripCostActor.forward(UpdateTaxiTripCost(statId, taxiCostStat, costAggregator))
     //General Delete
     case deleteTaxiStat@DeleteTaxiTrip(statId) =>
       val taxiTripCostActor = state.costs(statId)

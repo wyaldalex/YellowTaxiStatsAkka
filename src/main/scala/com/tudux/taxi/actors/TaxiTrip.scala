@@ -45,13 +45,15 @@ object TaxiTripResponse {
 
 object TaxiTripActor {
   def props(parentCostShardedActor: ActorRef,parentExtraInfoShardedActor: ActorRef,
-            parentPassengerShardedActor: ActorRef,parentTimeShardedActor: ActorRef): Props =
+            parentPassengerShardedActor: ActorRef,parentTimeShardedActor: ActorRef,
+            costAggregatorActor : ActorRef, timeAggregatorActor : ActorRef): Props =
     Props(new TaxiTripActor(parentCostShardedActor,parentExtraInfoShardedActor,
-      parentPassengerShardedActor, parentTimeShardedActor))
+      parentPassengerShardedActor, parentTimeShardedActor, costAggregatorActor, timeAggregatorActor))
 
 }
 class TaxiTripActor(parentCostShardedActor: ActorRef,parentExtraInfoShardedActor: ActorRef,
-                    parentPassengerShardedActor: ActorRef,parentTimeShardedActor: ActorRef) extends Actor with ActorLogging {
+                    parentPassengerShardedActor: ActorRef,parentTimeShardedActor: ActorRef,
+  costAggregatorActor : ActorRef, timeAggregatorActor : ActorRef) extends Actor with ActorLogging {
 
   import com.tudux.taxi.actors.aggregators.CostAggregatorCommand._
   import TaxiTripResponse._
@@ -74,8 +76,8 @@ class TaxiTripActor(parentCostShardedActor: ActorRef,parentExtraInfoShardedActor
   //val parentPassengerInfo : ActorRef = context.actorOf(PersistentParentPassengerInfo.props("parent-passengerinfo"), "parent-passengerinfo")
 
   //Aggregators
-  val costAggregatorActor : ActorRef = context.actorOf(PersistentCostStatsAggregator.props("cost-aggregator"), "cost-aggregator")
-  val timeAggregatorActor : ActorRef = context.actorOf(PersistentTimeStatsAggregator.props("time-aggregator"), "time-aggregator")
+//  val costAggregatorActor : ActorRef = context.actorOf(PersistentCostStatsAggregator.props("cost-aggregator"), "cost-aggregator")
+//  val timeAggregatorActor : ActorRef = context.actorOf(PersistentTimeStatsAggregator.props("time-aggregator"), "time-aggregator")
 
   override def receive : Receive = {
     case CreateTaxiTripCommand(taxiTrip,_) =>
@@ -203,13 +205,16 @@ object TaxiStatAppLoader extends App {
   }
 
   //Somehow create the cost actor sharded version
-  val parentCostShardRegionRef: ActorRef = createShardedParentCostActor(system)
+  val costAggregatorActor : ActorRef = system.actorOf(PersistentCostStatsAggregator.props("cost-aggregator"), "cost-aggregator")
+  val timeAggregatorActor : ActorRef = system.actorOf(PersistentTimeStatsAggregator.props("time-aggregator"), "time-aggregator")
+
+  val parentCostShardRegionRef: ActorRef = createShardedParentCostActor(system,costAggregatorActor)
   val parentExtraInfoShardRegionRef: ActorRef = createShardedParentExtraInfoActor(system)
   val parentPassengerShardRegionRef: ActorRef = createShardedParentPassengerInfoActor(system)
-  val parentTimeInfoShardRegionRef: ActorRef = createShardedParentTimeInfoActor(system)
+  val parentTimeInfoShardRegionRef: ActorRef = createShardedParentTimeInfoActor(system,timeAggregatorActor)
 
   val taxiTripActor = system.actorOf(TaxiTripActor.props(parentCostShardRegionRef,parentExtraInfoShardRegionRef,
-    parentPassengerShardRegionRef,parentTimeInfoShardRegionRef), "parentTaxiActor")
+    parentPassengerShardRegionRef,parentTimeInfoShardRegionRef,costAggregatorActor,timeAggregatorActor), "parentTaxiActor")
 
   import kantan.csv._
   import kantan.csv.ops._ // Automatic derivation of codecs.
@@ -222,6 +227,8 @@ object TaxiStatAppLoader extends App {
   //val source_csv = Source.fromResource("1millSample.csv").mkString
   val reader = source_csv.asCsvReader[TaxiTripEntry](rfc)
 
+  //Give time for cluster to start up
+  Thread.sleep(30000)
   import TaxiTripCommand._
   import com.tudux.taxi.actors.cost.TaxiTripCostCommand._
   //Data loading:

@@ -22,6 +22,9 @@ object CostActorShardingSettings {
     case msg@GetTaxiTripCost(statId) =>
       val shardId = statId.hashCode.abs % numberOfEntities
       (shardId.toString, msg)
+    case msg@UpdateTaxiTripCost(statId,_,_) =>
+      val shardId = statId.hashCode.abs % numberOfEntities
+      (shardId.toString, msg)
   }
 
   //this help to map the corresponding message to a respective shard
@@ -30,6 +33,9 @@ object CostActorShardingSettings {
       val shardId = statId.hashCode.abs % numberOfShards
       shardId.toString
     case GetTaxiTripCost(statId) =>
+      val shardId = statId.hashCode.abs % numberOfShards
+      shardId.toString
+    case UpdateTaxiTripCost(statId,_, _) =>
       val shardId = statId.hashCode.abs % numberOfShards
       shardId.toString
     case ShardRegion.StartEntity(entityId) =>

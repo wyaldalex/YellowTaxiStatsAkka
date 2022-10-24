@@ -17,7 +17,7 @@ import spray.json._
 
 import scala.concurrent.ExecutionContext
 
-case class PassengerRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem, dispatcher: ExecutionContext,timeout: Timeout ) extends SprayJsonSupport
+case class PassengerRoutes(shardedPassengerActor: ActorRef)(implicit system: ActorSystem, dispatcher: ExecutionContext,timeout: Timeout ) extends SprayJsonSupport
   with TaxiPassengerInfoProtocol
 {
   val routes: Route = {
@@ -26,7 +26,7 @@ case class PassengerRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem
           path(Segment) { tripId =>
             println(s"Received some statID $tripId")
             complete(
-              (taxiTripActor ? GetTaxiTripPassengerInfo(tripId.toString.concat(passengerActorIdSuffix)))
+              (shardedPassengerActor ? GetTaxiTripPassengerInfo(tripId.toString))
                 .mapTo[TaxiTripPassengerInfo]
                 .map(_.toJson.prettyPrint)
                 .map(toHttpEntity)
@@ -37,7 +37,7 @@ case class PassengerRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem
             path(Segment) { tripId =>
               put {
                 entity(as[UpdatePassengerInfoRequest]) { request =>
-                  taxiTripActor ! request.toCommand(tripId.concat(passengerActorIdSuffix))
+                  shardedPassengerActor ! request.toCommand(tripId)
                   complete(StatusCodes.OK)
                 }
               }

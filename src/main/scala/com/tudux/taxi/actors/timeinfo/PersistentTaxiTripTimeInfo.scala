@@ -1,6 +1,7 @@
 package com.tudux.taxi.actors.timeinfo
 
 import akka.actor.{ActorLogging, ActorRef, Props}
+import akka.cluster.sharding.ShardRegion
 import akka.persistence.PersistentActor
 import com.tudux.taxi.actors.aggregators.TimeAggregatorCommand.UpdateTimeAggregatorValues
 
@@ -23,11 +24,45 @@ object TaxiTripTimeInfoStatEvent{
   case class DeletedTaxiTripTimeInfoEvent(tripId: String) extends TaxiTripTimeInfoEvent
 }
 
+object TimeInfoActorShardingSettings {
 
-object PersistentTaxiTripTimeInfo {
-  def props(id: String): Props = Props(new PersistentTaxiTripTimeInfo(id))
+  import TaxiTripTimeInfoCommand._
+
+  val numberOfShards = 10 // use 10x number of nodes in your cluster
+  val numberOfEntities = 100 //10x number of shards
+  //this help to map the corresponding message to a respective entity
+  val extractEntityId: ShardRegion.ExtractEntityId = {
+    case createTaxiTripTimeInfo@CreateTaxiTripTimeInfo(tripId,taxiTripTimeInfoStat) =>
+      val entityId = tripId.hashCode.abs % numberOfEntities
+      (entityId.toString, createTaxiTripTimeInfo)
+    case msg@GetTaxiTripTimeInfo(statId) =>
+      val shardId = statId.hashCode.abs % numberOfEntities
+      (shardId.toString, msg)
+    case msg@UpdateTaxiTripTimeInfo(statId,_,_) =>
+      val shardId = statId.hashCode.abs % numberOfEntities
+      (shardId.toString, msg)
+  }
+
+  //this help to map the corresponding message to a respective shard
+  val extractShardId: ShardRegion.ExtractShardId = {
+    case CreateTaxiTripTimeInfo(tripId,taxiTripTimeInfoStat) =>
+      val shardId = tripId.hashCode.abs % numberOfShards
+      shardId.toString
+    case GetTaxiTripTimeInfo(statId) =>
+      val shardId = statId.hashCode.abs % numberOfShards
+      shardId.toString
+    case UpdateTaxiTripTimeInfo(statId,_,_) =>
+      val shardId = statId.hashCode.abs % numberOfShards
+      shardId.toString
+    case ShardRegion.StartEntity(entityId) =>
+      (entityId.toLong % numberOfShards).toString
+  }
+
 }
-class PersistentTaxiTripTimeInfo(id: String) extends PersistentActor with ActorLogging {
+object PersistentTaxiTripTimeInfo {
+  def props(timeAggregator: ActorRef): Props = Props(new PersistentTaxiTripTimeInfo(timeAggregator))
+}
+class PersistentTaxiTripTimeInfo(timeAggregator: ActorRef) extends PersistentActor with ActorLogging {
 
   import TaxiTripTimeInfoCommand._
   import TaxiTripTimeInfoStatEvent._
@@ -35,7 +70,8 @@ class PersistentTaxiTripTimeInfo(id: String) extends PersistentActor with ActorL
 
   var state : TaxiTripTimeInfo = TaxiTripTimeInfo("","")
 
-  override def persistenceId: String = id
+  //override def persistenceId: String = id
+  override def persistenceId: String = "TimeInfo" + "-" + context.parent.path.name + "-" + self.path.name
 
   override def receiveCommand: Receive = {
     case CreateTaxiTripTimeInfo(tripId,taxiTripTimeInfoStat) =>
@@ -43,7 +79,7 @@ class PersistentTaxiTripTimeInfo(id: String) extends PersistentActor with ActorL
         log.info(s"Creating Trip Time Info Stat $taxiTripTimeInfoStat")
         state = taxiTripTimeInfoStat
       }
-    case UpdateTaxiTripTimeInfo(tripId, taxiTripTimeInfoStat, timeAggregator) =>
+    case UpdateTaxiTripTimeInfo(tripId, taxiTripTimeInfoStat, _) =>
       log.info("Updating Time Info ")
       persist(TaxiTripTimeInfoUpdatedEvent(tripId,taxiTripTimeInfoStat)) { _ =>
         timeAggregator ! UpdateTimeAggregatorValues(state,taxiTripTimeInfoStat)

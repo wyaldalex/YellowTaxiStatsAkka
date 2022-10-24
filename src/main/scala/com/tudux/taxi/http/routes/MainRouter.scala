@@ -8,19 +8,20 @@ import akka.util.Timeout
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
 
-
-class MainRouter(taxiTripActor: ActorRef, shardedParentCostActor : ActorRef, shardedParentExtraInfoActor : ActorRef,
-                 shardedParentPassengerActor : ActorRef, shardedParentTimeInfoActor : ActorRef)(implicit system: ActorSystem)
+//TODO 4: better route naming convention (done)
+//TODO 5: code distribution (done)
+class MainRouter(taxiTripActor: ActorRef, shardedCostActor : ActorRef, shardedExtraInfoActor : ActorRef,
+                 shardedPassengerActor : ActorRef, shardedTimeInfoActor : ActorRef)(implicit system: ActorSystem)
   {
 
   implicit val dispatcher: ExecutionContext = system.dispatcher
   implicit val timeout: Timeout = Timeout(2.seconds)
 
   val taxiTripRoutes = TaxiTripRoutes(taxiTripActor)
-  val costRoutes = CostRoutes(shardedParentCostActor)
-  val timeRoutes = TimeRoutes(shardedParentTimeInfoActor)
-  val passengerRoutes = PassengerRoutes(shardedParentPassengerActor)
-  val extraInfoRoutes = ExtraInfoRoutes(shardedParentExtraInfoActor)
+  val costRoutes = CostRoutes(shardedCostActor)
+  val timeRoutes = TimeRoutes(shardedTimeInfoActor)
+  val passengerRoutes = PassengerRoutes(shardedPassengerActor)
+  val extraInfoRoutes = ExtraInfoRoutes(shardedExtraInfoActor)
   val serviceRoutes = ServiceRoutes(taxiTripActor)
   val actorInfoRoutes = ActorInfoRoutes(taxiTripActor)
   val pingRoutes = Ping()

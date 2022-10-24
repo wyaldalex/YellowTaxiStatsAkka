@@ -1,6 +1,7 @@
 package com.tudux.taxi.actors.extrainfo
 
 import akka.actor.{ActorLogging, Props}
+import akka.cluster.sharding.ShardRegion
 import akka.persistence.PersistentActor
 
 case class TaxiTripExtraInfo(pickupLongitude: Double, pickupLatitude: Double, rateCodeID: Int,
@@ -23,10 +24,45 @@ object TaxiExtraInfoStatEvent{
   case class DeletedTaxiTripExtraInfoEvent(tripId: String) extends TaxiExtraInfoEvent
 }
 
-object PersistentTaxiExtraInfo {
-  def props(id: String): Props = Props(new PersistentTaxiExtraInfo(id))
+
+object ExtraInfoActorShardingSettings {
+  import TaxiTripExtraInfoCommand._
+
+  val numberOfShards = 10 // use 10x number of nodes in your cluster
+  val numberOfEntities = 100 //10x number of shards
+  //this help to map the corresponding message to a respective entity
+  val extractEntityId: ShardRegion.ExtractEntityId = {
+    case createTaxiTripExtraInfo@CreateTaxiTripExtraInfo(tripId,_) =>
+      val entityId = tripId.hashCode.abs % numberOfEntities
+      (entityId.toString, createTaxiTripExtraInfo)
+    case msg@GetTaxiTripExtraInfo(statId) =>
+      val shardId = statId.hashCode.abs % numberOfEntities
+      (shardId.toString, msg)
+    case msg@UpdateTaxiTripExtraInfo(statId,_) =>
+      val shardId = statId.hashCode.abs % numberOfEntities
+      (shardId.toString, msg)
+  }
+
+  //this help to map the corresponding message to a respective shard
+  val extractShardId: ShardRegion.ExtractShardId = {
+    case CreateTaxiTripExtraInfo(tripId,_) =>
+      val shardId = tripId.hashCode.abs % numberOfShards
+      shardId.toString
+    case GetTaxiTripExtraInfo(statId) =>
+      val shardId = statId.hashCode.abs % numberOfShards
+      shardId.toString
+    case UpdateTaxiTripExtraInfo(statId,_) =>
+      val shardId = statId.hashCode.abs % numberOfShards
+      shardId.toString
+    case ShardRegion.StartEntity(entityId) =>
+      (entityId.toLong % numberOfShards).toString
+  }
+
 }
-class PersistentTaxiExtraInfo(id: String) extends PersistentActor with ActorLogging {
+object PersistentTaxiExtraInfo {
+  def props: Props = Props(new PersistentTaxiExtraInfo)
+}
+class PersistentTaxiExtraInfo extends PersistentActor with ActorLogging {
 
   import TaxiTripExtraInfoCommand._
   import TaxiExtraInfoStatEvent._
@@ -35,7 +71,8 @@ class PersistentTaxiExtraInfo(id: String) extends PersistentActor with ActorLogg
   //var statExtraInfoMap : Map[String,TaxiExtraInfoStat] = Map.empty
   var state : TaxiTripExtraInfo = TaxiTripExtraInfo(0,0,0,"",0,0)
 
-  override def persistenceId: String = id
+  //override def persistenceId: String = id
+  override def persistenceId: String = "ExtraInfo" + "-" + context.parent.path.name + "-" + self.path.name
 
   override def receiveCommand: Receive = {
     case CreateTaxiTripExtraInfo(tripId,taxiExtraInfoStat) =>

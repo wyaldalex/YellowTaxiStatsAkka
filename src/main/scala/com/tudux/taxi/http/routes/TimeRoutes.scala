@@ -19,7 +19,7 @@ import spray.json._
 
 import scala.concurrent.ExecutionContext
 
-case class TimeRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem, dispatcher: ExecutionContext,timeout: Timeout ) extends SprayJsonSupport
+case class TimeRoutes(shardedTimeActor: ActorRef)(implicit system: ActorSystem, dispatcher: ExecutionContext,timeout: Timeout ) extends SprayJsonSupport
   with TaxiTimeInfoStatProtocol
 {
 
@@ -37,7 +37,7 @@ case class TimeRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem, dis
           path(Segment) { tripId =>
             println(s"Received some statID $tripId")
             complete(
-              (taxiTripActor ? GetTaxiTripTimeInfo(tripId.toString.concat(timeActorIdSuffix)))
+              (shardedTimeActor ? GetTaxiTripTimeInfo(tripId.toString))
                 // .mapTo[Option[TaxiTripTimeInfoStat]]
                 .mapTo[TaxiTripTimeInfo]
                 .map(_.toJson.prettyPrint)
@@ -54,7 +54,7 @@ case class TimeRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem, dis
                       complete(StatusCodes.OK)
                     }
                   )
-                  if (validatedRequestResponse.flag) taxiTripActor ! request.toCommand(tripId.concat(timeActorIdSuffix))
+                  if (validatedRequestResponse.flag) shardedTimeActor ! request.toCommand(tripId)
                   validatedRequestResponse.routeResult
                 }
               }

@@ -1,6 +1,7 @@
 package com.tudux.taxi.actors.cost
 
 import akka.actor.{ActorLogging, ActorRef, Props}
+import akka.cluster.sharding.ShardRegion
 import akka.persistence.PersistentActor
 import com.tudux.taxi.actors.aggregators.CostAggregatorCommand.UpdateCostAggregatorValues
 
@@ -28,31 +29,70 @@ object TaxiTripCostEvent{
   case class DeletedTaxiTripCostEvent(statId: String) extends TaxiCostEvent
 }
 
-object PersistentTaxiTripCost {
-  def props(id: String): Props = Props(new PersistentTaxiTripCost(id))
+
+object CostActorShardingSettings {
+
+  import TaxiTripCostCommand._
+
+  val numberOfShards = 10 // use 10x number of nodes in your cluster
+  val numberOfEntities = 100 //10x number of shards
+  //this help to map the corresponding message to a respective entity
+  val extractEntityId: ShardRegion.ExtractEntityId = {
+    case createTaxiTripCost@CreateTaxiTripCost(statId,_) =>
+      val entityId = statId.hashCode.abs % numberOfEntities
+      (entityId.toString, createTaxiTripCost)
+    case msg@GetTaxiTripCost(statId) =>
+      val shardId = statId.hashCode.abs % numberOfEntities
+      (shardId.toString, msg)
+    case msg@UpdateTaxiTripCost(statId,_,_) =>
+      val shardId = statId.hashCode.abs % numberOfEntities
+      (shardId.toString, msg)
+  }
+
+  //this help to map the corresponding message to a respective shard
+  val extractShardId: ShardRegion.ExtractShardId = {
+    case CreateTaxiTripCost(statId,_) =>
+      val shardId = statId.hashCode.abs % numberOfShards
+      shardId.toString
+    case GetTaxiTripCost(statId) =>
+      val shardId = statId.hashCode.abs % numberOfShards
+      shardId.toString
+    case UpdateTaxiTripCost(statId,_, _) =>
+      val shardId = statId.hashCode.abs % numberOfShards
+      shardId.toString
+    case ShardRegion.StartEntity(entityId) =>
+      (entityId.toLong % numberOfShards).toString
+  }
+
 }
-class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLogging {
+object PersistentTaxiTripCost {
+  def props(costAggregator: ActorRef): Props = Props(new PersistentTaxiTripCost(costAggregator))
+}
+class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor with ActorLogging {
 
   import TaxiTripCostCommand._
   import TaxiTripCostEvent._
 
   var state : TaxiTripCost = TaxiTripCost(0,0,0,0,0,0,0,0,0,0)
 
-  override def persistenceId: String = id
+  //override def persistenceId: String = id
+  override def persistenceId: String = "Cost" + "-" + context.parent.path.name + "-" + self.path.name
 
   override def receiveCommand: Receive = {
     case CreateTaxiTripCost(statId,taxiTripCost) =>
       persist(TaxiTripCostCreatedEvent(statId,taxiTripCost)) { _ =>
         log.info(s"Creating Taxi Cost $statId at location ${self.path.name}")
         state = taxiTripCost
+        log.info(s"The state is $state")
         log.info(s"Created cost stat: $taxiTripCost")
       }
       sender() ! s"${self.path} child actor registered"
 
     case GetTaxiTripCost(statId) =>
       log.info(s"Receiving request to return cost trip cost information ${self.path}")
+      log.info(s"The state is $state")
       sender() ! state
-    case UpdateTaxiTripCost(statId,taxiTripCost,costAggregator) =>
+    case UpdateTaxiTripCost(statId,taxiTripCost,_) =>
 
       persist(UpdatedTaxiTripCostEvent(statId, taxiTripCost)) { _ =>
         costAggregator ! UpdateCostAggregatorValues(
@@ -84,6 +124,8 @@ class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLoggi
     case TaxiTripCostCreatedEvent(statId,taxiTripCost) =>
       log.info(s"Recovering Taxi Cost Created  $statId ")
       state = taxiTripCost
+      log.info(s"The state is $state from recovered $taxiTripCost")
+      log.info(s"Location recovered $persistenceId")
 
     case UpdatedTaxiTripCostEvent(statId,taxiTripCost) =>
       log.info(s"Recovering Taxi Cost Updated $statId ")

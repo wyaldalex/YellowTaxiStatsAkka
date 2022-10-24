@@ -17,7 +17,7 @@ import spray.json._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-case class CostRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem, dispatcher: ExecutionContext,timeout: Timeout ) extends SprayJsonSupport
+case class CostRoutes(shardedCostActor: ActorRef)(implicit system: ActorSystem, dispatcher: ExecutionContext,timeout: Timeout ) extends SprayJsonSupport
   with TaxiCostStatProtocol
 {
   val routes: Route = {
@@ -26,7 +26,8 @@ case class CostRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem, dis
           path(Segment) { tripId =>
             println(s"Received some statID $tripId")
             complete(
-              (taxiTripActor ? GetTaxiTripCost(tripId.toString.concat(costActorIdSuffix)))
+              //(shardedCostActor ? GetTaxiTripCost(tripId.toString.concat(costActorIdSuffix)))
+              (shardedCostActor ? GetTaxiTripCost(tripId.toString))
                 //.mapTo[Option[TaxiCostStat]]
                 .mapTo[TaxiTripCost]
                 .map(_.toJson.prettyPrint)
@@ -43,7 +44,7 @@ case class CostRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem, dis
                     complete(StatusCodes.OK)
                     }
                   )
-                  if (validatedRequestResponse.flag) taxiTripActor ! request.toCommand(tripId.concat(costActorIdSuffix))
+                  if (validatedRequestResponse.flag) shardedCostActor ! request.toCommand(tripId)
                   validatedRequestResponse.routeResult
                 }
               }

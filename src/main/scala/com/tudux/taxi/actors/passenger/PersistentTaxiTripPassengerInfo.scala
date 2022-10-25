@@ -41,6 +41,9 @@ object PassengerInfoActorShardingSettings {
     case msg@GetTaxiTripPassengerInfo(statId) =>
       val shardId = statId.hashCode.abs % numberOfEntities
       (shardId.toString, msg)
+    case msg@DeleteTaxiTripPassenger(statId) =>
+      val shardId = statId.hashCode.abs % numberOfEntities
+      (shardId.toString, msg)
     case msg@UpdateTaxiTripPassenger(statId,_) =>
       val shardId = statId.hashCode.abs % numberOfEntities
       (shardId.toString, msg)
@@ -52,6 +55,9 @@ object PassengerInfoActorShardingSettings {
       val shardId = tripId.hashCode.abs % numberOfShards
       shardId.toString
     case GetTaxiTripPassengerInfo(statId) =>
+      val shardId = statId.hashCode.abs % numberOfShards
+      shardId.toString
+    case DeleteTaxiTripPassenger(statId) =>
       val shardId = statId.hashCode.abs % numberOfShards
       shardId.toString
     case UpdateTaxiTripPassenger(statId,_) =>

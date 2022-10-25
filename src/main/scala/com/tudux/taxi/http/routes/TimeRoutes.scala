@@ -49,7 +49,7 @@ case class TimeRoutes(shardedTimeActor: ActorRef)(implicit system: ActorSystem, 
             path(Segment) { tripId =>
               put {
                 entity(as[UpdateTimeInfoRequest]) { request =>
-                  val validatedRequestResponse = validateRequest2(request,
+                  val validatedRequestResponse = validateRequestForDecision(request,
                     {
                       complete(StatusCodes.OK)
                     }

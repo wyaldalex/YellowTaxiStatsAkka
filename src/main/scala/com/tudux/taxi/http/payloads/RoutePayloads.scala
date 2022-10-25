@@ -4,13 +4,13 @@ import akka.http.scaladsl.model.{ContentTypes, HttpEntity, StatusCodes}
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
 import cats.data.Validated
-import com.tudux.taxi.actors.TaxiTripCommand.CreateTaxiTripCommand
-import com.tudux.taxi.actors.TaxiTripEntry
+import com.tudux.taxi.actors.loader.TaxiTripCommand.CreateTaxiTripCommand
 import com.tudux.taxi.actors.cost.TaxiCostResponse.TaxiCostCreatedResponse
 import com.tudux.taxi.actors.cost.TaxiTripCost
 import com.tudux.taxi.actors.cost.TaxiTripCostCommand.{CreateTaxiTripCost, UpdateTaxiTripCost}
 import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfo
 import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfoCommand.{CreateTaxiTripExtraInfo, UpdateTaxiTripExtraInfo}
+import com.tudux.taxi.actors.loader.TaxiTripEntry
 import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfo
 import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfoCommand.{CreateTaxiTripPassengerInfo, UpdateTaxiTripPassenger}
 import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfo
@@ -96,7 +96,7 @@ object RoutePayloads {
   }
 
   case class ValidatedRequestResponse(flag: Boolean, routeResult: Route)
-  def validateRequest2[R: Validator](request: R, validRoute: Route): ValidatedRequestResponse = {
+  def validateRequestForDecision[R: Validator](request: R, validRoute: Route): ValidatedRequestResponse = {
     validateEntity(request) match {
       case Validated.Valid(_) => ValidatedRequestResponse(true,validRoute)
       case Validated.Invalid(failures) =>

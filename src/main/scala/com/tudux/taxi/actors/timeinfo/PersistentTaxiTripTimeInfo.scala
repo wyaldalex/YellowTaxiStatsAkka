@@ -3,7 +3,7 @@ package com.tudux.taxi.actors.timeinfo
 import akka.actor.{ActorLogging, ActorRef, Props}
 import akka.cluster.sharding.ShardRegion
 import akka.persistence.PersistentActor
-import com.tudux.taxi.actors.aggregators.TimeAggregatorCommand.UpdateTimeAggregatorValues
+import com.tudux.taxi.actors.aggregators.TimeAggregatorCommand.{AddTimeAggregatorValues, UpdateTimeAggregatorValues}
 
 case class TaxiTripTimeInfo(tpepPickupDatetime: String, tpepDropoffDatetime: String, deletedFlag: Boolean = false)
 
@@ -45,6 +45,9 @@ object TimeInfoActorShardingSettings {
     case msg@GetTaxiTripTimeInfo(statId) =>
       val shardId = statId.hashCode.abs % numberOfEntities
       (shardId.toString, msg)
+    case msg@DeleteTaxiTripTimeInfo(statId) =>
+      val shardId = statId.hashCode.abs % numberOfEntities
+      (shardId.toString, msg)
     case msg@UpdateTaxiTripTimeInfo(statId,_,_) =>
       val shardId = statId.hashCode.abs % numberOfEntities
       (shardId.toString, msg)
@@ -56,6 +59,9 @@ object TimeInfoActorShardingSettings {
       val shardId = tripId.hashCode.abs % numberOfShards
       shardId.toString
     case GetTaxiTripTimeInfo(statId) =>
+      val shardId = statId.hashCode.abs % numberOfShards
+      shardId.toString
+    case DeleteTaxiTripTimeInfo(statId) =>
       val shardId = statId.hashCode.abs % numberOfShards
       shardId.toString
     case UpdateTaxiTripTimeInfo(statId,_,_) =>
@@ -86,6 +92,7 @@ class PersistentTaxiTripTimeInfo(timeAggregator: ActorRef) extends PersistentAct
       persist(TaxiTripTimeInfoCreatedEvent(tripId,taxiTripTimeInfoStat)) { _ =>
         log.info(s"Creating Trip Time Info Stat $taxiTripTimeInfoStat")
         state = taxiTripTimeInfoStat
+        timeAggregator ! AddTimeAggregatorValues(taxiTripTimeInfoStat)
         sender() ! TaxiTripTimeResponseCreated(tripId)
       }
     case UpdateTaxiTripTimeInfo(tripId, taxiTripTimeInfoStat, _) =>

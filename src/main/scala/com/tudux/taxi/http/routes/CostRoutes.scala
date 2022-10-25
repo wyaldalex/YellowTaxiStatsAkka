@@ -39,7 +39,7 @@ case class CostRoutes(shardedCostActor: ActorRef)(implicit system: ActorSystem, 
             path(Segment) { tripId =>
               put {
                 entity(as[UpdateCostInfoRequest]) { request =>
-               val validatedRequestResponse = validateRequest2(request ,
+               val validatedRequestResponse = validateRequestForDecision(request ,
                     {
                     complete(StatusCodes.OK)
                     }

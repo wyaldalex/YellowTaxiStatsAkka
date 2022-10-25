@@ -34,21 +34,6 @@ trait GetAverageTripTime {
   def getAverageTripTimeSwagger: Option[Route] = None
 }
 
-import com.tudux.taxi.http.payloads.RoutePayloads.LoadedStatsResponse
-
-@Path("/api/yellowtaxi/actor/loaded")
-@Api(value = "/loaded")
-@SwaggerDefinition(tags = Array(new Tag(name = "GetLoadedStats", description = "Operation to get Actor Loaded Stats")))
-trait GetLoadedStats {
-  @ApiOperation(value = "service", tags = Array("actor-info"), httpMethod = "GET", notes = "This route will return the loaded stats per actor")
-  @ApiResponses(Array(
-    new ApiResponse(code = 200, message = "OK", response = classOf[LoadedStatsResponse]),
-    new ApiResponse(code = 400, message = "The request content was malformed"),
-    new ApiResponse(code = 500, message = "There was an internal server error.")
-  ))
-  def getAverageTripTimeSwagger: Option[Route] = None
-}
-
 import com.tudux.taxi.actors.aggregators.CostAggregatorResponse.CalculateTripDistanceCostResponse
 
 @Path("/api/yellowtaxi/service/calculate-distance-cost/{distance}")
@@ -67,3 +52,19 @@ trait CalculateTripDistanceCost {
   def calculateTripDistanceCostSwagger: Option[Route] = None
 
 }
+
+/*
+import com.tudux.taxi.http.payloads.RoutePayloads.LoadedStatsResponse
+
+@Path("/api/yellowtaxi/actor/loaded")
+@Api(value = "/loaded")
+@SwaggerDefinition(tags = Array(new Tag(name = "GetLoadedStats", description = "Operation to get Actor Loaded Stats")))
+trait GetLoadedStats {
+  @ApiOperation(value = "service", tags = Array("actor-info"), httpMethod = "GET", notes = "This route will return the loaded stats per actor")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "OK", response = classOf[LoadedStatsResponse]),
+    new ApiResponse(code = 400, message = "The request content was malformed"),
+    new ApiResponse(code = 500, message = "There was an internal server error.")
+  ))
+  def getAverageTripTimeSwagger: Option[Route] = None
+} */

@@ -5,11 +5,12 @@ import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
 import akka.util.Timeout
-import com.tudux.taxi.actors.TaxiTripActor
 import com.tudux.taxi.actors.aggregators.{PersistentCostStatsAggregator, PersistentTimeStatsAggregator}
 import com.tudux.taxi.actors.cost.{CostActorShardingSettings, PersistentTaxiTripCost}
 import com.tudux.taxi.actors.extrainfo.{ExtraInfoActorShardingSettings, PersistentTaxiExtraInfo}
+import com.tudux.taxi.actors.loader.TaxiTripActor
 import com.tudux.taxi.actors.passenger.{PassengerInfoActorShardingSettings, PersistentTaxiTripPassengerInfo}
+import com.tudux.taxi.actors.service.ServiceActor
 import com.tudux.taxi.actors.timeinfo.{PersistentTaxiTripTimeInfo, TimeInfoActorShardingSettings}
 import com.tudux.taxi.http.routes.MainRouter
 import com.tudux.taxi.http.swagger.Swagger
@@ -25,14 +26,15 @@ import scala.util.{Failure, Success}
 //TODO X: Scala Style tool
 object TaxiApp extends App {
 
-  def startHttpServer(taxiAppActor: ActorRef, shardedParentCostActor: ActorRef,
+  def startHttpServer(shardedParentCostActor: ActorRef,
                       shardedParentExtraInfoActor: ActorRef ,
                       shardedParentPassengerInfoActor: ActorRef ,
-                      shardedParentTimeInfoActor: ActorRef )(implicit system: ActorSystem): Unit = {
+                      shardedParentTimeInfoActor: ActorRef ,
+                      serviceActor: ActorRef)(implicit system: ActorSystem): Unit = {
     implicit val scheduler: ExecutionContext = system.dispatcher
 
-    val router = new MainRouter(taxiAppActor,shardedParentCostActor,shardedParentExtraInfoActor,
-      shardedParentPassengerInfoActor, shardedParentTimeInfoActor)
+    val router = new MainRouter(shardedParentCostActor,shardedParentExtraInfoActor,
+      shardedParentPassengerInfoActor, shardedParentTimeInfoActor,serviceActor)
     val routes = router.routes  ~ Swagger(system).routes ~ getFromResourceDirectory("swagger-ui")
 
     val bindingFuture = Http().newServerAt("localhost", 10001).bind(routes)
@@ -67,15 +69,11 @@ object TaxiApp extends App {
   val persistentPassengerShardRegionRef: ActorRef = createShardedPassengerInfoActor(system)
   val persistentTimeInfoShardRegionRef: ActorRef = createShardedTimeInfoActor(system,timeAggregatorActor)
 
-  val taxiAppActor = system.actorOf(TaxiTripActor.props(
-    persistentCostShardRegionRef,
-    persistentExtraInfoShardedRegionRef,
-    persistentPassengerShardRegionRef,
-    persistentTimeInfoShardRegionRef,
-    costAggregatorActor, timeAggregatorActor), "taxiParentAppActor")
+  //Specific Service actor
+  val serviceActor : ActorRef = system.actorOf(ServiceActor.props(costAggregatorActor, timeAggregatorActor), "serviceActor")
 
-  startHttpServer(taxiAppActor,persistentCostShardRegionRef,persistentExtraInfoShardedRegionRef ,
-    persistentPassengerShardRegionRef, persistentTimeInfoShardRegionRef)
+  startHttpServer(persistentCostShardRegionRef,persistentExtraInfoShardedRegionRef ,
+    persistentPassengerShardRegionRef, persistentTimeInfoShardRegionRef,serviceActor)
 
   /*
   /All working, but need to solve for get:

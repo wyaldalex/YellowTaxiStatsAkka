@@ -1,12 +1,9 @@
-package com.tudux.taxi.actors
+package com.tudux.taxi.actors.loader
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
-import akka.cluster.sharding.ShardRegion
 import akka.util.Timeout
-import com.tudux.taxi.actors.TaxiTripCommand.CreateTaxiTripCommand
 import com.tudux.taxi.actors.aggregators.{PersistentCostStatsAggregator, PersistentTimeStatsAggregator}
-import com.tudux.taxi.actors.cost.TaxiTripCostCommand.GetTaxiTripCost
-import com.tudux.taxi.actors.helpers.TaxiTripHelpers._
+import com.tudux.taxi.actors.implicits.TaxiTripImplicits._
 import com.tudux.taxi.app.ShardedActorsGenerator.{createShardedCostActor, createShardedExtraInfoActor, createShardedPassengerInfoActor, createShardedTimeInfoActor}
 import com.typesafe.config.ConfigFactory
 
@@ -28,11 +25,6 @@ object TaxiTripCommand {
   case class CreateTaxiTrip(taxiTrip: TaxiTripEntry) extends TaxiTripCommand
   case class DeleteTaxiTrip(tripId: String) extends TaxiTripCommand
 }
-sealed trait TaxiTripEvent
-object TaxiTripEvent {
-  case class CreatedTaxiTripEvent(tripId: String) extends  TaxiTripEvent
-}
-
 sealed trait TaxiTripResponse
 object TaxiTripResponse {
   case class TaxiTripCreatedResponse(tripId: String) extends TaxiTripResponse
@@ -65,12 +57,7 @@ class TaxiTripActor(parentCostShardedActor: ActorRef,parentExtraInfoShardedActor
       //generate new stat ID to avoid conflicts
       val tripId = UUID.randomUUID().toString
       log.info(s"Received $taxiTrip to create")
-      //taxiTripCostActor.forward(CreateTaxiCostStat(idStat,taxiTrip))
 
-      /*
-      new state modification
-       */
-        //O.O Avoid same Id for persistent actors! Circle and Infinite Loop Warning!!!
       parentCostShardedActor ! CreateTaxiTripCost(tripId,taxiTrip)
       parentExtraInfoShardedActor ! CreateTaxiTripExtraInfo(tripId,taxiTrip)
       parentPassengerShardedActor ! CreateTaxiTripPassengerInfo(tripId,taxiTrip)
@@ -79,22 +66,6 @@ class TaxiTripActor(parentCostShardedActor: ActorRef,parentExtraInfoShardedActor
       timeAggregatorActor ! AddTimeAggregatorValues(taxiTrip)
 
       sender() ! TaxiTripCreatedResponse(tripId)
-
-    //General Delete
-    case deleteTaxiStat@DeleteTaxiTrip(tripId) =>
-      parentCostShardedActor ! DeleteTaxiTrip(tripId)
-      parentExtraInfoShardedActor ! DeleteTaxiTrip(tripId)
-      parentPassengerShardedActor ! DeleteTaxiTrip(tripId)
-      parentTimeShardedActor ! DeleteTaxiTrip(tripId)
-    //Domain Specific Operations
-    case calculateTripDistanceCost@CalculateTripDistanceCost(_) =>
-      log.info("Received CalculateTripDistanceCost request")
-      costAggregatorActor.forward(calculateTripDistanceCost)
-    case getAverageTripTime@GetAverageTripTime =>
-      timeAggregatorActor.forward(getAverageTripTime)
-    case getAverageTipAmount@GetAverageTipAmount =>
-      log.info("Received GetAverageTipAmount request")
-      costAggregatorActor.forward(getAverageTipAmount)
 
     case printTimeToLoad@PrintTimeToLoad(_) =>
       log.info("Forwarding Total Time to Load Request")
@@ -122,34 +93,6 @@ object TaxiStatAppLoader extends App {
    val localStoreActorSystem = ActorSystem("cassandraSystem", ConfigFactory.load().getConfig("cassandraDemo"))
    *///
   //val persistentTaxiStatActor = system.actorOf(PersistentTaxiStatActor.props, "quickPersistentActorTest")
-  object CostActorShardingSettings {
-
-    val numberOfShards = 10 // use 10x number of nodes in your cluster
-    val numberOfEntities = 100 //10x number of shards
-    //this help to map the corresponding message to a respective entity
-    val extractEntityId: ShardRegion.ExtractEntityId = {
-      case createTaxiTripCommand@CreateTaxiTripCommand(taxiStat,statId) =>
-        val entityId = statId.hashCode.abs % numberOfEntities
-        (entityId.toString, createTaxiTripCommand)
-      case msg@GetTaxiTripCost(statId) =>
-        val shardId = statId.hashCode.abs % numberOfShards
-        (shardId.toString,msg)
-    }
-
-    //this help to map the corresponding message to a respective shard
-    val extractShardId: ShardRegion.ExtractShardId = {
-      case CreateTaxiTripCommand(taxiStat,statId) =>
-        val shardId = statId.hashCode.abs % numberOfShards
-        shardId.toString
-      case GetTaxiTripCost(statId) =>
-        val shardId = statId.hashCode.abs % numberOfShards
-        shardId.toString
-      case ShardRegion.StartEntity(entityId) =>
-        (entityId.toLong % numberOfShards).toString
-    }
-
-  }
-
   //Somehow create the cost actor sharded version
   val costAggregatorActor : ActorRef = system.actorOf(PersistentCostStatsAggregator.props("cost-aggregator"), "cost-aggregator")
   val timeAggregatorActor : ActorRef = system.actorOf(PersistentTimeStatsAggregator.props("time-aggregator"), "time-aggregator")

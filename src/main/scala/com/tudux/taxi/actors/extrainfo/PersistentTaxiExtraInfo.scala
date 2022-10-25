@@ -42,6 +42,9 @@ object ExtraInfoActorShardingSettings {
     case msg@GetTaxiTripExtraInfo(statId) =>
       val shardId = statId.hashCode.abs % numberOfEntities
       (shardId.toString, msg)
+    case msg@DeleteTaxiTripExtraInfo(statId) =>
+      val shardId = statId.hashCode.abs % numberOfEntities
+      (shardId.toString, msg)
     case msg@UpdateTaxiTripExtraInfo(statId,_) =>
       val shardId = statId.hashCode.abs % numberOfEntities
       (shardId.toString, msg)
@@ -53,6 +56,9 @@ object ExtraInfoActorShardingSettings {
       val shardId = tripId.hashCode.abs % numberOfShards
       shardId.toString
     case GetTaxiTripExtraInfo(statId) =>
+      val shardId = statId.hashCode.abs % numberOfShards
+      shardId.toString
+    case DeleteTaxiTripExtraInfo(statId) =>
       val shardId = statId.hashCode.abs % numberOfShards
       shardId.toString
     case UpdateTaxiTripExtraInfo(statId,_) =>

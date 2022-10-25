@@ -8,12 +8,15 @@ import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
 import cats.data.Validated
-import com.tudux.taxi.actors.TaxiTripCommand.DeleteTaxiTrip
-import com.tudux.taxi.actors.TaxiTripResponse.TaxiTripCreatedResponse
+import com.tudux.taxi.actors.loader.TaxiTripCommand.DeleteTaxiTrip
+import com.tudux.taxi.actors.loader.TaxiTripResponse.TaxiTripCreatedResponse
 import com.tudux.taxi.actors.cost.TaxiCostResponse.TaxiCostCreatedResponse
-import com.tudux.taxi.actors.cost.TaxiTripCostCommand.CreateTaxiTripCost
+import com.tudux.taxi.actors.cost.TaxiTripCostCommand.{CreateTaxiTripCost, DeleteTaxiTripCost}
 import com.tudux.taxi.actors.extrainfo.TaxiExtraInfoResponse.TaxiTripExtraInfoCreatedResponse
+import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfoCommand.DeleteTaxiTripExtraInfo
+import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfoCommand.DeleteTaxiTripPassenger
 import com.tudux.taxi.actors.passenger.TaxiTripPassengerResponse.TaxiTripPassengerResponseCreated
+import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfoCommand.DeleteTaxiTripTimeInfo
 import com.tudux.taxi.actors.timeinfo.TaxiTripTimeResponse.TaxiTripTimeResponseCreated
 import com.tudux.taxi.http.formatters.RouteFormatters.CombineCreationResponseProtocol
 import com.tudux.taxi.http.payloads.RoutePayloads._
@@ -25,8 +28,8 @@ import spray.json._
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
-case class TaxiTripRoutes(taxiTripActor: ActorRef, costActor: ActorRef, extraInfoActor: ActorRef,
-                          passengerActor: ActorRef, timeActor: ActorRef)(implicit system: ActorSystem, dispatcher: ExecutionContext,timeout: Timeout ) extends SprayJsonSupport
+case class CommonTaxiTripRoutes(costActor: ActorRef, extraInfoActor: ActorRef,
+                                passengerActor: ActorRef, timeActor: ActorRef)(implicit system: ActorSystem, dispatcher: ExecutionContext,timeout: Timeout ) extends SprayJsonSupport
                           with CombineCreationResponseProtocol
 {
   def createTaxiTripCreatedResponse(createTaxiTripRequest: CreateTaxiTripRequest,tripId: String): TaxiCreatedResponse = {
@@ -74,7 +77,11 @@ case class TaxiTripRoutes(taxiTripActor: ActorRef, costActor: ActorRef, extraInf
       } ~
         delete {
           path(Segment) { tripId =>
-            taxiTripActor ! DeleteTaxiTrip(tripId)
+            //taxiTripActor ! DeleteTaxiTrip(tripId)
+            costActor ! DeleteTaxiTripCost(tripId)
+            extraInfoActor ! DeleteTaxiTripExtraInfo(tripId)
+            passengerActor ! DeleteTaxiTripPassenger(tripId)
+            timeActor ! DeleteTaxiTripTimeInfo(tripId)
             complete(StatusCodes.OK)
           }
         }

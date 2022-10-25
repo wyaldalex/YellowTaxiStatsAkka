@@ -82,14 +82,12 @@ class PersistentTaxiExtraInfo extends PersistentActor with ActorLogging {
   override def receiveCommand: Receive = {
     case CreateTaxiTripExtraInfo(tripId,taxiExtraInfoStat) =>
       //throw new RuntimeException("Mock Actor Failure") //Simulate Actor failure
-      flag
       persist(TaxiTripExtraInfoCreatedEvent(tripId,taxiExtraInfoStat)) { _ =>
         log.info(s"Creating Extra Info Stat $taxiExtraInfoStat")
         state = taxiExtraInfoStat
         sender() ! TaxiTripExtraInfoCreatedResponse(tripId)
 
       }
-      sender() !
     case UpdateTaxiTripExtraInfo(tripId,taxiExtraInfoStat) =>
       log.info(s"Updating Extra Info Stat $taxiExtraInfoStat")
       persist(TaxiTripExtraInfoUpdatedEvent(tripId, taxiExtraInfoStat)) { _ =>

@@ -117,7 +117,6 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
       totalTipAmount = snapState._4
   }
 
-  //TODO 2: Configure snapshots for the aggregator actors (done)
   def maybeCheckpoint(): Unit = {
     commandsWithoutCheckpoint += 1
     if (commandsWithoutCheckpoint >= MAX_MESSAGES) {

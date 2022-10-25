@@ -8,9 +8,8 @@ import akka.util.Timeout
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
 
-//TODO 4: better route naming convention (done)
-//TODO 5: code distribution (done)
-//TODO X: Return error from persistence layer in the HTTP layer
+//TODO X: Return error from persistence layer in the HTTP layer (Pablo Patiño)
+//TODO X: Rename validateRequest2 naming (Pablo Patiño)
 class MainRouter(taxiTripActor: ActorRef, shardedCostActor : ActorRef, shardedExtraInfoActor : ActorRef,
                  shardedPassengerActor : ActorRef, shardedTimeInfoActor : ActorRef)(implicit system: ActorSystem)
   {

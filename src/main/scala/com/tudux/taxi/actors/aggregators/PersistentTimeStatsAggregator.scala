@@ -89,7 +89,6 @@ class PersistentTimeStatsAggregator(id: String) extends PersistentActor with Act
       totalTrips = snapState._1
       totalMinutesTrip = snapState._2
   }
-  //TODO 2: Configure snapshots for the aggregator actors (done)
   def maybeCheckpoint(): Unit = {
     tripsWithoutCheckpoint += 1
     if (tripsWithoutCheckpoint >= MAX_MESSAGES) {

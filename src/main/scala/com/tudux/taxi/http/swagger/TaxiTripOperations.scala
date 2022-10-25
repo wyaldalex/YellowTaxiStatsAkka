@@ -1,7 +1,7 @@
 package com.tudux.taxi.http.swagger
 
 import akka.http.scaladsl.server.Route
-import com.tudux.taxi.http.payloads.RoutePayloads.CreateTaxiTripRequest
+import com.tudux.taxi.http.payloads.RoutePayloads.{CombineCreationResponse, CreateTaxiTripRequest}
 import io.swagger.annotations._
 import io.swagger.models.Operation
 
@@ -18,7 +18,8 @@ trait CreateStatResponse {
       dataTypeClass = classOf[CreateTaxiTripRequest] , paramType = "body")
   ))
   @ApiResponses(Array(
-    new ApiResponse(code = 201, message = "Taxi Trip created with Id: {taxiId}"),
+    //new ApiResponse(code = 201, message = "Taxi Trip created with Id: {taxiId}"),
+    new ApiResponse(code = 200, message = "OK", response = classOf[CombineCreationResponse]),
     new ApiResponse(code = 400, message = "The request content was malformed"),
     new ApiResponse(code = 500, message = "There was an internal server error.")
   ))

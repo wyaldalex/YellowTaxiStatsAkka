@@ -24,6 +24,10 @@ object TaxiExtraInfoStatEvent{
   case class DeletedTaxiTripExtraInfoEvent(tripId: String) extends TaxiExtraInfoEvent
 }
 
+sealed trait TaxiExtraInfoResponse
+object TaxiExtraInfoResponse {
+  case class TaxiTripExtraInfoCreatedResponse(id: String) extends TaxiExtraInfoResponse
+}
 
 object ExtraInfoActorShardingSettings {
   import TaxiTripExtraInfoCommand._
@@ -66,6 +70,7 @@ class PersistentTaxiExtraInfo extends PersistentActor with ActorLogging {
 
   import TaxiTripExtraInfoCommand._
   import TaxiExtraInfoStatEvent._
+  import TaxiExtraInfoResponse._
 
   //Persistent Actor State
   //var statExtraInfoMap : Map[String,TaxiExtraInfoStat] = Map.empty
@@ -77,10 +82,14 @@ class PersistentTaxiExtraInfo extends PersistentActor with ActorLogging {
   override def receiveCommand: Receive = {
     case CreateTaxiTripExtraInfo(tripId,taxiExtraInfoStat) =>
       //throw new RuntimeException("Mock Actor Failure") //Simulate Actor failure
+      flag
       persist(TaxiTripExtraInfoCreatedEvent(tripId,taxiExtraInfoStat)) { _ =>
         log.info(s"Creating Extra Info Stat $taxiExtraInfoStat")
         state = taxiExtraInfoStat
+        sender() ! TaxiTripExtraInfoCreatedResponse(tripId)
+
       }
+      sender() !
     case UpdateTaxiTripExtraInfo(tripId,taxiExtraInfoStat) =>
       log.info(s"Updating Extra Info Stat $taxiExtraInfoStat")
       persist(TaxiTripExtraInfoUpdatedEvent(tripId, taxiExtraInfoStat)) { _ =>

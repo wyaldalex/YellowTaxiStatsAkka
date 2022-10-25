@@ -23,6 +23,11 @@ object TaxiTripPassengerInfoStatEvent{
   case class DeletedTaxiTripPassengerEvent(tripId: String) extends TaxiTripPassengerInfoEvent
 }
 
+sealed trait TaxiTripPassengerResponse
+object TaxiTripPassengerResponse {
+  case class TaxiTripPassengerResponseCreated(id: String)
+}
+
 object PassengerInfoActorShardingSettings {
   import TaxiTripPassengerInfoCommand._
 
@@ -64,6 +69,7 @@ class PersistentTaxiTripPassengerInfo extends PersistentActor with ActorLogging 
 
   import TaxiTripPassengerInfoCommand._
   import TaxiTripPassengerInfoStatEvent._
+  import TaxiTripPassengerResponse._
 
   var state : TaxiTripPassengerInfo = TaxiTripPassengerInfo(0)
 
@@ -75,6 +81,7 @@ class PersistentTaxiTripPassengerInfo extends PersistentActor with ActorLogging 
       persist(TaxiTripPassengerInfoCreatedEvent(tripId,taxiTripPassengerInfoStat)) { _ =>
         log.info(s"Creating Passenger Info Stat $taxiTripPassengerInfoStat")
         state = taxiTripPassengerInfoStat
+        sender() ! TaxiTripPassengerResponseCreated(tripId)
       }
     case GetTaxiTripPassengerInfo(tripId) =>
       sender() ! state

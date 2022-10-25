@@ -24,6 +24,13 @@ object TaxiTripTimeInfoStatEvent{
   case class DeletedTaxiTripTimeInfoEvent(tripId: String) extends TaxiTripTimeInfoEvent
 }
 
+sealed trait TaxiTripTimeResponse
+object TaxiTripTimeResponse {
+  case class TaxiTripTimeResponseCreated(id: String)
+}
+
+
+
 object TimeInfoActorShardingSettings {
 
   import TaxiTripTimeInfoCommand._
@@ -66,6 +73,7 @@ class PersistentTaxiTripTimeInfo(timeAggregator: ActorRef) extends PersistentAct
 
   import TaxiTripTimeInfoCommand._
   import TaxiTripTimeInfoStatEvent._
+  import TaxiTripTimeResponse._
 
 
   var state : TaxiTripTimeInfo = TaxiTripTimeInfo("","")
@@ -78,6 +86,7 @@ class PersistentTaxiTripTimeInfo(timeAggregator: ActorRef) extends PersistentAct
       persist(TaxiTripTimeInfoCreatedEvent(tripId,taxiTripTimeInfoStat)) { _ =>
         log.info(s"Creating Trip Time Info Stat $taxiTripTimeInfoStat")
         state = taxiTripTimeInfoStat
+        sender() ! TaxiTripTimeResponseCreated(tripId)
       }
     case UpdateTaxiTripTimeInfo(tripId, taxiTripTimeInfoStat, _) =>
       log.info("Updating Time Info ")

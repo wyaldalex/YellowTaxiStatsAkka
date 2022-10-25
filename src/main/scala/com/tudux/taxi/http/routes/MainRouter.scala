@@ -10,6 +10,7 @@ import scala.concurrent.duration.DurationInt
 
 //TODO 4: better route naming convention (done)
 //TODO 5: code distribution (done)
+//TODO X: Return error from persistence layer in the HTTP layer
 class MainRouter(taxiTripActor: ActorRef, shardedCostActor : ActorRef, shardedExtraInfoActor : ActorRef,
                  shardedPassengerActor : ActorRef, shardedTimeInfoActor : ActorRef)(implicit system: ActorSystem)
   {
@@ -17,7 +18,7 @@ class MainRouter(taxiTripActor: ActorRef, shardedCostActor : ActorRef, shardedEx
   implicit val dispatcher: ExecutionContext = system.dispatcher
   implicit val timeout: Timeout = Timeout(2.seconds)
 
-  val taxiTripRoutes = TaxiTripRoutes(taxiTripActor)
+  val taxiTripRoutes = TaxiTripRoutes(taxiTripActor,shardedCostActor,shardedExtraInfoActor,shardedPassengerActor,shardedTimeInfoActor)
   val costRoutes = CostRoutes(shardedCostActor)
   val timeRoutes = TimeRoutes(shardedTimeInfoActor)
   val passengerRoutes = PassengerRoutes(shardedPassengerActor)

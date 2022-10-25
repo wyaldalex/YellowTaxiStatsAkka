@@ -23,6 +23,7 @@ import scala.util.{Failure, Success}
 //Visit Swagger Documentation: http://localhost:10001/swagger-ui/index.html
 
 //TODO 3: all camel case instead of snake case (done)
+//TODO X: Scala Style tool
 object TaxiApp extends App {
 
   def startHttpServer(taxiAppActor: ActorRef, shardedParentCostActor: ActorRef,
@@ -56,7 +57,8 @@ object TaxiApp extends App {
   """.stripMargin).withFallback(ConfigFactory.load("sharded/shardedConfigSettings.conf"))
 
   implicit val system: ActorSystem = ActorSystem("YellowTaxiCluster", config)
-
+  //TODO X: Add Sharding actors (WIP)
+  //TODO X: Pair Routes with corresponding actor (WIP)
   import ShardedActorsGenerator._
   //Create the aggregators
   val costAggregatorActor : ActorRef = system.actorOf(PersistentCostStatsAggregator.props("cost-aggregator"), "cost-aggregator")

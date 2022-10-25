@@ -60,11 +60,6 @@ class TaxiTripActor(parentCostShardedActor: ActorRef,parentExtraInfoShardedActor
   import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfoCommand._
   import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfoCommand._
 
-  val costActorIdSuffix = "-cost"
-  val extraInfoActorIdSuffix = "-extrainfo"
-  val timeActorIdSuffix = "-time"
-  val passengerActorIdSuffix = "-passenger"
-
   override def receive : Receive = {
     case CreateTaxiTripCommand(taxiTrip,_) =>
       //generate new stat ID to avoid conflicts
@@ -87,10 +82,10 @@ class TaxiTripActor(parentCostShardedActor: ActorRef,parentExtraInfoShardedActor
 
     //General Delete
     case deleteTaxiStat@DeleteTaxiTrip(tripId) =>
-      parentCostShardedActor ! DeleteTaxiTrip(tripId.concat(costActorIdSuffix))
-      parentExtraInfoShardedActor ! DeleteTaxiTrip(tripId.concat(extraInfoActorIdSuffix))
-      parentPassengerShardedActor ! DeleteTaxiTrip(tripId.concat(passengerActorIdSuffix))
-      parentTimeShardedActor ! DeleteTaxiTrip(tripId.concat(timeActorIdSuffix))
+      parentCostShardedActor ! DeleteTaxiTrip(tripId)
+      parentExtraInfoShardedActor ! DeleteTaxiTrip(tripId)
+      parentPassengerShardedActor ! DeleteTaxiTrip(tripId)
+      parentTimeShardedActor ! DeleteTaxiTrip(tripId)
     //Domain Specific Operations
     case calculateTripDistanceCost@CalculateTripDistanceCost(_) =>
       log.info("Received CalculateTripDistanceCost request")

@@ -6,18 +6,21 @@ import akka.http.scaladsl.server.Route
 import cats.data.Validated
 import com.tudux.taxi.actors.TaxiTripCommand.CreateTaxiTripCommand
 import com.tudux.taxi.actors.TaxiTripEntry
+import com.tudux.taxi.actors.cost.TaxiCostResponse.TaxiCostCreatedResponse
 import com.tudux.taxi.actors.cost.TaxiTripCost
-import com.tudux.taxi.actors.cost.TaxiTripCostCommand.UpdateTaxiTripCost
+import com.tudux.taxi.actors.cost.TaxiTripCostCommand.{CreateTaxiTripCost, UpdateTaxiTripCost}
 import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfo
-import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfoCommand.UpdateTaxiTripExtraInfo
+import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfoCommand.{CreateTaxiTripExtraInfo, UpdateTaxiTripExtraInfo}
 import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfo
-import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfoCommand.UpdateTaxiTripPassenger
+import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfoCommand.{CreateTaxiTripPassengerInfo, UpdateTaxiTripPassenger}
 import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfo
-import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfoCommand.UpdateTaxiTripTimeInfo
+import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfoCommand.{CreateTaxiTripTimeInfo, UpdateTaxiTripTimeInfo}
 import com.tudux.taxi.http.validation.Validation._
 import com.tudux.taxi.http.validation.Validators._
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.generic.auto._
+
+import scala.concurrent.Future
 
 object RoutePayloads {
 
@@ -34,6 +37,18 @@ object RoutePayloads {
       storeAndFwdFlag, dropoffLongitude, dropoffLatitude,
       paymentType, fareAmount, extra, mtaTax,
       tipAmount, tollsAmount, improvementSurcharge, totalAmount))
+
+    def toCostCommand(tripId: String): CreateTaxiTripCost = CreateTaxiTripCost(tripId,TaxiTripCost(vendorID,
+      tripDistance,
+      paymentType, fareAmount, extra, mtaTax,
+      tipAmount, tollsAmount, improvementSurcharge, totalAmount))
+
+    def toExtraInfoCommand(tripId: String): CreateTaxiTripExtraInfo = CreateTaxiTripExtraInfo(tripId, TaxiTripExtraInfo(pickupLongitude, pickupLatitude, rateCodeID,
+      storeAndFwdFlag, dropoffLongitude, dropoffLatitude))
+
+    def toPassengerInfoCommand(tripId: String): CreateTaxiTripPassengerInfo = CreateTaxiTripPassengerInfo(tripId, TaxiTripPassengerInfo(passengerCount))
+
+    def toTimeInfoCommand(tripId: String): CreateTaxiTripTimeInfo = CreateTaxiTripTimeInfo(tripId ,TaxiTripTimeInfo(tpepPickupDatetime, tpepDropoffDatetime))
   }
 
   case class UpdatePassengerInfoRequest(passengerCount: Int) {
@@ -67,6 +82,7 @@ object RoutePayloads {
   }
 
   case class LoadedStatsResponse(totalCostLoaded: Int, totalExtraInfoLoaded: Int, totalTimeInfoLoaded: Int, totalPassengerInfo: Int)
+  case class CombineCreationResponse(costId: String, extraInfoId: String, passengerInfoId: String, timeInfoId: String)
   case class FailureResponse(reason: String)
 
   def toHttpEntity(payload: String) = HttpEntity(ContentTypes.`application/json`, payload)
@@ -89,10 +105,11 @@ object RoutePayloads {
     }
   }
 
-  val costActorIdSuffix = "-cost"
-  val extraInfoActorIdSuffix = "-extrainfo"
-  val timeActorIdSuffix = "-time"
-  val passengerActorIdSuffix = "-passenger"
+  case class TaxiCreatedResponse(
+                                  costResponse: Future[TaxiCostCreatedResponse],
+                                  extraInfoResponse: Future[TaxiCostCreatedResponse],
+                                  passengerResponse: Future[TaxiCostCreatedResponse],
+                                  timeResponse: Future[TaxiCostCreatedResponse])
 
 
 }

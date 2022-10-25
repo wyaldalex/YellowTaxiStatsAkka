@@ -29,6 +29,10 @@ object TaxiTripCostEvent{
   case class DeletedTaxiTripCostEvent(statId: String) extends TaxiCostEvent
 }
 
+sealed trait TaxiCostResponse
+object TaxiCostResponse {
+  case class TaxiCostCreatedResponse(id: String) extends TaxiCostResponse
+}
 
 object CostActorShardingSettings {
 
@@ -72,8 +76,9 @@ class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor w
 
   import TaxiTripCostCommand._
   import TaxiTripCostEvent._
+  import TaxiCostResponse._
 
-  var state : TaxiTripCost = TaxiTripCost(0,0,0,0,0,0,0,0,0,0)
+  var state : TaxiTripCost = null
 
   //override def persistenceId: String = id
   override def persistenceId: String = "Cost" + "-" + context.parent.path.name + "-" + self.path.name
@@ -83,10 +88,9 @@ class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor w
       persist(TaxiTripCostCreatedEvent(statId,taxiTripCost)) { _ =>
         log.info(s"Creating Taxi Cost $statId at location ${self.path.name}")
         state = taxiTripCost
-        log.info(s"The state is $state")
         log.info(s"Created cost stat: $taxiTripCost")
+        sender() ! TaxiCostCreatedResponse(statId)
       }
-      sender() ! s"${self.path} child actor registered"
 
     case GetTaxiTripCost(statId) =>
       log.info(s"Receiving request to return cost trip cost information ${self.path}")

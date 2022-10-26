@@ -15,7 +15,7 @@ class MainRouter(shardedCostActor : ActorRef, shardedExtraInfoActor : ActorRef,
   {
 
   implicit val dispatcher: ExecutionContext = system.dispatcher
-  implicit val timeout: Timeout = Timeout(2.seconds)
+  implicit val timeout: Timeout = Timeout(30.seconds)
 
   val taxiTripRoutes = CommonTaxiTripRoutes(shardedCostActor,shardedExtraInfoActor,shardedPassengerActor,shardedTimeInfoActor)
   val costRoutes = CostRoutes(shardedCostActor)

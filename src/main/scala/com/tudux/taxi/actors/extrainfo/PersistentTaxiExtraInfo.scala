@@ -3,6 +3,7 @@ package com.tudux.taxi.actors.extrainfo
 import akka.actor.{ActorLogging, Props}
 import akka.cluster.sharding.ShardRegion
 import akka.persistence.PersistentActor
+import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
 
 case class TaxiTripExtraInfo(pickupLongitude: Double, pickupLatitude: Double, rateCodeID: Int,
                              storeAndFwdFlag: String, dropoffLongitude: Double, dropoffLatitude: Double, deletedFlag: Boolean = false)
@@ -85,13 +86,23 @@ class PersistentTaxiExtraInfo extends PersistentActor with ActorLogging {
   //override def persistenceId: String = id
   override def persistenceId: String = "ExtraInfo" + "-" + context.parent.path.name + "-" + self.path.name
 
+  override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {
+    sender() ! OperationResponse("", "Failure", cause.getMessage)
+    super.onPersistFailure(cause, event, seqNr)
+  }
+
+  override def onPersistRejected(cause: Throwable, event: Any, seqNr: Long): Unit = {
+    sender() ! OperationResponse("", "Failure", cause.getMessage)
+    super.onPersistFailure(cause, event, seqNr)
+  }
+
   override def receiveCommand: Receive = {
     case CreateTaxiTripExtraInfo(tripId,taxiExtraInfoStat) =>
       //throw new RuntimeException("Mock Actor Failure") //Simulate Actor failure
       persist(TaxiTripExtraInfoCreatedEvent(tripId,taxiExtraInfoStat)) { _ =>
         log.info(s"Creating Extra Info Stat $taxiExtraInfoStat")
         state = taxiExtraInfoStat
-        sender() ! TaxiTripExtraInfoCreatedResponse(tripId)
+        sender() ! OperationResponse(tripId)
 
       }
     case UpdateTaxiTripExtraInfo(tripId,taxiExtraInfoStat) =>

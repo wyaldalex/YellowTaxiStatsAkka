@@ -2,6 +2,7 @@ package com.tudux.taxi.http.formatters
 
 import com.tudux.taxi.actors.aggregators.CostAggregatorResponse.{CalculateTripDistanceCostResponse, GetAverageTipAmountResponse}
 import com.tudux.taxi.actors.aggregators.TimeAggregatorResponse.TaxiTripAverageTimeMinutesResponse
+import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
 import com.tudux.taxi.actors.cost.TaxiTripCost
 import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfo
 import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfo
@@ -43,7 +44,11 @@ object RouteFormatters {
     implicit val totalLoadedResponseFormat = jsonFormat4(LoadedStatsResponse)
   }
 
-  trait CombineCreationResponseProtocol extends DefaultJsonProtocol {
+  trait OperationResponseProtocol extends DefaultJsonProtocol {
+    implicit val operationResponseProtocolFormat = jsonFormat3(OperationResponse)
+  }
+
+  trait CombineCreationResponseProtocol extends DefaultJsonProtocol with  OperationResponseProtocol {
     implicit val combineCreationResponseProtocolFormat = jsonFormat4(CombineCreationResponse)
   }
 

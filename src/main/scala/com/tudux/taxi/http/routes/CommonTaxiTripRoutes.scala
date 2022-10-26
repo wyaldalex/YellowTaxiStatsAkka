@@ -8,9 +8,9 @@ import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
 import cats.data.Validated
+import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
 import com.tudux.taxi.actors.loader.TaxiTripCommand.DeleteTaxiTrip
 import com.tudux.taxi.actors.loader.TaxiTripResponse.TaxiTripCreatedResponse
-import com.tudux.taxi.actors.cost.TaxiCostResponse.TaxiCostCreatedResponse
 import com.tudux.taxi.actors.cost.TaxiTripCostCommand.{CreateTaxiTripCost, DeleteTaxiTripCost}
 import com.tudux.taxi.actors.extrainfo.TaxiExtraInfoResponse.TaxiTripExtraInfoCreatedResponse
 import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfoCommand.DeleteTaxiTripExtraInfo
@@ -32,12 +32,12 @@ case class CommonTaxiTripRoutes(costActor: ActorRef, extraInfoActor: ActorRef,
                                 passengerActor: ActorRef, timeActor: ActorRef)(implicit system: ActorSystem, dispatcher: ExecutionContext,timeout: Timeout ) extends SprayJsonSupport
                           with CombineCreationResponseProtocol
 {
-  def createTaxiTripCreatedResponse(createTaxiTripRequest: CreateTaxiTripRequest,tripId: String): TaxiCreatedResponse = {
-//    println(s"Received http post to create stat $createTaxiTripRequest")
-//    (taxiTripActor ? createTaxiTripRequest.toCommand).mapTo[TaxiTripCreatedResponse]
-    val costActorResponse = (costActor ? createTaxiTripRequest.toCostCommand(tripId: String)).mapTo[TaxiCostCreatedResponse]
-    TaxiCreatedResponse(costActorResponse,costActorResponse,costActorResponse,costActorResponse)
-  }
+//  def createTaxiTripCreatedResponse(createTaxiTripRequest: CreateTaxiTripRequest,tripId: String): TaxiCreatedResponse = {
+////    println(s"Received http post to create stat $createTaxiTripRequest")
+////    (taxiTripActor ? createTaxiTripRequest.toCommand).mapTo[TaxiTripCreatedResponse]
+//    val costActorResponse = (costActor ? createTaxiTripRequest.toCostCommand(tripId: String)).mapTo[TaxiCostCreatedResponse]
+//    TaxiCreatedResponse(costActorResponse,costActorResponse,costActorResponse,costActorResponse)
+//  }
 
   val routes: Route = {
     pathPrefix("api" / "yellowtaxi" / "taxitrip") {
@@ -57,16 +57,16 @@ case class CommonTaxiTripRoutes(costActor: ActorRef, extraInfoActor: ActorRef,
 //            }
         entity(as[CreateTaxiTripRequest]) { request =>
           val tripId = UUID.randomUUID().toString
-          val costResponseFuture: Future[TaxiCostCreatedResponse] = (costActor ? request.toCostCommand(tripId)).mapTo[TaxiCostCreatedResponse]
-          val extraInfoResponseFuture: Future[TaxiTripExtraInfoCreatedResponse] = (extraInfoActor ? request.toExtraInfoCommand(tripId)).mapTo[TaxiTripExtraInfoCreatedResponse]
-          val passengerResponseFuture: Future[TaxiTripPassengerResponseCreated] = (passengerActor ? request.toPassengerInfoCommand(tripId)).mapTo[TaxiTripPassengerResponseCreated]
-          val timeResponseFuture: Future[TaxiTripTimeResponseCreated] = (timeActor ? request.toTimeInfoCommand(tripId)).mapTo[TaxiTripTimeResponseCreated]
+          val costResponseFuture: Future[OperationResponse] = (costActor ? request.toCostCommand(tripId)).mapTo[OperationResponse]
+          val extraInfoResponseFuture: Future[OperationResponse] = (extraInfoActor ? request.toExtraInfoCommand(tripId)).mapTo[OperationResponse]
+          val passengerResponseFuture: Future[OperationResponse] = (passengerActor ? request.toPassengerInfoCommand(tripId)).mapTo[OperationResponse]
+          val timeResponseFuture: Future[OperationResponse] = (timeActor ? request.toTimeInfoCommand(tripId)).mapTo[OperationResponse]
           val combineResponse = for {
             r1 <- costResponseFuture
             r2 <- extraInfoResponseFuture
             r3 <- passengerResponseFuture
             r4 <- timeResponseFuture
-          } yield CombineCreationResponse(r1.id, r2.id, r3.id, r4.id)
+          } yield CombineCreationResponse(r1, r2, r3, r4)
           complete(
             combineResponse.mapTo[CombineCreationResponse]
               .map(_.toJson.prettyPrint)

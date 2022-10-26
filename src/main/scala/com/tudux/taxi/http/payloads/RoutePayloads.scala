@@ -4,8 +4,8 @@ import akka.http.scaladsl.model.{ContentTypes, HttpEntity, StatusCodes}
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
 import cats.data.Validated
+import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
 import com.tudux.taxi.actors.loader.TaxiTripCommand.CreateTaxiTripCommand
-import com.tudux.taxi.actors.cost.TaxiCostResponse.TaxiCostCreatedResponse
 import com.tudux.taxi.actors.cost.TaxiTripCost
 import com.tudux.taxi.actors.cost.TaxiTripCostCommand.{CreateTaxiTripCost, UpdateTaxiTripCost}
 import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfo
@@ -82,7 +82,8 @@ object RoutePayloads {
   }
 
   case class LoadedStatsResponse(totalCostLoaded: Int, totalExtraInfoLoaded: Int, totalTimeInfoLoaded: Int, totalPassengerInfo: Int)
-  case class CombineCreationResponse(costId: String, extraInfoId: String, passengerInfoId: String, timeInfoId: String)
+  case class CombineCreationResponse(costRepose: OperationResponse, extraInfoResponse: OperationResponse,
+                                     passengerResponse: OperationResponse, timeResponse: OperationResponse)
   case class FailureResponse(reason: String)
 
   def toHttpEntity(payload: String) = HttpEntity(ContentTypes.`application/json`, payload)
@@ -106,10 +107,10 @@ object RoutePayloads {
   }
 
   case class TaxiCreatedResponse(
-                                  costResponse: Future[TaxiCostCreatedResponse],
-                                  extraInfoResponse: Future[TaxiCostCreatedResponse],
-                                  passengerResponse: Future[TaxiCostCreatedResponse],
-                                  timeResponse: Future[TaxiCostCreatedResponse])
+                                  costResponse: Future[OperationResponse],
+                                  extraInfoResponse: Future[OperationResponse],
+                                  passengerResponse: Future[OperationResponse],
+                                  timeResponse: Future[OperationResponse])
 
 
 }

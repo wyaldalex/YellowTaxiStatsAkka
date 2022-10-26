@@ -62,8 +62,6 @@ class TaxiTripActor(parentCostShardedActor: ActorRef,parentExtraInfoShardedActor
       parentExtraInfoShardedActor ! CreateTaxiTripExtraInfo(tripId,taxiTrip)
       parentPassengerShardedActor ! CreateTaxiTripPassengerInfo(tripId,taxiTrip)
       parentTimeShardedActor ! CreateTaxiTripTimeInfo(tripId,taxiTrip)
-      costAggregatorActor ! AddCostAggregatorValues(tripId,taxiTrip)
-      timeAggregatorActor ! AddTimeAggregatorValues(taxiTrip)
 
       sender() ! TaxiTripCreatedResponse(tripId)
 

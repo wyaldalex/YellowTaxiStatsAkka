@@ -2,9 +2,13 @@ package com.tudux.taxi.actors.cost
 
 import akka.actor.{ActorLogging, ActorRef, Props}
 import akka.cluster.sharding.ShardRegion
-import akka.persistence.PersistentActor
+import akka.persistence.cassandra.Retries
+import akka.persistence.{PersistentActor, Recovery}
 import com.tudux.taxi.actors.aggregators.AggregatorStat
 import com.tudux.taxi.actors.aggregators.CostAggregatorCommand.{AddCostAggregatorValues, UpdateCostAggregatorValues}
+import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
+
+import java.io.File
 
 case class TaxiTripCost(vendorID: Int,
                         tripDistance: Double,
@@ -25,14 +29,15 @@ object TaxiTripCostCommand {
 
 sealed trait TaxiCostEvent
 object TaxiTripCostEvent{
-  case class TaxiTripCostCreatedEvent(tripId: String, taxiTripCost: TaxiTripCost) extends TaxiCostEvent
+  case class TaxiTripCostCreatedEvent(tripId: String, taxiTripCost: TaxiTripCost //, migrationError: String = "Cause Failure"
+                                     ) extends TaxiCostEvent
   case class UpdatedTaxiTripCostEvent(tripId: String, taxiTripCost: TaxiTripCost) extends TaxiCostEvent
   case class DeletedTaxiTripCostEvent(tripId: String) extends TaxiCostEvent
 }
 
 sealed trait TaxiCostResponse
 object TaxiCostResponse {
-  case class TaxiCostCreatedResponse(id: String) extends TaxiCostResponse
+
 }
 
 object CostActorShardingSettings {
@@ -86,9 +91,20 @@ class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor w
   import TaxiCostResponse._
 
   var state : TaxiTripCost = null
-
-  //override def persistenceId: String = id
   override def persistenceId: String = "Cost" + "-" + context.parent.path.name + "-" + self.path.name
+  //override def persistenceId : String = "x"
+
+  override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {
+    sender() ! OperationResponse("", "Failure", cause.getMessage)
+    log.info("is persist failure being triggered?")
+    super.onPersistFailure(cause, event, seqNr)
+  }
+
+  override def onPersistRejected(cause: Throwable, event: Any, seqNr: Long): Unit = {
+    sender() ! OperationResponse("", "Failure", cause.getMessage)
+    log.info("is persist rejected being triggered?")
+    super.onPersistFailure(cause, event, seqNr)
+  }
 
   override def receiveCommand: Receive = {
     case CreateTaxiTripCost(tripId,taxiTripCost) =>
@@ -97,7 +113,7 @@ class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor w
         state = taxiTripCost
         log.info(s"Created cost stat: $taxiTripCost")
         costAggregator ! AddCostAggregatorValues(tripId,AggregatorStat(taxiTripCost.totalAmount,taxiTripCost.tripDistance,taxiTripCost.tipAmount))
-        sender() ! TaxiCostCreatedResponse(tripId)
+        sender() ! OperationResponse(tripId)
       }
 
     case GetTaxiTripCost(tripId) =>
@@ -133,7 +149,8 @@ class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor w
   }
 
   override def receiveRecover: Receive = {
-    case TaxiTripCostCreatedEvent(tripId,taxiTripCost) =>
+    case TaxiTripCostCreatedEvent(tripId,taxiTripCost //,"Cause Failure"
+    ) =>
       log.info(s"Recovering Taxi Cost Created  $tripId ")
       state = taxiTripCost
       log.info(s"The state is $state from recovered $taxiTripCost")

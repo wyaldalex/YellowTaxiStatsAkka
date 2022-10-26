@@ -3,6 +3,7 @@ package com.tudux.taxi.actors.passenger
 import akka.actor.{ActorLogging, Props}
 import akka.cluster.sharding.ShardRegion
 import akka.persistence.PersistentActor
+import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
 
 case class TaxiTripPassengerInfo(passengerCount: Int, deletedFlag: Boolean = false)
 
@@ -82,12 +83,22 @@ class PersistentTaxiTripPassengerInfo extends PersistentActor with ActorLogging 
   //override def persistenceId: String = id
   override def persistenceId: String = "PassengerInfo" + "-" + context.parent.path.name + "-" + self.path.name
 
+  override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {
+    sender() ! OperationResponse("", "Failure", cause.getMessage)
+    super.onPersistFailure(cause, event, seqNr)
+  }
+
+  override def onPersistRejected(cause: Throwable, event: Any, seqNr: Long): Unit = {
+    sender() ! OperationResponse("", "Failure", cause.getMessage)
+    super.onPersistFailure(cause, event, seqNr)
+  }
+
   override def receiveCommand: Receive = {
     case CreateTaxiTripPassengerInfo(tripId,taxiTripPassengerInfoStat) =>
       persist(TaxiTripPassengerInfoCreatedEvent(tripId,taxiTripPassengerInfoStat)) { _ =>
         log.info(s"Creating Passenger Info Stat $taxiTripPassengerInfoStat")
         state = taxiTripPassengerInfoStat
-        sender() ! TaxiTripPassengerResponseCreated(tripId)
+        sender() ! OperationResponse(tripId)
       }
     case GetTaxiTripPassengerInfo(tripId) =>
       sender() ! state

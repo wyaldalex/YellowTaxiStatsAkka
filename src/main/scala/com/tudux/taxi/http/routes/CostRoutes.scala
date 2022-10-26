@@ -2,11 +2,12 @@ package com.tudux.taxi.http.routes
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
+import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
 import com.tudux.taxi.actors.cost.TaxiTripCost
 import com.tudux.taxi.actors.cost.TaxiTripCostCommand._
 import com.tudux.taxi.http.formatters.RouteFormatters._
@@ -19,7 +20,13 @@ import scala.concurrent.{ExecutionContext, Future}
 
 case class CostRoutes(shardedCostActor: ActorRef)(implicit system: ActorSystem, dispatcher: ExecutionContext,timeout: Timeout ) extends SprayJsonSupport
   with TaxiCostStatProtocol
+  with OperationResponseProtocol
 {
+
+  def updateTaxiTripCostResponse(tripId: String, request: UpdateCostInfoRequest) : Future[OperationResponse] = {
+    (shardedCostActor ? request.toCommand(tripId)).mapTo[OperationResponse]
+  }
+
   val routes: Route = {
       pathPrefix("api" / "yellowtaxi" / "cost") {
         get {
@@ -39,13 +46,17 @@ case class CostRoutes(shardedCostActor: ActorRef)(implicit system: ActorSystem, 
             path(Segment) { tripId =>
               put {
                 entity(as[UpdateCostInfoRequest]) { request =>
-               val validatedRequestResponse = validateRequestForDecision(request ,
-                    {
-                    complete(StatusCodes.OK)
+                  validateRequest(request) {
+                    onSuccess(updateTaxiTripCostResponse(tripId,request)) {
+                      case operationResponse@OperationResponse(_, status, _) =>
+                        val statusCode = if (status == "Failure" ) StatusCodes.BadRequest else StatusCodes.OK
+                        complete(HttpResponse(
+                          statusCode,
+                          entity = HttpEntity(
+                            ContentTypes.`application/json`,
+                            operationResponse.toJson.prettyPrint)))
                     }
-                  )
-                  if (validatedRequestResponse.flag) shardedCostActor ! request.toCommand(tripId)
-                  validatedRequestResponse.routeResult
+                  }
                 }
               }
             }

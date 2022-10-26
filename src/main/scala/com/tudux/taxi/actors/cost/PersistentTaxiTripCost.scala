@@ -2,13 +2,10 @@ package com.tudux.taxi.actors.cost
 
 import akka.actor.{ActorLogging, ActorRef, Props}
 import akka.cluster.sharding.ShardRegion
-import akka.persistence.cassandra.Retries
-import akka.persistence.{PersistentActor, Recovery}
+import akka.persistence.PersistentActor
 import com.tudux.taxi.actors.aggregators.AggregatorStat
 import com.tudux.taxi.actors.aggregators.CostAggregatorCommand.{AddCostAggregatorValues, UpdateCostAggregatorValues}
 import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
-
-import java.io.File
 
 case class TaxiTripCost(vendorID: Int,
                         tripDistance: Double,
@@ -33,11 +30,6 @@ object TaxiTripCostEvent{
                                      ) extends TaxiCostEvent
   case class UpdatedTaxiTripCostEvent(tripId: String, taxiTripCost: TaxiTripCost) extends TaxiCostEvent
   case class DeletedTaxiTripCostEvent(tripId: String) extends TaxiCostEvent
-}
-
-sealed trait TaxiCostResponse
-object TaxiCostResponse {
-
 }
 
 object CostActorShardingSettings {
@@ -88,7 +80,6 @@ class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor w
 
   import TaxiTripCostCommand._
   import TaxiTripCostEvent._
-  import TaxiCostResponse._
 
   var state : TaxiTripCost = null
   override def persistenceId: String = "Cost" + "-" + context.parent.path.name + "-" + self.path.name
@@ -129,6 +120,7 @@ class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor w
           taxiTripCost.tipAmount - state.tipAmount, //new minus old
           state.tipAmount)
         state = taxiTripCost
+        sender() ! OperationResponse(tripId)
         log.info(s"Updated cost stat: $taxiTripCost")
         }
 
@@ -136,6 +128,7 @@ class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor w
       log.info("Deleting taxi cost stat")
       persist(DeletedTaxiTripCostEvent(tripId)) { _ =>
         state = state.copy(deletedFlag = true)
+        sender() ! OperationResponse(tripId)
       }
 
     case PrintTimeToLoad(startTimeMillis) =>

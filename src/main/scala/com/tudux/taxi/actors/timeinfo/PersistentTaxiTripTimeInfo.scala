@@ -111,6 +111,7 @@ class PersistentTaxiTripTimeInfo(timeAggregator: ActorRef) extends PersistentAct
       persist(TaxiTripTimeInfoUpdatedEvent(tripId,taxiTripTimeInfoStat)) { _ =>
         timeAggregator ! UpdateTimeAggregatorValues(state,taxiTripTimeInfoStat)
         state = taxiTripTimeInfoStat
+        sender() ! OperationResponse(tripId)
       }
     case GetTaxiTripTimeInfo(_) =>
       sender() ! state
@@ -118,6 +119,7 @@ class PersistentTaxiTripTimeInfo(timeAggregator: ActorRef) extends PersistentAct
       log.info("Deleting taxi cost stat")
       persist(DeletedTaxiTripTimeInfoEvent(tripId)) { _ =>
         state = state.copy(deletedFlag = true)
+        sender() ! OperationResponse(tripId)
       }
 
     case _ =>

@@ -106,11 +106,13 @@ class PersistentTaxiTripPassengerInfo extends PersistentActor with ActorLogging 
       log.info(s"Applying update for Passenger Info for id $tripId")
       persist(UpdatedTaxiTripPassengerEvent(tripId, taxiTripPassengerInfoStat)) { _ =>
         state = taxiTripPassengerInfoStat
+        sender() ! OperationResponse(tripId)
       }
     case DeleteTaxiTripPassenger(tripId) =>
       log.info("Deleting taxi cost stat")
       persist(DeletedTaxiTripPassengerEvent(tripId)) { _ =>
         state = state.copy(deletedFlag = true)
+        sender() ! OperationResponse(tripId)
       }
 
     case _ =>

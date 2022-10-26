@@ -2,11 +2,12 @@ package com.tudux.taxi.http.routes
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
+import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
 import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfo
 import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfoCommand.GetTaxiTripExtraInfo
 import com.tudux.taxi.http.formatters.RouteFormatters._
@@ -15,11 +16,16 @@ import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.generic.auto._
 import spray.json._
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 case class ExtraInfoRoutes(shardedExtraInfoActor: ActorRef)(implicit system: ActorSystem, dispatcher: ExecutionContext,timeout: Timeout ) extends SprayJsonSupport
   with TaxiExtraInfoProtocol
+  with OperationResponseProtocol
 {
+
+  def updateTaxiTripExtraInfoResponse(tripId: String, request: UpdateExtraInfoRequest): Future[OperationResponse] = {
+    (shardedExtraInfoActor ? request.toCommand(tripId)).mapTo[OperationResponse]
+  }
 
   val routes: Route = {
       pathPrefix("api" / "yellowtaxi" / "extrainfo") {
@@ -39,8 +45,15 @@ case class ExtraInfoRoutes(shardedExtraInfoActor: ActorRef)(implicit system: Act
             path(Segment) { tripId =>
               put {
                 entity(as[UpdateExtraInfoRequest]) { request =>
-                  shardedExtraInfoActor ! request.toCommand(tripId)
-                  complete(StatusCodes.OK)
+                    onSuccess(updateTaxiTripExtraInfoResponse(tripId, request)) {
+                      case operationResponse@OperationResponse(_, status, _) =>
+                        val statusCode = if (status == "Failure") StatusCodes.BadRequest else StatusCodes.OK
+                        complete(HttpResponse(
+                          statusCode,
+                          entity = HttpEntity(
+                            ContentTypes.`application/json`,
+                            operationResponse.toJson.prettyPrint)))
+                    }
                 }
               }
             }

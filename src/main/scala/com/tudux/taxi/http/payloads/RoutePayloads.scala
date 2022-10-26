@@ -82,8 +82,8 @@ object RoutePayloads {
   }
 
   case class LoadedStatsResponse(totalCostLoaded: Int, totalExtraInfoLoaded: Int, totalTimeInfoLoaded: Int, totalPassengerInfo: Int)
-  case class CombineCreationResponse(costRepose: OperationResponse, extraInfoResponse: OperationResponse,
-                                     passengerResponse: OperationResponse, timeResponse: OperationResponse)
+  case class CombinedTaxiTripOperationResponse(costResponse: OperationResponse, extraInfoResponse: OperationResponse,
+                                               passengerResponse: OperationResponse, timeResponse: OperationResponse)
   case class FailureResponse(reason: String)
 
   def toHttpEntity(payload: String) = HttpEntity(ContentTypes.`application/json`, payload)

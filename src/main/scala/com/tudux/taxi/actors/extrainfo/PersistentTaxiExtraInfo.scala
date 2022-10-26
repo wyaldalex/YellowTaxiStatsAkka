@@ -25,11 +25,6 @@ object TaxiExtraInfoStatEvent{
   case class DeletedTaxiTripExtraInfoEvent(tripId: String) extends TaxiExtraInfoEvent
 }
 
-sealed trait TaxiExtraInfoResponse
-object TaxiExtraInfoResponse {
-  case class TaxiTripExtraInfoCreatedResponse(id: String) extends TaxiExtraInfoResponse
-}
-
 object ExtraInfoActorShardingSettings {
   import TaxiTripExtraInfoCommand._
 
@@ -77,7 +72,6 @@ class PersistentTaxiExtraInfo extends PersistentActor with ActorLogging {
 
   import TaxiTripExtraInfoCommand._
   import TaxiExtraInfoStatEvent._
-  import TaxiExtraInfoResponse._
 
   //Persistent Actor State
   //var statExtraInfoMap : Map[String,TaxiExtraInfoStat] = Map.empty
@@ -109,6 +103,7 @@ class PersistentTaxiExtraInfo extends PersistentActor with ActorLogging {
       log.info(s"Updating Extra Info Stat $taxiExtraInfoStat")
       persist(TaxiTripExtraInfoUpdatedEvent(tripId, taxiExtraInfoStat)) { _ =>
         state = taxiExtraInfoStat
+        sender() ! OperationResponse(tripId)
       }
 
     case GetTaxiTripExtraInfo(tripId) =>
@@ -117,6 +112,7 @@ class PersistentTaxiExtraInfo extends PersistentActor with ActorLogging {
       log.info("Deleting taxi cost stat")
       persist(DeletedTaxiTripExtraInfoEvent(tripId)) { _ =>
         state = state.copy(deletedFlag = true)
+        sender() ! OperationResponse(tripId)
       }
     case _ =>
       log.info(s"Received something else at ${self.path.name}")

@@ -23,7 +23,6 @@ class MainRouter(shardedCostActor : ActorRef, shardedExtraInfoActor : ActorRef,
   val passengerRoutes = PassengerRoutes(shardedPassengerActor)
   val extraInfoRoutes = ExtraInfoRoutes(shardedExtraInfoActor)
   val serviceRoutes = ServiceRoutes(serviceActor)
-  //val actorInfoRoutes = ActorInfoRoutes(taxiTripActor)
   val pingRoutes = Ping()
 
   val routes: Route = {
@@ -33,7 +32,6 @@ class MainRouter(shardedCostActor : ActorRef, shardedExtraInfoActor : ActorRef,
     passengerRoutes.routes ~
     extraInfoRoutes.routes  ~
     serviceRoutes.routes ~
-    //actorInfoRoutes.routes ~
     pingRoutes.routes
 
 

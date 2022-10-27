@@ -12,7 +12,7 @@ sealed trait TaxiTripTimeInfoCommand
 object TaxiTripTimeInfoCommand {
   case class CreateTaxiTripTimeInfo(tripId: String, taxiTripTimeInfoStat: TaxiTripTimeInfo) extends TaxiTripTimeInfoCommand
   case class GetTaxiTripTimeInfo(tripId: String) extends TaxiTripTimeInfoCommand
-  case class UpdateTaxiTripTimeInfo(tripId: String, taxiTripTimeInfoStat: TaxiTripTimeInfo, timeAggregator: ActorRef = null) extends TaxiTripTimeInfoCommand
+  case class UpdateTaxiTripTimeInfo(tripId: String, taxiTripTimeInfoStat: TaxiTripTimeInfo, timeAggregator: ActorRef = ActorRef.noSender) extends TaxiTripTimeInfoCommand
   case class DeleteTaxiTripTimeInfo(tripId: String) extends TaxiTripTimeInfoCommand
   case object GetTotalTimeInfoInfoLoaded
 }

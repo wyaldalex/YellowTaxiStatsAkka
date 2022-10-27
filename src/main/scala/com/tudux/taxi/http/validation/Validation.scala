@@ -48,14 +48,14 @@ object Validation {
   }
 
   def validateRequired[A: Required](value: A, fieldName: String): ValidationResult[A] = {
-    if (required(value)) value.validNel
-    else EmptyField(fieldName).invalidNel
+    if (required(value)) { value.validNel
+    } else {  EmptyField(fieldName).invalidNel }
   }
 
   def validateMinimum[A: Minimum](value: A, threshold: Double, fieldName: String): ValidationResult[A] = {
-    if (minimum(value, threshold)) value.validNel
-    else if (threshold == 0) NegativeValue(fieldName).invalidNel
-    else BelowMinimumValue(fieldName, threshold).invalidNel
+    if (minimum(value, threshold)) {value.validNel }
+    else if (threshold == 0) { NegativeValue(fieldName).invalidNel }
+    else { BelowMinimumValue(fieldName, threshold).invalidNel }
   }
 
   def validatePairDates[A: MinimumStr](value: A,date1: String, date2: String, fieldName: String, fieldName2 : String) : ValidationResult[A] = {
@@ -66,11 +66,11 @@ object Validation {
     if (tryParseDate1.isSuccess && tryParseDate2.isSuccess) {
       val date1Minutes = format.parse(date1).getTime
       val date2Minutes = format.parse(date2).getTime
-      if (date1Minutes < date2Minutes) value.validNel
-      else EndDateIsLessThanStartDate(fieldName, fieldName2).invalidNel
+      if (date1Minutes < date2Minutes) { (value.validNel) }
+      else { EndDateIsLessThanStartDate(fieldName, fieldName2).invalidNel }
     } else {
-      if(tryParseDate1.isFailure) DateBadFormat(fieldName).invalidNel
-      else DateBadFormat(fieldName2).invalidNel
+      if(tryParseDate1.isFailure) { DateBadFormat(fieldName).invalidNel }
+      else { DateBadFormat(fieldName2).invalidNel }
     }
   }
 

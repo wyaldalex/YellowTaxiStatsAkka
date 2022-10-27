@@ -41,7 +41,7 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
   var numberOfTips : Int = 0
   var totalTipAmount : Double = 0
   var commandsWithoutCheckpoint = 0
-  val MAX_MESSAGES = 900
+  val maxMessages = 900
 
   override def persistenceId: String = id
 
@@ -119,7 +119,7 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
 
   def maybeCheckpoint(): Unit = {
     commandsWithoutCheckpoint += 1
-    if (commandsWithoutCheckpoint >= MAX_MESSAGES) {
+    if (commandsWithoutCheckpoint >= maxMessages) {
       log.info("Saving checkpoint...")
       saveSnapshot((totalDistance,totalAmount,numberOfTips,totalTipAmount)) // save a tuple with the current actor state
       commandsWithoutCheckpoint = 0

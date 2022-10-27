@@ -41,7 +41,7 @@ class PersistentTimeStatsAggregator(id: String) extends PersistentActor with Act
   var totalMinutesTrip : Double = 0
   var totalTrips : Int = 0
   var tripsWithoutCheckpoint = 0
-  val MAX_MESSAGES = 900
+  val maxMessages = 900
 
   override def persistenceId: String = id
   override def receiveCommand: Receive = {
@@ -91,7 +91,7 @@ class PersistentTimeStatsAggregator(id: String) extends PersistentActor with Act
   }
   def maybeCheckpoint(): Unit = {
     tripsWithoutCheckpoint += 1
-    if (tripsWithoutCheckpoint >= MAX_MESSAGES) {
+    if (tripsWithoutCheckpoint >= maxMessages) {
       log.info("Saving checkpoint...")
       saveSnapshot((totalTrips -> totalMinutesTrip)) // save a tuple with the current actor state
       tripsWithoutCheckpoint = 0

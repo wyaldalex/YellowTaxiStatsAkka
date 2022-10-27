@@ -86,7 +86,7 @@ object RoutePayloads {
                                                passengerResponse: OperationResponse, timeResponse: OperationResponse)
   case class FailureResponse(reason: String)
 
-  def toHttpEntity(payload: String) = HttpEntity(ContentTypes.`application/json`, payload)
+  def toHttpEntity(payload: String): HttpEntity.Strict = HttpEntity(ContentTypes.`application/json`, payload)
 
   def validateRequest[R: Validator](request: R)(routeIfValid: Route): Route = {
     validateEntity(request) match {
@@ -96,6 +96,7 @@ object RoutePayloads {
     }
   }
 
+  /*
   case class ValidatedRequestResponse(flag: Boolean, routeResult: Route)
   def validateRequestForDecision[R: Validator](request: R, validRoute: Route): ValidatedRequestResponse = {
     validateEntity(request) match {
@@ -105,7 +106,7 @@ object RoutePayloads {
         complete(StatusCodes.BadRequest, FailureResponse(failures.toList.map(_.errorMessage).mkString(", "))))
     }
   }
-
+*/
   case class TaxiCreatedResponse(
                                   costResponse: Future[OperationResponse],
                                   extraInfoResponse: Future[OperationResponse],

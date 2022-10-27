@@ -21,7 +21,7 @@ case class TaxiTripEntry(vendorID: Int, tpepPickupDatetime: String, tpepDropoffD
 
 sealed trait TaxiTripCommand
 object TaxiTripCommand {
-  case class CreateTaxiTripCommand(taxiTrip: TaxiTripEntry, tripId: String = null) extends  TaxiTripCommand
+  case class CreateTaxiTripCommand(taxiTrip: TaxiTripEntry, tripId: String = "") extends  TaxiTripCommand
   case class CreateTaxiTrip(taxiTrip: TaxiTripEntry) extends TaxiTripCommand
   case class DeleteTaxiTrip(tripId: String) extends TaxiTripCommand
 }
@@ -111,6 +111,7 @@ object TaxiStatAppLoader extends App {
   //val source_csv = Source.fromResource("smallset.csv").mkString
   //val source_csv = Source.fromResource("100ksample.csv").mkString
   val source_csv = Source.fromResource("1ksample.csv").mkString
+  //val source_csv = Source.fromResource("10ksample.csv").mkString
   //val source_csv = Source.fromResource("1millSample.csv").mkString
   val reader = source_csv.asCsvReader[TaxiTripEntry](rfc)
 

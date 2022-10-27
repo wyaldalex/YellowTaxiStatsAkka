@@ -17,7 +17,7 @@ sealed trait TaxiCostCommand
 object TaxiTripCostCommand {
   case class CreateTaxiTripCost(tripId: String, taxiTripCost: TaxiTripCost) extends TaxiCostCommand
   case class GetTaxiTripCost(tripId: String) extends  TaxiCostCommand
-  case class UpdateTaxiTripCost(tripId: String, taxiTripCost: TaxiTripCost, costAggregator: ActorRef = null) extends TaxiCostCommand
+  case class UpdateTaxiTripCost(tripId: String, taxiTripCost: TaxiTripCost, costAggregator: ActorRef = ActorRef.noSender) extends TaxiCostCommand
   case class DeleteTaxiTripCost(tripId: String) extends TaxiCostCommand
   case object GetTotalCostLoaded extends TaxiCostCommand
   case class PrintTimeToLoad(startTimeMillis: Long) extends TaxiCostCommand
@@ -47,7 +47,7 @@ object CostActorShardingSettings {
       val shardId = tripId.hashCode.abs % numberOfEntities
       (shardId.toString, msg)
     case msg@DeleteTaxiTripCost(tripId) =>
-      val shardId = tripId.hashCode.abs % numberOfEntities      
+      val shardId = tripId.hashCode.abs % numberOfEntities
       (shardId.toString, msg)
     case msg@UpdateTaxiTripCost(tripId,_,_) =>
       val shardId = tripId.hashCode.abs % numberOfEntities
@@ -64,7 +64,7 @@ object CostActorShardingSettings {
       shardId.toString
     case DeleteTaxiTripCost(tripId) =>
       val shardId = tripId.hashCode.abs % numberOfShards
-      shardId.toString      
+      shardId.toString
     case UpdateTaxiTripCost(tripId,_, _) =>
       val shardId = tripId.hashCode.abs % numberOfShards
       shardId.toString
@@ -81,7 +81,7 @@ class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor w
   import TaxiTripCostCommand._
   import TaxiTripCostEvent._
 
-  var state : TaxiTripCost = null
+  var state : TaxiTripCost = TaxiTripCost(0,0,0,0,0,0,0,0,0,0)
   override def persistenceId: String = "Cost" + "-" + context.parent.path.name + "-" + self.path.name
   //override def persistenceId : String = "x"
 

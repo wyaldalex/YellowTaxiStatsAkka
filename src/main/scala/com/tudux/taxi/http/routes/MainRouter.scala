@@ -8,8 +8,9 @@ import akka.util.Timeout
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
 
-//TODO X: Return error from persistence layer in the HTTP layer (Pablo Patiño)
-//TODO X: Rename validateRequestForDecision naming (Pablo Patiño)
+//TODO Review 2: Return error from persistence layer in the HTTP layer and avoid false positive response (Pablo Patiño)
+//TODO Review 2: Rename validateRequestForDecision naming (Pablo Patiño)
+//TODO Review 2: Stop overusing 1 actor to forward everything, each route group should use its own specifc actor (Agustin Bettati)
 class MainRouter(shardedCostActor : ActorRef, shardedExtraInfoActor : ActorRef,
                  shardedPassengerActor : ActorRef, shardedTimeInfoActor : ActorRef, serviceActor : ActorRef)(implicit system: ActorSystem)
   {

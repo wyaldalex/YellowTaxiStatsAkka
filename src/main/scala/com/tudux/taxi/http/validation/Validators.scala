@@ -1,7 +1,7 @@
 package com.tudux.taxi.http.validation
 
 import cats.implicits._
-import com.tudux.taxi.http.payloads.RoutePayloads.{CreateTaxiTripRequest, UpdateCostInfoRequest, UpdateTimeInfoRequest}
+import com.tudux.taxi.http.payloads.RoutePayloads.{CreateTaxiTripRequest, UpdateCostInfoRequest, UpdateExtraInfoRequest, UpdatePassengerInfoRequest, UpdateTimeInfoRequest}
 
 object Validators {
 
@@ -62,6 +62,22 @@ object Validators {
 
   }
 
+  def updateExtraInfoRequestValidator : Validator[UpdateExtraInfoRequest] = (request: UpdateExtraInfoRequest) => {
+    val pickupLongitudeValidation = validateRequired(request.pickupLongitude, "pickupLongitude")
+    val pickupLatitudeValidation = validateRequired(request.pickupLatitude, "pickupLatitude")
+    val rateCodeIDValidation = validateRequired(request.rateCodeID, "rateCodeID")
+    val storeAndFwdFlagValidation = validateRequired(request.storeAndFwdFlag, "storeAndFwdFlag")
+    val dropoffLongitudeValidation = validateRequired(request.dropoffLongitude, "dropoffLongitude")
+    val dropoffLatitudeValidation = validateRequired(request.dropoffLatitude, "dropoffLatitude")
 
+    (
+      pickupLongitudeValidation, pickupLatitudeValidation, rateCodeIDValidation, storeAndFwdFlagValidation, dropoffLongitudeValidation,
+      dropoffLatitudeValidation).mapN(UpdateExtraInfoRequest.apply)
 
+  }
+
+  def updatePassengerRequestValidator : Validator[UpdatePassengerInfoRequest] = (request: UpdatePassengerInfoRequest) => {
+    val passengerCountValidation = validateMinimum(request.passengerCount,0, "passengerCount")
+    passengerCountValidation.map(UpdatePassengerInfoRequest.apply)
+  }
 }

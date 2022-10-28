@@ -45,6 +45,7 @@ case class ExtraInfoRoutes(shardedExtraInfoActor: ActorRef)(implicit system: Act
             path(Segment) { tripId =>
               put {
                 entity(as[UpdateExtraInfoRequest]) { request =>
+                  validateRequest(request) {
                     onSuccess(updateTaxiTripExtraInfoResponse(tripId, request)) {
                       case operationResponse@OperationResponse(_, status, _) =>
                         val statusCode = if (status == "Failure") StatusCodes.BadRequest else StatusCodes.OK
@@ -54,6 +55,7 @@ case class ExtraInfoRoutes(shardedExtraInfoActor: ActorRef)(implicit system: Act
                             ContentTypes.`application/json`,
                             operationResponse.toJson.prettyPrint)))
                     }
+                  }
                 }
               }
             }

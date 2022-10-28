@@ -23,7 +23,8 @@ import scala.util.{Failure, Success}
 //docker exec -it yellotaxistatsakka-cassandra-1 cqlsh
 //Visit Swagger Documentation: http://localhost:10001/swagger-ui/index.html
 
-//TODO X: Scala Style tool
+//TODO Review 2: Use scalastyle plugin (Sebastian)
+//TODO Review 2: Use Cluster sharding to avoid reference map (Agustin Bettati)
 object TaxiApp extends App {
 
   def startHttpServer(shardedParentCostActor: ActorRef,

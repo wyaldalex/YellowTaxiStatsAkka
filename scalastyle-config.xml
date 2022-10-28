@@ -115,10 +115,10 @@
  <check level="warning" class="org.scalastyle.file.NewLineAtEofChecker" enabled="true"></check>
  <check level="warning" class="org.scalastyle.file.NoNewLineAtEofChecker" enabled="false"></check>
  <!-- For field name conventions validation: http://www.scalastyle.org/rules-1.0.0.html  -->
- <check enabled="true" class="org.scalastyle.scalariform.FieldNamesChecker" level="warning">
-  <parameters>
-   <parameter name="regex">^[a-z][A-Za-z0-9]*$</parameter>
-   <parameter name="objectFieldRegex">^[A-Z][A-Za-z0-9]*$</parameter>
-  </parameters>
- </check>
+<!-- <check enabled="true" class="org.scalastyle.scalariform.FieldNamesChecker" level="warning">-->
+<!--  <parameters>-->
+<!--   <parameter name="regex">^[a-z][A-Za-z0-9]*$</parameter>-->
+<!--   <parameter name="objectFieldRegex">^[A-Z][A-Za-z0-9]*$</parameter>-->
+<!--  </parameters>-->
+<!-- </check>-->
 </scalastyle>

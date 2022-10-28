@@ -51,10 +51,16 @@ object RoutePayloads {
     def toTimeInfoCommand(tripId: String): CreateTaxiTripTimeInfo = CreateTaxiTripTimeInfo(tripId ,TaxiTripTimeInfo(tpepPickupDatetime, tpepDropoffDatetime))
   }
 
+  object UpdatePassengerInfoRequest {
+    implicit val validator: Validator[UpdatePassengerInfoRequest] = updatePassengerRequestValidator
+  }
   case class UpdatePassengerInfoRequest(passengerCount: Int) {
     def toCommand(tripId: String): UpdateTaxiTripPassenger = UpdateTaxiTripPassenger(tripId, TaxiTripPassengerInfo(passengerCount))
   }
 
+  object UpdateExtraInfoRequest {
+    implicit val validator: Validator[UpdateExtraInfoRequest] = updateExtraInfoRequestValidator
+  }
   case class UpdateExtraInfoRequest(pickupLongitude: Double, pickupLatitude: Double, rateCodeID: Int,
                                     storeAndFwdFlag: String, dropoffLongitude: Double, dropoffLatitude: Double) {
     def toCommand(tripId: String): UpdateTaxiTripExtraInfo = UpdateTaxiTripExtraInfo(tripId, TaxiTripExtraInfo(pickupLongitude, pickupLatitude, rateCodeID,

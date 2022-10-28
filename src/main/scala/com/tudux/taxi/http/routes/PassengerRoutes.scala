@@ -44,14 +44,16 @@ case class PassengerRoutes(shardedPassengerActor: ActorRef)(implicit system: Act
             path(Segment) { tripId =>
               put {
                 entity(as[UpdatePassengerInfoRequest]) { request =>
-                  onSuccess(updateTaxiTripPassengerResponse(tripId, request)) {
-                    case operationResponse@OperationResponse(_, status, _) =>
-                      val statusCode = if (status == "Failure") StatusCodes.BadRequest else StatusCodes.OK
-                      complete(HttpResponse(
-                        statusCode,
-                        entity = HttpEntity(
-                          ContentTypes.`application/json`,
-                          operationResponse.toJson.prettyPrint)))
+                  validateRequest(request) {
+                    onSuccess(updateTaxiTripPassengerResponse(tripId, request)) {
+                      case operationResponse@OperationResponse(_, status, _) =>
+                        val statusCode = if (status == "Failure") StatusCodes.BadRequest else StatusCodes.OK
+                        complete(HttpResponse(
+                          statusCode,
+                          entity = HttpEntity(
+                            ContentTypes.`application/json`,
+                            operationResponse.toJson.prettyPrint)))
+                    }
                   }
                 }
               }

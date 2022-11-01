@@ -48,7 +48,11 @@ case class TimeRoutes(shardedTimeActor: ActorRef)(implicit system: ActorSystem, 
                   validateRequest(request) {
                     onSuccess(updateTaxiTripTimeResponse(tripId, request)) {
                       case operationResponse@OperationResponse(_, status, _) =>
-                        val statusCode = if (status == "Failure") StatusCodes.BadRequest else StatusCodes.OK
+                        //val statusCode = if (status == "Failure") StatusCodes.BadRequest else StatusCodes.OK
+                        val statusCode = status match {
+                          case Right(_) => StatusCodes.Created
+                          case Left(_) => StatusCodes.BadRequest
+                        }
                         complete(HttpResponse(
                           statusCode,
                           entity = HttpEntity(

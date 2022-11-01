@@ -49,7 +49,13 @@ case class CostRoutes(shardedCostActor: ActorRef)(implicit system: ActorSystem, 
                   validateRequest(request) {
                     onSuccess(updateTaxiTripCostResponse(tripId,request)) {
                       case operationResponse@OperationResponse(_, status, _) =>
-                        val statusCode = if (status == "Failure" ) StatusCodes.BadRequest else StatusCodes.OK
+                        //TODO: Akka typed (Major) Classic deprecated
+                        //TODO: replace if with pattern matching, trait with case class, compilator checking, missing typed benefits , enforce type safety, ensure compilation checking
+                        //val statusCode = if (status == "Failure" ) StatusCodes.BadRequest else StatusCodes.OK //TODO Either, typed exception pattern, string not reliable, defined actor protocol
+                        val statusCode = status match {
+                          case Right(_) => StatusCodes.Created
+                          case Left(_) => StatusCodes.BadRequest
+                        }
                         complete(HttpResponse(
                           statusCode,
                           entity = HttpEntity(

@@ -81,12 +81,12 @@ class PersistentTaxiExtraInfo extends PersistentActor with ActorLogging {
   override def persistenceId: String = "ExtraInfo" + "-" + context.parent.path.name + "-" + self.path.name
 
   override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {
-    sender() ! OperationResponse("", "Failure", cause.getMessage)
+    sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage))
     super.onPersistFailure(cause, event, seqNr)
   }
 
   override def onPersistRejected(cause: Throwable, event: Any, seqNr: Long): Unit = {
-    sender() ! OperationResponse("", "Failure", cause.getMessage)
+    sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage))
     super.onPersistFailure(cause, event, seqNr)
   }
 
@@ -96,14 +96,14 @@ class PersistentTaxiExtraInfo extends PersistentActor with ActorLogging {
       persist(TaxiTripExtraInfoCreatedEvent(tripId,taxiExtraInfoStat)) { _ =>
         log.info(s"Creating Extra Info Stat $taxiExtraInfoStat")
         state = taxiExtraInfoStat
-        sender() ! OperationResponse(tripId)
+        sender() ! OperationResponse(tripId,Right("Success"))
 
       }
     case UpdateTaxiTripExtraInfo(tripId,taxiExtraInfoStat) =>
       log.info(s"Updating Extra Info Stat $taxiExtraInfoStat")
       persist(TaxiTripExtraInfoUpdatedEvent(tripId, taxiExtraInfoStat)) { _ =>
         state = taxiExtraInfoStat
-        sender() ! OperationResponse(tripId)
+        sender() ! OperationResponse(tripId,Right("Success"))
       }
 
     case GetTaxiTripExtraInfo(tripId) =>
@@ -112,7 +112,7 @@ class PersistentTaxiExtraInfo extends PersistentActor with ActorLogging {
       log.info("Deleting taxi cost stat")
       persist(DeletedTaxiTripExtraInfoEvent(tripId)) { _ =>
         state = state.copy(deletedFlag = true)
-        sender() ! OperationResponse(tripId)
+        sender() ! OperationResponse(tripId,Right("Success"))
       }
     case _ =>
       log.info(s"Received something else at ${self.path.name}")

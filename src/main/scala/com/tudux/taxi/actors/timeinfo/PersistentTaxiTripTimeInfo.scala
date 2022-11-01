@@ -3,8 +3,12 @@ package com.tudux.taxi.actors.timeinfo
 import akka.actor.{ActorLogging, ActorRef, Props}
 import akka.cluster.sharding.ShardRegion
 import akka.persistence.PersistentActor
+import akka.util.Timeout
 import com.tudux.taxi.actors.aggregators.TimeAggregatorCommand.{AddTimeAggregatorValues, UpdateTimeAggregatorValues}
 import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.DurationInt
 
 case class TaxiTripTimeInfo(tpepPickupDatetime: String, tpepDropoffDatetime: String, deletedFlag: Boolean = false)
 
@@ -12,6 +16,7 @@ sealed trait TaxiTripTimeInfoCommand
 object TaxiTripTimeInfoCommand {
   case class CreateTaxiTripTimeInfo(tripId: String, taxiTripTimeInfoStat: TaxiTripTimeInfo) extends TaxiTripTimeInfoCommand
   case class GetTaxiTripTimeInfo(tripId: String) extends TaxiTripTimeInfoCommand
+  //TODO: Typed safety for optional actorref
   case class UpdateTaxiTripTimeInfo(tripId: String, taxiTripTimeInfoStat: TaxiTripTimeInfo, timeAggregator: ActorRef = ActorRef.noSender) extends TaxiTripTimeInfoCommand
   case class DeleteTaxiTripTimeInfo(tripId: String) extends TaxiTripTimeInfoCommand
   case object GetTotalTimeInfoInfoLoaded
@@ -82,6 +87,9 @@ class PersistentTaxiTripTimeInfo(timeAggregator: ActorRef) extends PersistentAct
   import TaxiTripTimeInfoStatEvent._
   import TaxiTripTimeResponse._
 
+  import akka.pattern.{ask, pipe}
+  implicit val ec: ExecutionContext = context.dispatcher
+  implicit val timeout = Timeout(5 seconds)
 
   var state : TaxiTripTimeInfo = TaxiTripTimeInfo("","")
 
@@ -89,12 +97,12 @@ class PersistentTaxiTripTimeInfo(timeAggregator: ActorRef) extends PersistentAct
   override def persistenceId: String = "TimeInfo" + "-" + context.parent.path.name + "-" + self.path.name
 
   override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {
-    sender() ! OperationResponse("", "Failure", cause.getMessage)
+    sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage))
     super.onPersistFailure(cause, event, seqNr)
   }
 
   override def onPersistRejected(cause: Throwable, event: Any, seqNr: Long): Unit = {
-    sender() ! OperationResponse("", "Failure", cause.getMessage)
+    sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage))
     super.onPersistFailure(cause, event, seqNr)
   }
 
@@ -103,15 +111,15 @@ class PersistentTaxiTripTimeInfo(timeAggregator: ActorRef) extends PersistentAct
       persist(TaxiTripTimeInfoCreatedEvent(tripId,taxiTripTimeInfoStat)) { _ =>
         log.info(s"Creating Trip Time Info Stat $taxiTripTimeInfoStat")
         state = taxiTripTimeInfoStat
-        timeAggregator ! AddTimeAggregatorValues(taxiTripTimeInfoStat)
-        sender() ! OperationResponse(tripId)
+        (timeAggregator ? AddTimeAggregatorValues(tripId,taxiTripTimeInfoStat)).pipeTo(sender())
+        //sender() ! OperationResponse(tripId,Right("Success"))
       }
     case UpdateTaxiTripTimeInfo(tripId, taxiTripTimeInfoStat, _) =>
       log.info("Updating Time Info ")
       persist(TaxiTripTimeInfoUpdatedEvent(tripId,taxiTripTimeInfoStat)) { _ =>
-        timeAggregator ! UpdateTimeAggregatorValues(state,taxiTripTimeInfoStat)
         state = taxiTripTimeInfoStat
-        sender() ! OperationResponse(tripId)
+        (timeAggregator ? UpdateTimeAggregatorValues(tripId,state,taxiTripTimeInfoStat)).pipeTo(sender())
+        //sender() ! OperationResponse(tripId,Right("Success"))
       }
     case GetTaxiTripTimeInfo(_) =>
       sender() ! state
@@ -119,7 +127,7 @@ class PersistentTaxiTripTimeInfo(timeAggregator: ActorRef) extends PersistentAct
       log.info("Deleting taxi cost stat")
       persist(DeletedTaxiTripTimeInfoEvent(tripId)) { _ =>
         state = state.copy(deletedFlag = true)
-        sender() ! OperationResponse(tripId)
+        sender() ! OperationResponse(tripId,Right("Success"))
       }
 
     case _ =>

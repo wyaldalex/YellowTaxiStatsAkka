@@ -8,7 +8,6 @@ import akka.util.Timeout
 import com.tudux.taxi.actors.aggregators.{PersistentCostStatsAggregator, PersistentTimeStatsAggregator}
 import com.tudux.taxi.actors.cost.{CostActorShardingSettings, PersistentTaxiTripCost}
 import com.tudux.taxi.actors.extrainfo.{ExtraInfoActorShardingSettings, PersistentTaxiExtraInfo}
-import com.tudux.taxi.actors.loader.TaxiTripActor
 import com.tudux.taxi.actors.passenger.{PassengerInfoActorShardingSettings, PersistentTaxiTripPassengerInfo}
 import com.tudux.taxi.actors.service.ServiceActor
 import com.tudux.taxi.actors.timeinfo.{PersistentTaxiTripTimeInfo, TimeInfoActorShardingSettings}
@@ -23,8 +22,8 @@ import scala.util.{Failure, Success}
 //docker exec -it yellotaxistatsakka-cassandra-1 cqlsh
 //Visit Swagger Documentation: http://localhost:10001/swagger-ui/index.html
 
-//TODO Review 2: Use scalastyle plugin (Sebastian)
-//TODO Review 2: Use Cluster sharding to avoid reference map (Agustin Bettati)
+//TODO Review 2: Use scalastyle plugin (Sebastian) (Minor)
+//TODO Review 2: Use Cluster sharding to avoid reference map (Agustin Bettati) (Major)
 object TaxiApp extends App {
 
   def startHttpServer(shardedParentCostActor: ActorRef,

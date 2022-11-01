@@ -2,6 +2,7 @@ package com.tudux.taxi.actors.aggregators
 
 import akka.actor.{ActorLogging, Props}
 import akka.persistence.{PersistentActor, SaveSnapshotFailure, SaveSnapshotSuccess, SnapshotOffer}
+import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
 
 //classes
 case class AggregatorStat(totalAmount: Double, distance: Double, tipAmount: Double)
@@ -9,8 +10,8 @@ case class AggregatorStat(totalAmount: Double, distance: Double, tipAmount: Doub
 //commands
 sealed trait CostAggregatorCommand
 object  CostAggregatorCommand {
-  case class AddCostAggregatorValues(statId: String,stat: AggregatorStat)
-  case class UpdateCostAggregatorValues(totalAmountDelta: Double, distanceDelta: Double, tipAmountDelta: Double, tipAmount: Double)
+  case class AddCostAggregatorValues(tripId: String,stat: AggregatorStat)
+  case class UpdateCostAggregatorValues(tripId: String,totalAmountDelta: Double, distanceDelta: Double, tipAmountDelta: Double, tipAmount: Double)
   case class CalculateTripDistanceCost(distance: Double) extends CostAggregatorCommand
   case object GetAverageTipAmount extends CostAggregatorCommand
 
@@ -18,7 +19,7 @@ object  CostAggregatorCommand {
 //events
 sealed trait CostAggregatorEvent
 object CostAggregatorEvent{
-  case class AddedCostAggregatorValuesEvent(statId: String,stat: AggregatorStat) extends CostAggregatorEvent
+  case class AddedCostAggregatorValuesEvent(tripId: String,stat: AggregatorStat) extends CostAggregatorEvent
   case class UpdatedCostAggregatorValuesEvent(totalAmountDelta: Double, distanceDelta: Double, tipAmountDelta: Double, tipAmount: Double) extends CostAggregatorEvent
 }
 //responses
@@ -46,17 +47,17 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
   override def persistenceId: String = id
 
   override def receiveCommand: Receive = {
-    case AddCostAggregatorValues(statId,stat) =>
+    case AddCostAggregatorValues(tripId,stat) =>
       log.info("Updating Cost Aggregator")
-      persist(AddedCostAggregatorValuesEvent(statId,stat)) { _ =>
+      persist(AddedCostAggregatorValuesEvent(tripId,stat)) { _ =>
         totalAmount += stat.totalAmount
         totalDistance += stat.distance
         if (stat.tipAmount > 0) {
           totalTipAmount += stat.tipAmount
           numberOfTips += 1
         }
+        sender() ! OperationResponse(tripId,Right("Success"))
         maybeCheckpoint()
-
       }
     case CalculateTripDistanceCost(distance) =>
       log.info("Calculating estimated trip cost")
@@ -64,7 +65,7 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
     case GetAverageTipAmount =>
       sender() ! GetAverageTipAmountResponse(totalTipAmount / numberOfTips)
     //in case of distance or total amount updates special handling is requiered...
-    case UpdateCostAggregatorValues(totalAmountDelta,distanceDelta,tipAmountDelta,tipAmount) =>
+    case UpdateCostAggregatorValues(tripId,totalAmountDelta,distanceDelta,tipAmountDelta,tipAmount) =>
       log.info("Updating Cost Aggregator Values")
       persist(UpdatedCostAggregatorValuesEvent(totalAmountDelta, distanceDelta, tipAmountDelta, tipAmount)) { _ =>
         totalAmount += totalAmountDelta
@@ -79,6 +80,7 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
         } else {
           totalTipAmount += tipAmountDelta
         }
+        sender() ! OperationResponse(tripId,Right("Success"))
         maybeCheckpoint()
       }
     //SNAPSHOT related
@@ -89,8 +91,8 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
   }
 
   override def receiveRecover: Receive = {
-    case AddedCostAggregatorValuesEvent(statId,stat) =>
-      log.info(s"Recovering cost aggregator stat $statId")
+    case AddedCostAggregatorValuesEvent(tripId,stat) =>
+      log.info(s"Recovering cost aggregator stat $tripId")
       totalAmount += stat.totalAmount
       totalDistance += stat.distance
       if (stat.tipAmount > 0) {

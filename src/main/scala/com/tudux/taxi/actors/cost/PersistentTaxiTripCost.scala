@@ -3,9 +3,13 @@ package com.tudux.taxi.actors.cost
 import akka.actor.{ActorLogging, ActorRef, Props}
 import akka.cluster.sharding.ShardRegion
 import akka.persistence.PersistentActor
+import akka.util.Timeout
 import com.tudux.taxi.actors.aggregators.AggregatorStat
 import com.tudux.taxi.actors.aggregators.CostAggregatorCommand.{AddCostAggregatorValues, UpdateCostAggregatorValues}
 import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.DurationInt
 
 case class TaxiTripCost(vendorID: Int,
                         tripDistance: Double,
@@ -77,23 +81,28 @@ object PersistentTaxiTripCost {
   def props(costAggregator: ActorRef): Props = Props(new PersistentTaxiTripCost(costAggregator))
 }
 class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor with ActorLogging {
-
+//Scala vs Golang,NodeJs
   import TaxiTripCostCommand._
   import TaxiTripCostEvent._
+
+  import akka.pattern.{ask, pipe}
+  implicit val ec: ExecutionContext = context.dispatcher
+  implicit val timeout = Timeout(5 seconds)
 
   var state : TaxiTripCost = TaxiTripCost(0,0,0,0,0,0,0,0,0,0)
   override def persistenceId: String = "Cost" + "-" + context.parent.path.name + "-" + self.path.name
   //override def persistenceId : String = "x"
 
   override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {
-    sender() ! OperationResponse("", "Failure", cause.getMessage)
-    log.info("is persist failure being triggered?")
+    sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage)) //TODO: used typed objects instead of raw strings (missing typed lang benefits), research: benefits from typing and monads, importance
+    //fp simplified , de Alexander Kelvin
+    log.error("is persist failure being triggered?")
     super.onPersistFailure(cause, event, seqNr)
   }
 
   override def onPersistRejected(cause: Throwable, event: Any, seqNr: Long): Unit = {
-    sender() ! OperationResponse("", "Failure", cause.getMessage)
-    log.info("is persist rejected being triggered?")
+    sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage))
+    log.error("is persist rejected being triggered?")
     super.onPersistFailure(cause, event, seqNr)
   }
 
@@ -103,8 +112,9 @@ class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor w
         log.info(s"Creating Taxi Cost $tripId at location ${self.path.name}")
         state = taxiTripCost
         log.info(s"Created cost stat: $taxiTripCost")
-        costAggregator ! AddCostAggregatorValues(tripId,AggregatorStat(taxiTripCost.totalAmount,taxiTripCost.tripDistance,taxiTripCost.tipAmount))
-        sender() ! OperationResponse(tripId)
+        //TODO: use specific log level         //May not succeed
+        (costAggregator ? AddCostAggregatorValues(tripId,AggregatorStat(taxiTripCost.totalAmount,taxiTripCost.tripDistance,taxiTripCost.tipAmount))).pipeTo(sender())
+        //sender() ! OperationResponse(tripId,Right("Success"))
       }
 
     case GetTaxiTripCost(tripId) =>
@@ -114,13 +124,14 @@ class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor w
     case UpdateTaxiTripCost(tripId,taxiTripCost,_) =>
 
       persist(UpdatedTaxiTripCostEvent(tripId, taxiTripCost)) { _ =>
-        costAggregator ! UpdateCostAggregatorValues(
+        state = taxiTripCost
+        (costAggregator ? UpdateCostAggregatorValues(
+          tripId,
           taxiTripCost.totalAmount-state.totalAmount,
           taxiTripCost.tripDistance-state.tripDistance,
           taxiTripCost.tipAmount - state.tipAmount, //new minus old
-          state.tipAmount)
-        state = taxiTripCost
-        sender() ! OperationResponse(tripId)
+          state.tipAmount)).pipeTo(sender())
+        //sender() ! OperationResponse(tripId,Right("Success"))
         log.info(s"Updated cost stat: $taxiTripCost")
         }
 
@@ -128,7 +139,7 @@ class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor w
       log.info("Deleting taxi cost stat")
       persist(DeletedTaxiTripCostEvent(tripId)) { _ =>
         state = state.copy(deletedFlag = true)
-        sender() ! OperationResponse(tripId)
+        sender() ! OperationResponse(tripId,Right("Success"))
       }
 
     case PrintTimeToLoad(startTimeMillis) =>

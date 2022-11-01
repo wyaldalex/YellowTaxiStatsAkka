@@ -31,6 +31,7 @@ object TaxiTripCommand {
 
 
 }
+/*
 sealed trait TaxiTripResponse
 object TaxiTripResponse {
   case class TaxiTripCreatedResponse(tripId: String) extends TaxiTripResponse
@@ -79,7 +80,7 @@ class TaxiTripActor(parentCostShardedActor: ActorRef,parentExtraInfoShardedActor
 
   }
 
-}
+} */
 
 object TaxiStatAppLoader extends App {
 
@@ -105,8 +106,8 @@ object TaxiStatAppLoader extends App {
   val parentPassengerShardRegionRef: ActorRef = createShardedPassengerInfoActor(system)
   val parentTimeInfoShardRegionRef: ActorRef = createShardedTimeInfoActor(system,timeAggregatorActor)
 
-  val taxiTripActor = system.actorOf(TaxiTripActor.props(parentCostShardRegionRef,parentExtraInfoShardRegionRef,
-    parentPassengerShardRegionRef,parentTimeInfoShardRegionRef), "parentTaxiActor")
+  /*val taxiTripActor = system.actorOf(TaxiTripActor.props(parentCostShardRegionRef,parentExtraInfoShardRegionRef,
+    parentPassengerShardRegionRef,parentTimeInfoShardRegionRef), "parentTaxiActor") */
 
   import kantan.csv._
   import kantan.csv.ops._ // Automatic derivation of codecs.
@@ -129,6 +130,7 @@ object TaxiStatAppLoader extends App {
 //      2,"2015-01-15 19:05:39","2015-01-15 19:23:42",1,1.59,-73.993896484375,40.750110626220703,1,"N",-73.974784851074219,40.750617980957031,1,12,1,0.5,3.25,0,0.3,17.05
 //    ))))
 //  })
+  //TODO: More robust loader, buisiness need
   var loaderCounter = 1
   import akka.pattern.ask
   reader.foreach(either => {

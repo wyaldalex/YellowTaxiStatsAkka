@@ -2,14 +2,15 @@ package com.tudux.taxi.actors.aggregators
 
 import akka.actor.{ActorLogging, Props}
 import akka.persistence.{PersistentActor, SaveSnapshotFailure, SaveSnapshotSuccess, SnapshotOffer}
+import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
 import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfo
 
 //commands
 sealed trait TimeAggregatorCommand
 object TimeAggregatorCommand  {
-  case class AddTimeAggregatorValues(time: TaxiTripTimeInfo) extends TimeAggregatorCommand
+  case class AddTimeAggregatorValues(tripId: String,time: TaxiTripTimeInfo) extends TimeAggregatorCommand
   case object GetAverageTripTime extends TimeAggregatorCommand
-  case class UpdateTimeAggregatorValues(preTime: TaxiTripTimeInfo, newTime: TaxiTripTimeInfo) extends TimeAggregatorCommand
+  case class UpdateTimeAggregatorValues(tripId: String,preTime: TaxiTripTimeInfo, newTime: TaxiTripTimeInfo) extends TimeAggregatorCommand
 }
 //events
 sealed trait TimeAggregatorEvent
@@ -45,19 +46,21 @@ class PersistentTimeStatsAggregator(id: String) extends PersistentActor with Act
 
   override def persistenceId: String = id
   override def receiveCommand: Receive = {
-    case AddTimeAggregatorValues(taxiStat) =>
+    case AddTimeAggregatorValues(tripId,taxiStat) =>
       log.info("Adding time aggregator values")
       persist(AddedTimeAggregatorValuesEvent(taxiStat)) { _ =>
         val tripMinutes = getMinutes(taxiStat)
         totalMinutesTrip += tripMinutes
         totalTrips += 1
+        sender() ! OperationResponse(tripId,Right("Success"))
         maybeCheckpoint()
       }
-    case UpdateTimeAggregatorValues(preTime,newTime) =>
+    case UpdateTimeAggregatorValues(tripId,preTime,newTime) =>
       log.info("Updating time aggregator values")
       persist(UpdatedTimeAggregatorValuesEvent(preTime, newTime)) { _ =>
         val timeDelta = getMinutes(newTime) - getMinutes(preTime)
         totalMinutesTrip += timeDelta
+        sender() ! OperationResponse(tripId,Right("Success"))
         maybeCheckpoint()
       }
 

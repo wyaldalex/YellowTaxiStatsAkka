@@ -27,9 +27,9 @@ object TaxiTripPassengerInfoStatEvent{
 object PassengerInfoActorShardingSettings {
   import TaxiTripPassengerInfoCommand._
 
-  val numberOfShards = 10 // use 10x number of nodes in your cluster
-  val numberOfEntities = 100 //10x number of shards
-  //this help to map the corresponding message to a respective entity
+  val numberOfShards = 10 //  use 10x number of nodes in your cluster
+  val numberOfEntities = 100 // 10x number of shards
+  // this help to map the corresponding message to a respective entity
   val extractEntityId: ShardRegion.ExtractEntityId = {
     case createTaxiTripPassengerInfo@CreateTaxiTripPassengerInfo(tripId,_) =>
       val entityId = tripId.hashCode.abs % numberOfEntities
@@ -45,7 +45,7 @@ object PassengerInfoActorShardingSettings {
       (shardId.toString, msg)
   }
 
-  //this help to map the corresponding message to a respective shard
+  // this help to map the corresponding message to a respective shard
   val extractShardId: ShardRegion.ExtractShardId = {
     case CreateTaxiTripPassengerInfo(tripId,_) =>
       val shardId = tripId.hashCode.abs % numberOfShards
@@ -74,7 +74,7 @@ class PersistentTaxiTripPassengerInfo extends PersistentActor with ActorLogging 
 
   var state : TaxiTripPassengerInfo = TaxiTripPassengerInfo(0)
 
-  //override def persistenceId: String = id
+  // override def persistenceId: String = id
   override def persistenceId: String = "PassengerInfo" + "-" + context.parent.path.name + "-" + self.path.name
 
   override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {

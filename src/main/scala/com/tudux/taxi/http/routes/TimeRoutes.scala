@@ -34,7 +34,7 @@ case class TimeRoutes(shardedTimeActor: ActorRef)(implicit system: ActorSystem, 
             println(s"Received some statID $tripId")
             complete(
               (shardedTimeActor ? GetTaxiTripTimeInfo(tripId.toString))
-                // .mapTo[Option[TaxiTripTimeInfoStat]]
+                //  .mapTo[Option[TaxiTripTimeInfoStat]]
                 .mapTo[TaxiTripTimeInfo]
                 .map(_.toJson.prettyPrint)
                 .map(toHttpEntity)
@@ -48,7 +48,7 @@ case class TimeRoutes(shardedTimeActor: ActorRef)(implicit system: ActorSystem, 
                   validateRequest(request) {
                     onSuccess(updateTaxiTripTimeResponse(tripId, request)) {
                       case operationResponse@OperationResponse(_, status, _) =>
-                        //val statusCode = if (status == "Failure") StatusCodes.BadRequest else StatusCodes.OK
+                        // val statusCode = if (status == "Failure") StatusCodes.BadRequest else StatusCodes.OK
                         val statusCode = status match {
                           case Right(_) => StatusCodes.Created
                           case Left(_) => StatusCodes.BadRequest

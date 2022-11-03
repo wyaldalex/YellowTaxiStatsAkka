@@ -28,7 +28,7 @@ object TaxiTripCostCommand {
 
 sealed trait TaxiCostEvent
 object TaxiTripCostEvent{
-  case class TaxiTripCostCreatedEvent(tripId: String, taxiTripCost: TaxiTripCost //, migrationError: String = "Cause Failure"
+  case class TaxiTripCostCreatedEvent(tripId: String, taxiTripCost: TaxiTripCost // , migrationError: String = "Cause Failure"
                                      ) extends TaxiCostEvent
   case class UpdatedTaxiTripCostEvent(tripId: String, taxiTripCost: TaxiTripCost) extends TaxiCostEvent
   case class DeletedTaxiTripCostEvent(tripId: String) extends TaxiCostEvent
@@ -38,9 +38,9 @@ object CostActorShardingSettings {
 
   import TaxiTripCostCommand._
 
-  val numberOfShards = 10 // use 10x number of nodes in your cluster
-  val numberOfEntities = 100 //10x number of shards
-  //this help to map the corresponding message to a respective entity
+  val numberOfShards = 10 //  use 10x number of nodes in your cluster
+  val numberOfEntities = 100 // 10x number of shards
+  // this help to map the corresponding message to a respective entity
   val extractEntityId: ShardRegion.ExtractEntityId = {
     case createTaxiTripCost@CreateTaxiTripCost(tripId,_) =>
       val entityId = tripId.hashCode.abs % numberOfEntities
@@ -56,7 +56,7 @@ object CostActorShardingSettings {
       (shardId.toString, msg)
   }
 
-  //this help to map the corresponding message to a respective shard
+  // this help to map the corresponding message to a respective shard
   val extractShardId: ShardRegion.ExtractShardId = {
     case CreateTaxiTripCost(tripId,_) =>
       val shardId = tripId.hashCode.abs % numberOfShards
@@ -79,7 +79,7 @@ object PersistentTaxiTripCost {
   def props(costAggregator: ActorRef): Props = Props(new PersistentTaxiTripCost(costAggregator))
 }
 class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor with ActorLogging {
-//Scala vs Golang,NodeJs
+// Scala vs Golang,NodeJs
   import TaxiTripCostCommand._
   import TaxiTripCostEvent._
 
@@ -89,11 +89,11 @@ class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor w
 
   var state : TaxiTripCost = TaxiTripCost(0,0,0,0,0,0,0,0,0,0)
   override def persistenceId: String = "Cost" + "-" + context.parent.path.name + "-" + self.path.name
-  //override def persistenceId : String = "x"
+  // override def persistenceId : String = "x"
 
   override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {
-    sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage)) //TODO: used typed objects instead of raw strings (missing typed lang benefits), research: benefits from typing and monads, importance
-    //fp simplified , de Alexander Kelvin
+    sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage)) // TODO: used typed objects instead of raw strings (missing typed lang benefits), research: benefits from typing and monads, importance
+    // fp simplified , de Alexander Kelvin
     log.error("persist failure being triggered")
     super.onPersistFailure(cause, event, seqNr)
   }
@@ -110,9 +110,9 @@ class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor w
         log.info(s"Creating Taxi Cost $tripId at location ${self.path.name}")
         state = taxiTripCost
         log.info(s"Created cost stat: $taxiTripCost")
-        //TODO: use specific log level         //May not succeed
+        // TODO: use specific log level         // May not succeed
         (costAggregator ? AddCostAggregatorValues(tripId,AggregatorStat(taxiTripCost.totalAmount,taxiTripCost.tripDistance,taxiTripCost.tipAmount))).pipeTo(sender())
-        //sender() ! OperationResponse(tripId,Right("Success"))
+        // sender() ! OperationResponse(tripId,Right("Success"))
       }
 
     case GetTaxiTripCost(tripId) =>
@@ -126,9 +126,9 @@ class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor w
           tripId,
           taxiTripCost.totalAmount-state.totalAmount,
           taxiTripCost.tripDistance-state.tripDistance,
-          taxiTripCost.tipAmount - state.tipAmount, //new minus old
+          taxiTripCost.tipAmount - state.tipAmount, // new minus old
           state.tipAmount)).pipeTo(sender())
-        //sender() ! OperationResponse(tripId,Right("Success"))
+        // sender() ! OperationResponse(tripId,Right("Success"))
         log.info(s"Updated cost stat: $taxiTripCost")
         }
 

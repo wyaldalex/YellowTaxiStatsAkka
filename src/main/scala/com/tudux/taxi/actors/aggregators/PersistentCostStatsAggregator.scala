@@ -4,10 +4,10 @@ import akka.actor.{ActorLogging, Props}
 import akka.persistence.{PersistentActor, SaveSnapshotFailure, SaveSnapshotSuccess, SnapshotOffer}
 import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
 
-//classes
+// classes
 case class AggregatorStat(totalAmount: Double, distance: Double, tipAmount: Double)
 
-//commands
+// commands
 sealed trait CostAggregatorCommand
 object  CostAggregatorCommand {
   case class AddCostAggregatorValues(tripId: String,stat: AggregatorStat)
@@ -16,13 +16,13 @@ object  CostAggregatorCommand {
   case object GetAverageTipAmount extends CostAggregatorCommand
 
 }
-//events
+//  events
 sealed trait CostAggregatorEvent
 object CostAggregatorEvent{
   case class AddedCostAggregatorValuesEvent(tripId: String,stat: AggregatorStat) extends CostAggregatorEvent
   case class UpdatedCostAggregatorValuesEvent(totalAmountDelta: Double, distanceDelta: Double, tipAmountDelta: Double, tipAmount: Double) extends CostAggregatorEvent
 }
-//responses
+// responses
 sealed trait CostAggregatorResponse
 object CostAggregatorResponse {
   case class CalculateTripDistanceCostResponse(estimatedCost: Double) extends CostAggregatorResponse
@@ -46,7 +46,7 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
 
   override def persistenceId: String = id
 
-  //safe double comparison as suggested by scapegoat
+  // safe double comparison as suggested by scapegoat
   def safeComparison(x: Double, y: Double, precision: Double): Boolean = {
     if ((x - y).abs < precision) true else false
   }
@@ -82,17 +82,17 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
       sender() ! CalculateTripDistanceCostResponse((totalAmount/totalDistance) * distance)
     case GetAverageTipAmount =>
       sender() ! GetAverageTipAmountResponse(totalTipAmount / numberOfTips)
-    //in case of distance or total amount updates special handling is requiered...
+    // in case of distance or total amount updates special handling is requiered...
     case UpdateCostAggregatorValues(tripId,totalAmountDelta,distanceDelta,tipAmountDelta,tipAmount) =>
       log.info("Updating Cost Aggregator Values")
       persist(UpdatedCostAggregatorValuesEvent(totalAmountDelta, distanceDelta, tipAmountDelta, tipAmount)) { _ =>
         totalAmount += totalAmountDelta
         totalDistance += distanceDelta
-        //new 140 old 100 n = +40
-        //new 100 old 140 n = -40
-        //new 100 old 0 = (+1)  (+tipAmount)
-        //new 0 old n = (-1) (-tipAmountDelta)
-        if (safeComparison(tipAmountDelta,tipAmount,0.000001)) { //new tip
+        // new 140 old 100 n = +40
+        // new 100 old 140 n = -40
+        // new 100 old 0 = (+1)  (+tipAmount)
+        // new 0 old n = (-1) (-tipAmountDelta)
+        if (safeComparison(tipAmountDelta,tipAmount,0.000001)) { // new tip
           numberOfTips += 1
           totalTipAmount += tipAmount
         } else {
@@ -101,7 +101,7 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
         sender() ! OperationResponse(tripId,Right("Success"))
         maybeCheckpoint()
       }
-    //SNAPSHOT related
+    // SNAPSHOT related
     case SaveSnapshotSuccess(metadata) =>
       log.info(s"saving snapshot succeeded: $metadata")
     case SaveSnapshotFailure(metadata, reason) =>
@@ -120,15 +120,15 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
     case UpdatedCostAggregatorValuesEvent(totalAmountDelta, distanceDelta, tipAmountDelta, tipAmount)  =>
       totalAmount += totalAmountDelta
       totalDistance += distanceDelta
-      if (safeComparison(tipAmountDelta,tipAmount,0.000001)) { //new tip
+      if (safeComparison(tipAmountDelta,tipAmount,0.000001)) { // new tip
         numberOfTips += 1
         totalTipAmount += tipAmount
       } else {
         totalTipAmount += tipAmountDelta
       }
     case SnapshotOffer(metadata, contents) =>
-      //WARNING: Saved state has to match with the state update operations
-      //saveSnapshot((totalDistance,totalAmount,numberOfTips,totalTipAmount))
+      // WARNING: Saved state has to match with the state update operations
+      // saveSnapshot((totalDistance,totalAmount,numberOfTips,totalTipAmount))
       log.info(s"Recovered snapshot: $metadata")
       val snapState = contents.asInstanceOf[Tuple4[Double, Double,Int,Double]]
       totalDistance = snapState._1
@@ -141,7 +141,7 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
     commandsWithoutCheckpoint += 1
     if (commandsWithoutCheckpoint >= maxMessages) {
       log.info("Saving checkpoint...")
-      saveSnapshot((totalDistance,totalAmount,numberOfTips,totalTipAmount)) // save a tuple with the current actor state
+      saveSnapshot((totalDistance,totalAmount,numberOfTips,totalTipAmount)) //  save a tuple with the current actor state
       commandsWithoutCheckpoint = 0
     }
   }

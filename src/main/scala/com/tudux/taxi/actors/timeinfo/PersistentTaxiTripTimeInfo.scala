@@ -16,7 +16,7 @@ sealed trait TaxiTripTimeInfoCommand
 object TaxiTripTimeInfoCommand {
   case class CreateTaxiTripTimeInfo(tripId: String, taxiTripTimeInfoStat: TaxiTripTimeInfo) extends TaxiTripTimeInfoCommand
   case class GetTaxiTripTimeInfo(tripId: String) extends TaxiTripTimeInfoCommand
-  //TODO: Typed safety for optional actorref
+  // TODO: Typed safety for optional actorref
   case class UpdateTaxiTripTimeInfo(tripId: String, taxiTripTimeInfoStat: TaxiTripTimeInfo, timeAggregator: ActorRef = ActorRef.noSender) extends TaxiTripTimeInfoCommand
   case class DeleteTaxiTripTimeInfo(tripId: String) extends TaxiTripTimeInfoCommand
 }
@@ -33,9 +33,9 @@ object TimeInfoActorShardingSettings {
 
   import TaxiTripTimeInfoCommand._
 
-  val numberOfShards = 10 // use 10x number of nodes in your cluster
-  val numberOfEntities = 100 //10x number of shards
-  //this help to map the corresponding message to a respective entity
+  val numberOfShards = 10 //  use 10x number of nodes in your cluster
+  val numberOfEntities = 100 // 10x number of shards
+  // this help to map the corresponding message to a respective entity
   val extractEntityId: ShardRegion.ExtractEntityId = {
     case createTaxiTripTimeInfo@CreateTaxiTripTimeInfo(tripId,taxiTripTimeInfoStat) =>
       val entityId = tripId.hashCode.abs % numberOfEntities
@@ -51,7 +51,7 @@ object TimeInfoActorShardingSettings {
       (shardId.toString, msg)
   }
 
-  //this help to map the corresponding message to a respective shard
+  // this help to map the corresponding message to a respective shard
   val extractShardId: ShardRegion.ExtractShardId = {
     case CreateTaxiTripTimeInfo(tripId,taxiTripTimeInfoStat) =>
       val shardId = tripId.hashCode.abs % numberOfShards
@@ -84,7 +84,7 @@ class PersistentTaxiTripTimeInfo(timeAggregator: ActorRef) extends PersistentAct
 
   var state : TaxiTripTimeInfo = TaxiTripTimeInfo("","")
 
-  //override def persistenceId: String = id
+  // override def persistenceId: String = id
   override def persistenceId: String = "TimeInfo" + "-" + context.parent.path.name + "-" + self.path.name
 
   override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {
@@ -105,14 +105,14 @@ class PersistentTaxiTripTimeInfo(timeAggregator: ActorRef) extends PersistentAct
         log.info(s"Creating Trip Time Info Stat $taxiTripTimeInfoStat")
         state = taxiTripTimeInfoStat
         (timeAggregator ? AddTimeAggregatorValues(tripId,taxiTripTimeInfoStat)).pipeTo(sender())
-        //sender() ! OperationResponse(tripId,Right("Success"))
+        // sender() ! OperationResponse(tripId,Right("Success"))
       }
     case UpdateTaxiTripTimeInfo(tripId, taxiTripTimeInfoStat, _) =>
       log.info("Updating Time Info ")
       persist(TaxiTripTimeInfoUpdatedEvent(tripId,taxiTripTimeInfoStat)) { _ =>
         state = taxiTripTimeInfoStat
         (timeAggregator ? UpdateTimeAggregatorValues(tripId,state,taxiTripTimeInfoStat)).pipeTo(sender())
-        //sender() ! OperationResponse(tripId,Right("Success"))
+        // sender() ! OperationResponse(tripId,Right("Success"))
       }
     case GetTaxiTripTimeInfo(tripId) =>
       log.info(s"Request to return Time Info for tripId: $tripId")

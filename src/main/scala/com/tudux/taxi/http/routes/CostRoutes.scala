@@ -33,9 +33,9 @@ case class CostRoutes(shardedCostActor: ActorRef)(implicit system: ActorSystem, 
           path(Segment) { tripId =>
             println(s"Received some statID $tripId")
             complete(
-              //(shardedCostActor ? GetTaxiTripCost(tripId.toString.concat(costActorIdSuffix)))
+              // (shardedCostActor ? GetTaxiTripCost(tripId.toString.concat(costActorIdSuffix)))
               (shardedCostActor ? GetTaxiTripCost(tripId.toString))
-                //.mapTo[Option[TaxiCostStat]]
+                // .mapTo[Option[TaxiCostStat]]
                 .mapTo[TaxiTripCost]
                 .map(_.toJson.prettyPrint)
                 .map(toHttpEntity)
@@ -49,9 +49,9 @@ case class CostRoutes(shardedCostActor: ActorRef)(implicit system: ActorSystem, 
                   validateRequest(request) {
                     onSuccess(updateTaxiTripCostResponse(tripId,request)) {
                       case operationResponse@OperationResponse(_, status, _) =>
-                        //TODO: Akka typed (Major) Classic deprecated
-                        //TODO: replace if with pattern matching, trait with case class, compilator checking, missing typed benefits , enforce type safety, ensure compilation checking
-                        //val statusCode = if (status == "Failure" ) StatusCodes.BadRequest else StatusCodes.OK //TODO Either, typed exception pattern, string not reliable, defined actor protocol
+                        // TODO: Akka typed (Major) Classic deprecated
+                        // TODO: replace if with pattern matching, trait with case class, compilator checking, missing typed benefits , enforce type safety, ensure compilation checking
+                        // val statusCode = if (status == "Failure" ) StatusCodes.BadRequest else StatusCodes.OK // TODO Either, typed exception pattern, string not reliable, defined actor protocol
                         val statusCode = status match {
                           case Right(_) => StatusCodes.Created
                           case Left(_) => StatusCodes.BadRequest

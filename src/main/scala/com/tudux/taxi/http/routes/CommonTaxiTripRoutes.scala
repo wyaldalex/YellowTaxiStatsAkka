@@ -61,7 +61,7 @@ case class CommonTaxiTripRoutes(costActor: ActorRef, extraInfoActor: ActorRef,
           validateRequest(request) {
             onSuccess(createTaxiTripResponse(request)) {
               case combineResponse@CombinedTaxiTripOperationResponse(costResponse, extraInfoResponse, passengerResponse, timeResponse) =>
-                //val status = if(costResponse.status == "Failure" || extraInfoResponse.status == "Failure" || passengerResponse.status == "Failure" || timeResponse.status == "Failure" ) StatusCodes.BadRequest  else StatusCodes.Created
+                // val status = if(costResponse.status == "Failure" || extraInfoResponse.status == "Failure" || passengerResponse.status == "Failure" || timeResponse.status == "Failure" ) StatusCodes.BadRequest  else StatusCodes.Created
                 val status = (costResponse.status, extraInfoResponse.status, passengerResponse.status,timeResponse.status) match  {
                   case (Right(_), Right(_), Right(_),Right(_)) =>
                     StatusCodes.Created
@@ -82,7 +82,7 @@ case class CommonTaxiTripRoutes(costActor: ActorRef, extraInfoActor: ActorRef,
           path(Segment) { tripId =>
             onSuccess(deleteTaxiTripResponse(tripId)) {
               case combineResponse@CombinedTaxiTripOperationResponse(costResponse, extraInfoResponse, passengerResponse, timeResponse) =>
-                //val status = if (costResponse.status == "Failure" || extraInfoResponse.status == "Failure" || passengerResponse.status == "Failure" || timeResponse.status == "Failure") StatusCodes.BadRequest else StatusCodes.OK
+                // val status = if (costResponse.status == "Failure" || extraInfoResponse.status == "Failure" || passengerResponse.status == "Failure" || timeResponse.status == "Failure") StatusCodes.BadRequest else StatusCodes.OK
                 val status = (costResponse.status, extraInfoResponse.status, passengerResponse.status, timeResponse.status) match {
                   case (Right(_), Right(_), Right(_), Right(_)) =>
                     StatusCodes.Created

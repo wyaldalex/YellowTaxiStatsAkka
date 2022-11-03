@@ -34,7 +34,7 @@ case class ExtraInfoRoutes(shardedExtraInfoActor: ActorRef)(implicit system: Act
             println(s"Received some statID $tripId")
             complete(
               (shardedExtraInfoActor ? GetTaxiTripExtraInfo(tripId.toString))
-                //.mapTo[Option[TaxiExtraInfoStat]]
+                // .mapTo[Option[TaxiExtraInfoStat]]
                 .mapTo[TaxiTripExtraInfo]
                 .map(_.toJson.prettyPrint)
                 .map(toHttpEntity)
@@ -48,7 +48,7 @@ case class ExtraInfoRoutes(shardedExtraInfoActor: ActorRef)(implicit system: Act
                   validateRequest(request) {
                     onSuccess(updateTaxiTripExtraInfoResponse(tripId, request)) {
                       case operationResponse@OperationResponse(_, status, _) =>
-                        //val statusCode = if (status == "Failure") StatusCodes.BadRequest else StatusCodes.OK
+                        // val statusCode = if (status == "Failure") StatusCodes.BadRequest else StatusCodes.OK
                         val statusCode = status match {
                           case Right(_) => StatusCodes.Created
                           case Left(_) => StatusCodes.BadRequest

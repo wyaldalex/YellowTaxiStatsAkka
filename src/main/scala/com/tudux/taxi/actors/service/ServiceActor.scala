@@ -13,7 +13,7 @@ class ServiceActor(costAggregatorActor : ActorRef, timeAggregatorActor : ActorRe
 
   override def receive : Receive = {
 
-    //Domain Specific Operations
+    // Domain Specific Operations
     case calculateTripDistanceCost@CalculateTripDistanceCost(_) =>
       log.info("Received CalculateTripDistanceCost request")
       costAggregatorActor.forward(calculateTripDistanceCost)

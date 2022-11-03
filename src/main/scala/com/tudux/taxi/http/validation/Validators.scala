@@ -54,7 +54,7 @@ object Validators {
   }
 
   def updateTimeInfoRequestValidator : Validator[UpdateTimeInfoRequest] = (request: UpdateTimeInfoRequest) => {
-    //value: A,date1: String, date2: String, fieldName: String, fieldName2 : String)
+    // value: A,date1: String, date2: String, fieldName: String, fieldName2 : String)
     val tpepPickupDatetimeValidation = validatePairDates(request.tpepPickupDatetime,request.tpepPickupDatetime,request.tpepDropoffDatetime,"tpepPickupDatetime","tpepDropoffDatetime")
     val tpepDropoffDatetimeValidation = validatePairDates(request.tpepPickupDatetime,request.tpepPickupDatetime,request.tpepDropoffDatetime,"tpepPickupDatetime","tpepDropoffDatetime")
 

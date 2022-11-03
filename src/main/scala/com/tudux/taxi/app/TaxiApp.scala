@@ -19,11 +19,11 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
-//docker exec -it yellotaxistatsakka-cassandra-1 cqlsh
-//Visit Swagger Documentation: http://localhost:10001/swagger-ui/index.html
+// docker exec -it yellotaxistatsakka-cassandra-1 cqlsh
+// Visit Swagger Documentation: http:// localhost:10001/swagger-ui/index.html
 
-//TODO Review 2: Use scalastyle plugin (Sebastian) (Minor)
-//TODO Review 2: Use Cluster sharding to avoid reference map (Agustin Bettati) (Major)
+// TODO Review 2: Use scalastyle plugin (Sebastian) (Minor)
+// TODO Review 2: Use Cluster sharding to avoid reference map (Agustin Bettati) (Major)
 object TaxiApp extends App {
 
   def startHttpServer(shardedParentCostActor: ActorRef,
@@ -42,7 +42,7 @@ object TaxiApp extends App {
     bindingFuture.onComplete {
       case Success(binding) =>
         val address = binding.localAddress
-        system.log.info(s"Server online at http://${address.getHostString}:${address.getPort}")
+        system.log.info(s"Server online at http:// ${address.getHostString}:${address.getPort}")
 
       case Failure(exception) =>
         system.log.error(s"Failed to bing HTTP server, because: $exception")
@@ -51,23 +51,23 @@ object TaxiApp extends App {
   }
   implicit val timeout: Timeout = Timeout(2.seconds)
 
-  //testing sharding of cost actor
+  // testing sharding of cost actor
   val config = ConfigFactory.parseString(
     "akka.remote.artery.canonical.port = 2551".stripMargin).withFallback(ConfigFactory.load("sharded/shardedConfigSettings.conf"))
 
   implicit val system: ActorSystem = ActorSystem("YellowTaxiCluster", config)
   import ShardedActorsGenerator._
-  //Create the aggregators
+  // Create the aggregators
   val costAggregatorActor : ActorRef = system.actorOf(PersistentCostStatsAggregator.props("cost-aggregator"), "cost-aggregator")
   val timeAggregatorActor : ActorRef = system.actorOf(PersistentTimeStatsAggregator.props("time-aggregator"), "time-aggregator")
 
-  //Create the sharded version of the persistent actors
+  // Create the sharded version of the persistent actors
   val persistentCostShardRegionRef: ActorRef = createShardedCostActor(system,costAggregatorActor)
   val persistentExtraInfoShardedRegionRef : ActorRef = createShardedExtraInfoActor(system)
   val persistentPassengerShardRegionRef: ActorRef = createShardedPassengerInfoActor(system)
   val persistentTimeInfoShardRegionRef: ActorRef = createShardedTimeInfoActor(system,timeAggregatorActor)
 
-  //Specific Service actor
+  // Specific Service actor
   val serviceActor : ActorRef = system.actorOf(ServiceActor.props(costAggregatorActor, timeAggregatorActor), "serviceActor")
 
   startHttpServer(persistentCostShardRegionRef,persistentExtraInfoShardedRegionRef ,
@@ -86,7 +86,7 @@ object ShardedActorsGenerator {
   def createShardedCostActor(system: ActorSystem,costAggregator: ActorRef) : ActorRef = {
     ClusterSharding(system).start(
       typeName = "ShardedCostActor",
-      //entityProps = Props[PersistentParentTaxiCost],
+      // entityProps = Props[PersistentParentTaxiCost],
       entityProps = PersistentTaxiTripCost.props(costAggregator),
       settings = ClusterShardingSettings(system).withRememberEntities(true),
       extractEntityId = CostActorShardingSettings.extractEntityId,
@@ -97,7 +97,7 @@ object ShardedActorsGenerator {
   def createShardedExtraInfoActor(system: ActorSystem): ActorRef = {
     ClusterSharding(system).start(
       typeName = "ShardedExtraInfoActor",
-      //entityProps = Props[PersistentParentTaxiCost],
+      // entityProps = Props[PersistentParentTaxiCost],
       entityProps = PersistentTaxiExtraInfo.props,
       settings = ClusterShardingSettings(system).withRememberEntities(true),
       extractEntityId = ExtraInfoActorShardingSettings.extractEntityId,
@@ -108,7 +108,7 @@ object ShardedActorsGenerator {
   def createShardedPassengerInfoActor(system: ActorSystem): ActorRef = {
     ClusterSharding(system).start(
       typeName = "ShardedPassengerInfoActor",
-      //entityProps = Props[PersistentParentTaxiCost],
+      // entityProps = Props[PersistentParentTaxiCost],
       entityProps = PersistentTaxiTripPassengerInfo.props,
       settings = ClusterShardingSettings(system).withRememberEntities(true),
       extractEntityId = PassengerInfoActorShardingSettings.extractEntityId,
@@ -119,7 +119,7 @@ object ShardedActorsGenerator {
   def createShardedTimeInfoActor(system: ActorSystem, timeAggregator: ActorRef): ActorRef = {
     ClusterSharding(system).start(
       typeName = "ShardedTimeInfoActor",
-      //entityProps = Props[PersistentParentTaxiCost],
+      // entityProps = Props[PersistentParentTaxiCost],
       entityProps = PersistentTaxiTripTimeInfo.props(timeAggregator),
       settings = ClusterShardingSettings(system).withRememberEntities(true),
       extractEntityId = TimeInfoActorShardingSettings.extractEntityId,

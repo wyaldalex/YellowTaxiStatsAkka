@@ -28,9 +28,9 @@ object TaxiExtraInfoStatEvent{
 object ExtraInfoActorShardingSettings {
   import TaxiTripExtraInfoCommand._
 
-  val numberOfShards = 10 // use 10x number of nodes in your cluster
-  val numberOfEntities = 100 //10x number of shards
-  //this help to map the corresponding message to a respective entity
+  val numberOfShards = 10 //  use 10x number of nodes in your cluster
+  val numberOfEntities = 100 // 10x number of shards
+  // this help to map the corresponding message to a respective entity
   val extractEntityId: ShardRegion.ExtractEntityId = {
     case createTaxiTripExtraInfo@CreateTaxiTripExtraInfo(tripId,_) =>
       val entityId = tripId.hashCode.abs % numberOfEntities
@@ -46,7 +46,7 @@ object ExtraInfoActorShardingSettings {
       (shardId.toString, msg)
   }
 
-  //this help to map the corresponding message to a respective shard
+  // this help to map the corresponding message to a respective shard
   val extractShardId: ShardRegion.ExtractShardId = {
     case CreateTaxiTripExtraInfo(tripId,_) =>
       val shardId = tripId.hashCode.abs % numberOfShards
@@ -73,11 +73,11 @@ class PersistentTaxiExtraInfo extends PersistentActor with ActorLogging {
   import TaxiTripExtraInfoCommand._
   import TaxiExtraInfoStatEvent._
 
-  //Persistent Actor State
-  //var statExtraInfoMap : Map[String,TaxiExtraInfoStat] = Map.empty
+  // Persistent Actor State
+  // var statExtraInfoMap : Map[String,TaxiExtraInfoStat] = Map.empty
   var state : TaxiTripExtraInfo = TaxiTripExtraInfo(0,0,0,"",0,0)
 
-  //override def persistenceId: String = id
+  // override def persistenceId: String = id
   override def persistenceId: String = "ExtraInfo" + "-" + context.parent.path.name + "-" + self.path.name
 
   override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {
@@ -94,7 +94,7 @@ class PersistentTaxiExtraInfo extends PersistentActor with ActorLogging {
 
   override def receiveCommand: Receive = {
     case CreateTaxiTripExtraInfo(tripId,taxiExtraInfoStat) =>
-      //throw new RuntimeException("Mock Actor Failure") //Simulate Actor failure
+      // throw new RuntimeException("Mock Actor Failure") // Simulate Actor failure
       persist(TaxiTripExtraInfoCreatedEvent(tripId,taxiExtraInfoStat)) { _ =>
         log.info(s"Creating Extra Info Stat $taxiExtraInfoStat")
         state = taxiExtraInfoStat

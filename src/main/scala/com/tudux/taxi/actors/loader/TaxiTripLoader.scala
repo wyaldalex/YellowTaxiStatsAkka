@@ -30,7 +30,7 @@ object TaxiTripCommand {
 }
 
 object TaxiStatAppLoader extends App {
-  //testing sharding of cost actor
+  // testing sharding of cost actor
   val config = ConfigFactory.parseString(
     "akka.remote.artery.canonical.port = 2551".stripMargin).withFallback(ConfigFactory.load("sharded/shardedConfigSettings.conf"))
 
@@ -47,17 +47,17 @@ object TaxiStatAppLoader extends App {
   val parentTimeInfoShardRegionRef: ActorRef = createShardedTimeInfoActor(system,timeAggregatorActor)
 
   import kantan.csv._
-  import kantan.csv.ops._ // Automatic derivation of codecs.
+  import kantan.csv.ops._ //  Automatic derivation of codecs.
   implicit val decoder: RowDecoder[TaxiTripEntry] = RowDecoder.ordered(TaxiTripEntry.apply _)
-  //Start Processing including reading of the file
+  // Start Processing including reading of the file
   val startTimeMillis = System.currentTimeMillis()
-  //val source_csv = Source.fromResource("smallset.csv").mkString
-  //val source_csv = Source.fromResource("100ksample.csv").mkString
+  // val source_csv = Source.fromResource("smallset.csv").mkString
+  // val source_csv = Source.fromResource("100ksample.csv").mkString
   val source_csv = Source.fromResource("1ksample.csv").mkString
-  //val source_csv = Source.fromResource("10ksample.csv").mkString
-  //val source_csv = Source.fromResource("1millSample.csv").mkString
+  // val source_csv = Source.fromResource("10ksample.csv").mkString
+  // val source_csv = Source.fromResource("1millSample.csv").mkString
   val reader = source_csv.asCsvReader[TaxiTripEntry](rfc)
-  //TODO: More robust loader, buisiness need
+  // TODO: More robust loader, buisiness need
 
   object ActorCounter {
     def props: Props = Props(new ActorCounter)
@@ -80,7 +80,7 @@ object TaxiStatAppLoader extends App {
   reader.foreach(either => {
     val tripId = UUID.randomUUID().toString
     println(s"Persisting Id $tripId")
-    //Scapegoat related refactoring
+    // Scapegoat related refactoring
     val defaultTaxiEntryVal = TaxiTripEntry(0, "", "", 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     val defaultVal: TaxiTripEntry = either.right.getOrElse(defaultTaxiEntryVal)
 

@@ -5,21 +5,21 @@ import akka.persistence.{PersistentActor, SaveSnapshotFailure, SaveSnapshotSucce
 import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
 import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfo
 
-//commands
+// commands
 sealed trait TimeAggregatorCommand
 object TimeAggregatorCommand  {
   case class AddTimeAggregatorValues(tripId: String,time: TaxiTripTimeInfo) extends TimeAggregatorCommand
   case object GetAverageTripTime extends TimeAggregatorCommand
   case class UpdateTimeAggregatorValues(tripId: String,preTime: TaxiTripTimeInfo, newTime: TaxiTripTimeInfo) extends TimeAggregatorCommand
 }
-//events
+// events
 sealed trait TimeAggregatorEvent
 object TimeAggregatorEvent {
   case class AddedTimeAggregatorValuesEvent(time: TaxiTripTimeInfo) extends TimeAggregatorEvent
   case class UpdatedTimeAggregatorValuesEvent(preTime: TaxiTripTimeInfo, newTime: TaxiTripTimeInfo) extends TimeAggregatorEvent
 }
 
-//responses
+// responses
 sealed trait TimeAggregatorResponse
 object TimeAggregatorResponse{
 case class TaxiTripAverageTimeMinutesResponse(averageTimeMinutes: Double) extends TimeAggregatorResponse
@@ -80,7 +80,7 @@ class PersistentTimeStatsAggregator(id: String) extends PersistentActor with Act
     case GetAverageTripTime =>
       sender() ! TaxiTripAverageTimeMinutesResponse(totalMinutesTrip / totalTrips)
 
-    //SNAPSHOT related
+    // SNAPSHOT related
     case SaveSnapshotSuccess(metadata) =>
       log.info(s"saving snapshot succeeded: $metadata")
     case SaveSnapshotFailure(metadata, reason) =>
@@ -107,7 +107,7 @@ class PersistentTimeStatsAggregator(id: String) extends PersistentActor with Act
     tripsWithoutCheckpoint += 1
     if (tripsWithoutCheckpoint >= maxMessages) {
       log.info("Saving checkpoint...")
-      saveSnapshot((totalTrips -> totalMinutesTrip)) // save a tuple with the current actor state
+      saveSnapshot((totalTrips -> totalMinutesTrip)) //  save a tuple with the current actor state
       tripsWithoutCheckpoint = 0
     }
   }

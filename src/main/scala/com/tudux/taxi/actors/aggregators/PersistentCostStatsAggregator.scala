@@ -51,6 +51,19 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
     if ((x - y).abs < precision) true else false
   }
 
+
+  override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {
+    log.error("persist failure being triggered")
+    sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage))
+    super.onPersistFailure(cause, event, seqNr)
+  }
+
+  override def onPersistRejected(cause: Throwable, event: Any, seqNr: Long): Unit = {
+    log.error("persist rejected being triggered")
+    sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage))
+    super.onPersistFailure(cause, event, seqNr)
+  }
+
   override def receiveCommand: Receive = {
     case AddCostAggregatorValues(tripId,stat) =>
       log.info("Updating Cost Aggregator")

@@ -19,7 +19,6 @@ object TaxiTripTimeInfoCommand {
   //TODO: Typed safety for optional actorref
   case class UpdateTaxiTripTimeInfo(tripId: String, taxiTripTimeInfoStat: TaxiTripTimeInfo, timeAggregator: ActorRef = ActorRef.noSender) extends TaxiTripTimeInfoCommand
   case class DeleteTaxiTripTimeInfo(tripId: String) extends TaxiTripTimeInfoCommand
-  case object GetTotalTimeInfoInfoLoaded
 }
 
 
@@ -89,11 +88,13 @@ class PersistentTaxiTripTimeInfo(timeAggregator: ActorRef) extends PersistentAct
   override def persistenceId: String = "TimeInfo" + "-" + context.parent.path.name + "-" + self.path.name
 
   override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {
+    log.error("persist failure being triggered")
     sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage))
     super.onPersistFailure(cause, event, seqNr)
   }
 
   override def onPersistRejected(cause: Throwable, event: Any, seqNr: Long): Unit = {
+    log.error("persist rejected being triggered")
     sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage))
     super.onPersistFailure(cause, event, seqNr)
   }
@@ -113,7 +114,8 @@ class PersistentTaxiTripTimeInfo(timeAggregator: ActorRef) extends PersistentAct
         (timeAggregator ? UpdateTimeAggregatorValues(tripId,state,taxiTripTimeInfoStat)).pipeTo(sender())
         //sender() ! OperationResponse(tripId,Right("Success"))
       }
-    case GetTaxiTripTimeInfo(_) =>
+    case GetTaxiTripTimeInfo(tripId) =>
+      log.info(s"Request to return Time Info for tripId: $tripId")
       sender() ! state
     case DeleteTaxiTripTimeInfo(tripId) =>
       log.info("Deleting taxi cost stat")

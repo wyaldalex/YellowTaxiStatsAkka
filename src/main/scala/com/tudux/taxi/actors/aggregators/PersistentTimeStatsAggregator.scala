@@ -45,6 +45,19 @@ class PersistentTimeStatsAggregator(id: String) extends PersistentActor with Act
   val maxMessages = 900
 
   override def persistenceId: String = id
+
+  override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {
+    log.error("persist failure being triggered")
+    sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage))
+    super.onPersistFailure(cause, event, seqNr)
+  }
+
+  override def onPersistRejected(cause: Throwable, event: Any, seqNr: Long): Unit = {
+    log.error("persist rejected being triggered")
+    sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage))
+    super.onPersistFailure(cause, event, seqNr)
+  }
+
   override def receiveCommand: Receive = {
     case AddTimeAggregatorValues(tripId,taxiStat) =>
       log.info("Adding time aggregator values")
@@ -85,8 +98,6 @@ class PersistentTimeStatsAggregator(id: String) extends PersistentActor with Act
       val timeDelta = getMinutes(newTime) - getMinutes(preTime)
       totalMinutesTrip += timeDelta
     case SnapshotOffer(metadata, contents) =>
-      //How does it work? A: It will recover from the last snapshot not from the first message,
-      //WARNING: Saved state has to match with the state update operations
       log.info(s"Recovered snapshot: $metadata")
       val snapState = contents.asInstanceOf[Tuple2[Int,Double]]
       totalTrips = snapState._1

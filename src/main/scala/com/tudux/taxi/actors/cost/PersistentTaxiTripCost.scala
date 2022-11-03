@@ -23,8 +23,6 @@ object TaxiTripCostCommand {
   case class GetTaxiTripCost(tripId: String) extends  TaxiCostCommand
   case class UpdateTaxiTripCost(tripId: String, taxiTripCost: TaxiTripCost, costAggregator: ActorRef = ActorRef.noSender) extends TaxiCostCommand
   case class DeleteTaxiTripCost(tripId: String) extends TaxiCostCommand
-  case object GetTotalCostLoaded extends TaxiCostCommand
-  case class PrintTimeToLoad(startTimeMillis: Long) extends TaxiCostCommand
 }
 
 
@@ -96,13 +94,13 @@ class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor w
   override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {
     sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage)) //TODO: used typed objects instead of raw strings (missing typed lang benefits), research: benefits from typing and monads, importance
     //fp simplified , de Alexander Kelvin
-    log.error("is persist failure being triggered?")
+    log.error("persist failure being triggered")
     super.onPersistFailure(cause, event, seqNr)
   }
 
   override def onPersistRejected(cause: Throwable, event: Any, seqNr: Long): Unit = {
     sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage))
-    log.error("is persist rejected being triggered?")
+    log.error("persist rejected being triggered")
     super.onPersistFailure(cause, event, seqNr)
   }
 
@@ -118,8 +116,7 @@ class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor w
       }
 
     case GetTaxiTripCost(tripId) =>
-      log.info(s"Receiving request to return cost trip cost information ${self.path}")
-      log.info(s"The state is $state")
+      log.info(s"Request to return Cost Info for tripId: $tripId")
       sender() ! state
     case UpdateTaxiTripCost(tripId,taxiTripCost,_) =>
 
@@ -141,20 +138,13 @@ class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor w
         state = state.copy(deletedFlag = true)
         sender() ! OperationResponse(tripId,Right("Success"))
       }
-
-    case PrintTimeToLoad(startTimeMillis) =>
-      log.info("Getting Load Time")
-      val endTimeMillis = System.currentTimeMillis()
-      val durationSeconds = (endTimeMillis - startTimeMillis) / 1000
-      log.info(s"Total Load Time: $durationSeconds" )
     case _ =>
       log.info(s"Received something else at ${self.path.name}")
 
   }
 
   override def receiveRecover: Receive = {
-    case TaxiTripCostCreatedEvent(tripId,taxiTripCost //,"Cause Failure"
-    ) =>
+    case TaxiTripCostCreatedEvent(tripId,taxiTripCost) =>
       log.info(s"Recovering Taxi Cost Created  $tripId ")
       state = taxiTripCost
       log.info(s"The state is $state from recovered $taxiTripCost")

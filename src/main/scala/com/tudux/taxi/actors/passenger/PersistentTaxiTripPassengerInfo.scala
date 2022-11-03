@@ -13,7 +13,6 @@ object TaxiTripPassengerInfoCommand {
   case class GetTaxiTripPassengerInfo(tripId: String) extends TaxiTripPassengerInfoCommand
   case class UpdateTaxiTripPassenger(tripId: String, taxiTripPassengerInfoStat: TaxiTripPassengerInfo) extends TaxiTripPassengerInfoCommand
   case class DeleteTaxiTripPassenger(tripId: String) extends TaxiTripPassengerInfoCommand
-  case object GetTotalPassengerInfoLoaded
 }
 
 
@@ -79,11 +78,13 @@ class PersistentTaxiTripPassengerInfo extends PersistentActor with ActorLogging 
   override def persistenceId: String = "PassengerInfo" + "-" + context.parent.path.name + "-" + self.path.name
 
   override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {
+    log.error("persist failure being triggered")
     sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage))
     super.onPersistFailure(cause, event, seqNr)
   }
 
   override def onPersistRejected(cause: Throwable, event: Any, seqNr: Long): Unit = {
+    log.error("persist rejected being triggered")
     sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage))
     super.onPersistFailure(cause, event, seqNr)
   }
@@ -96,6 +97,7 @@ class PersistentTaxiTripPassengerInfo extends PersistentActor with ActorLogging 
         sender() ! OperationResponse(tripId,Right("Success"))
       }
     case GetTaxiTripPassengerInfo(tripId) =>
+      log.info(s"Request to return Passenger Info for tripId: $tripId")
       sender() ! state
     case UpdateTaxiTripPassenger(tripId,taxiTripPassengerInfoStat) =>
       log.info(s"Applying update for Passenger Info for id $tripId")

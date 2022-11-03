@@ -30,13 +30,6 @@ object TaxiTripTimeInfoStatEvent{
   case class DeletedTaxiTripTimeInfoEvent(tripId: String) extends TaxiTripTimeInfoEvent
 }
 
-sealed trait TaxiTripTimeResponse
-object TaxiTripTimeResponse {
-  case class TaxiTripTimeResponseCreated(id: String)
-}
-
-
-
 object TimeInfoActorShardingSettings {
 
   import TaxiTripTimeInfoCommand._
@@ -85,7 +78,6 @@ class PersistentTaxiTripTimeInfo(timeAggregator: ActorRef) extends PersistentAct
 
   import TaxiTripTimeInfoCommand._
   import TaxiTripTimeInfoStatEvent._
-  import TaxiTripTimeResponse._
 
   import akka.pattern.{ask, pipe}
   implicit val ec: ExecutionContext = context.dispatcher

@@ -53,9 +53,7 @@ object TaxiApp extends App {
 
   //testing sharding of cost actor
   val config = ConfigFactory.parseString(
-    s"""
-       |akka.remote.artery.canonical.port = 2551
-  """.stripMargin).withFallback(ConfigFactory.load("sharded/shardedConfigSettings.conf"))
+    "akka.remote.artery.canonical.port = 2551".stripMargin).withFallback(ConfigFactory.load("sharded/shardedConfigSettings.conf"))
 
   implicit val system: ActorSystem = ActorSystem("YellowTaxiCluster", config)
   import ShardedActorsGenerator._

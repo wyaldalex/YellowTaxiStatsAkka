@@ -2,6 +2,12 @@ name := "YellowTaxiStatsAkka"
 
 version := "1.0.0-SNAPSHOT"
 
+scalaVersion := "2.12.12"
+
+scapegoatVersion in ThisBuild := "1.3.9"
+scapegoatReports := Seq("xml")
+scalacOptions in Scapegoat += "-P:scapegoat:overrideLevels:all=Warning"
+
 lazy val akkaHttpVersion = "10.2.8"
 //lazy val akkaHttpVersion = "10.1.8"
 //lazy val akkaVersion = "2.5.21"

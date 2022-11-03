@@ -46,6 +46,11 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
 
   override def persistenceId: String = id
 
+  //safe double comparison as suggested by scapegoat
+  def safeComparison(x: Double, y: Double, precision: Double): Boolean = {
+    if ((x - y).abs < precision) true else false
+  }
+
   override def receiveCommand: Receive = {
     case AddCostAggregatorValues(tripId,stat) =>
       log.info("Updating Cost Aggregator")
@@ -74,7 +79,7 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
         //new 100 old 140 n = -40
         //new 100 old 0 = (+1)  (+tipAmount)
         //new 0 old n = (-1) (-tipAmountDelta)
-        if (tipAmountDelta == tipAmount) { //new tip
+        if (safeComparison(tipAmountDelta,tipAmount,0.000001)) { //new tip
           numberOfTips += 1
           totalTipAmount += tipAmount
         } else {
@@ -102,7 +107,7 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
     case UpdatedCostAggregatorValuesEvent(totalAmountDelta, distanceDelta, tipAmountDelta, tipAmount)  =>
       totalAmount += totalAmountDelta
       totalDistance += distanceDelta
-      if (tipAmountDelta == tipAmount) { //new tip
+      if (safeComparison(tipAmountDelta,tipAmount,0.000001)) { //new tip
         numberOfTips += 1
         totalTipAmount += tipAmount
       } else {

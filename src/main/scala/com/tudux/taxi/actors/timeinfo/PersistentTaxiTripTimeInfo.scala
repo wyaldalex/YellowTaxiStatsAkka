@@ -33,8 +33,8 @@ object TimeInfoActorShardingSettings {
 
   import TaxiTripTimeInfoCommand._
 
-  val numberOfShards = 10 //  use 10x number of nodes in your cluster
-  val numberOfEntities = 100 // 10x number of shards
+  val numberOfShards = 1000 //  use 10x number of nodes in your cluster
+  val numberOfEntities = 10000 // 10x number of shards
   // this help to map the corresponding message to a respective entity
   val extractEntityId: ShardRegion.ExtractEntityId = {
     case createTaxiTripTimeInfo@CreateTaxiTripTimeInfo(tripId,taxiTripTimeInfoStat) =>

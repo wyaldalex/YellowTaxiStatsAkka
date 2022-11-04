@@ -75,7 +75,7 @@ class PersistentTaxiExtraInfo extends PersistentActor with ActorLogging {
 
   // Persistent Actor State
   // var statExtraInfoMap : Map[String,TaxiExtraInfoStat] = Map.empty
-  var state : TaxiTripExtraInfo = TaxiTripExtraInfo(0,0,0,"",0,0)
+  var state: TaxiTripExtraInfo = TaxiTripExtraInfo(0,0,0,"",0,0)
 
   // override def persistenceId: String = id
   override def persistenceId: String = "ExtraInfo" + "-" + context.parent.path.name + "-" + self.path.name

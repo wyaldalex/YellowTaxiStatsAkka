@@ -82,7 +82,7 @@ class PersistentTaxiTripTimeInfo(timeAggregator: ActorRef) extends PersistentAct
   implicit val ec: ExecutionContext = context.dispatcher
   implicit val timeout = Timeout(5 seconds)
 
-  var state : TaxiTripTimeInfo = TaxiTripTimeInfo("","")
+  var state: TaxiTripTimeInfo = TaxiTripTimeInfo("","")
 
   // override def persistenceId: String = id
   override def persistenceId: String = "TimeInfo" + "-" + context.parent.path.name + "-" + self.path.name

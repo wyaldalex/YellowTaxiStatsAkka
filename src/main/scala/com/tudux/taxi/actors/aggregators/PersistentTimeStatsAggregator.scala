@@ -39,8 +39,8 @@ class PersistentTimeStatsAggregator(id: String) extends PersistentActor with Act
     ((format.parse(taxiTripTimeInfoStat.tpepDropoffDatetime).getTime - format.parse(taxiTripTimeInfoStat.tpepPickupDatetime).getTime)/60000).toInt
   }
 
-  var totalMinutesTrip : Double = 0
-  var totalTrips : Int = 0
+  var totalMinutesTrip: Double = 0
+  var totalTrips: Int = 0
   var tripsWithoutCheckpoint = 0
   val maxMessages = 900
 

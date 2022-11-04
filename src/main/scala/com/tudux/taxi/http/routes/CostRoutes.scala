@@ -23,7 +23,7 @@ case class CostRoutes(shardedCostActor: ActorRef)(implicit system: ActorSystem, 
   with OperationResponseProtocol
 {
 
-  def updateTaxiTripCostResponse(tripId: String, request: UpdateCostInfoRequest) : Future[OperationResponse] = {
+  def updateTaxiTripCostResponse(tripId: String, request: UpdateCostInfoRequest): Future[OperationResponse] = {
     (shardedCostActor ? request.toCommand(tripId)).mapTo[OperationResponse]
   }
 

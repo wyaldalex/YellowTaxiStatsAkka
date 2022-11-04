@@ -72,7 +72,7 @@ class PersistentTaxiTripPassengerInfo extends PersistentActor with ActorLogging 
   import TaxiTripPassengerInfoCommand._
   import TaxiTripPassengerInfoStatEvent._
 
-  var state : TaxiTripPassengerInfo = TaxiTripPassengerInfo(0)
+  var state: TaxiTripPassengerInfo = TaxiTripPassengerInfo(0)
 
   // override def persistenceId: String = id
   override def persistenceId: String = "PassengerInfo" + "-" + context.parent.path.name + "-" + self.path.name

@@ -11,7 +11,8 @@ case class AggregatorStat(totalAmount: Double, distance: Double, tipAmount: Doub
 sealed trait CostAggregatorCommand
 object  CostAggregatorCommand {
   case class AddCostAggregatorValues(tripId: String,stat: AggregatorStat)
-  case class UpdateCostAggregatorValues(tripId: String,totalAmountDelta: Double, distanceDelta: Double, tipAmountDelta: Double, tipAmount: Double)
+  case class UpdateCostAggregatorValues(tripId: String, totalAmountDelta: Double,
+                                        distanceDelta: Double, tipAmountDelta: Double, tipAmount: Double)
   case class CalculateTripDistanceCost(distance: Double) extends CostAggregatorCommand
   case object GetAverageTipAmount extends CostAggregatorCommand
 
@@ -20,7 +21,8 @@ object  CostAggregatorCommand {
 sealed trait CostAggregatorEvent
 object CostAggregatorEvent{
   case class AddedCostAggregatorValuesEvent(tripId: String,stat: AggregatorStat) extends CostAggregatorEvent
-  case class UpdatedCostAggregatorValuesEvent(totalAmountDelta: Double, distanceDelta: Double, tipAmountDelta: Double, tipAmount: Double) extends CostAggregatorEvent
+  case class UpdatedCostAggregatorValuesEvent(totalAmountDelta: Double, distanceDelta: Double,
+                                              tipAmountDelta: Double, tipAmount: Double) extends CostAggregatorEvent
 }
 // responses
 sealed trait CostAggregatorResponse
@@ -37,10 +39,10 @@ class PersistentCostStatsAggregator(id: String) extends PersistentActor with Act
   import CostAggregatorEvent._
   import CostAggregatorResponse._
 
-  var totalDistance : Double = 0
-  var totalAmount : Double = 0
-  var numberOfTips : Int = 0
-  var totalTipAmount : Double = 0
+  var totalDistance: Double = 0
+  var totalAmount: Double = 0
+  var numberOfTips: Int = 0
+  var totalTipAmount: Double = 0
   var commandsWithoutCheckpoint = 0
   val maxMessages = 900
 

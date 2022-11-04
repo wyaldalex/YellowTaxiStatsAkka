@@ -58,17 +58,17 @@ object TaxiApp extends App {
   implicit val system: ActorSystem = ActorSystem("YellowTaxiCluster", config)
   import ShardedActorsGenerator._
   // Create the aggregators
-  val costAggregatorActor : ActorRef = system.actorOf(PersistentCostStatsAggregator.props("cost-aggregator"), "cost-aggregator")
-  val timeAggregatorActor : ActorRef = system.actorOf(PersistentTimeStatsAggregator.props("time-aggregator"), "time-aggregator")
+  val costAggregatorActor: ActorRef = system.actorOf(PersistentCostStatsAggregator.props("cost-aggregator"), "cost-aggregator")
+  val timeAggregatorActor: ActorRef = system.actorOf(PersistentTimeStatsAggregator.props("time-aggregator"), "time-aggregator")
 
   // Create the sharded version of the persistent actors
   val persistentCostShardRegionRef: ActorRef = createShardedCostActor(system,costAggregatorActor)
-  val persistentExtraInfoShardedRegionRef : ActorRef = createShardedExtraInfoActor(system)
+  val persistentExtraInfoShardedRegionRef: ActorRef = createShardedExtraInfoActor(system)
   val persistentPassengerShardRegionRef: ActorRef = createShardedPassengerInfoActor(system)
   val persistentTimeInfoShardRegionRef: ActorRef = createShardedTimeInfoActor(system,timeAggregatorActor)
 
   // Specific Service actor
-  val serviceActor : ActorRef = system.actorOf(ServiceActor.props(costAggregatorActor, timeAggregatorActor), "serviceActor")
+  val serviceActor: ActorRef = system.actorOf(ServiceActor.props(costAggregatorActor, timeAggregatorActor), "serviceActor")
 
   startHttpServer(persistentCostShardRegionRef,persistentExtraInfoShardedRegionRef ,
     persistentPassengerShardRegionRef, persistentTimeInfoShardRegionRef,serviceActor)
@@ -83,7 +83,7 @@ object TaxiApp extends App {
 
 object ShardedActorsGenerator {
 
-  def createShardedCostActor(system: ActorSystem,costAggregator: ActorRef) : ActorRef = {
+  def createShardedCostActor(system: ActorSystem,costAggregator: ActorRef): ActorRef = {
     ClusterSharding(system).start(
       typeName = "ShardedCostActor",
       // entityProps = Props[PersistentParentTaxiCost],

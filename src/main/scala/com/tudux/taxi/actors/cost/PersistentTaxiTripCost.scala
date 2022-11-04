@@ -87,7 +87,7 @@ class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor w
   implicit val ec: ExecutionContext = context.dispatcher
   implicit val timeout = Timeout(5 seconds)
 
-  var state : TaxiTripCost = TaxiTripCost(0,0,0,0,0,0,0,0,0,0)
+  var state: TaxiTripCost = TaxiTripCost(0,0,0,0,0,0,0,0,0,0)
   override def persistenceId: String = "Cost" + "-" + context.parent.path.name + "-" + self.path.name
   // override def persistenceId : String = "x"
 

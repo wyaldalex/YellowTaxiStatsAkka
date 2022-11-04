@@ -38,8 +38,8 @@ object TaxiStatAppLoader extends App {
   implicit val timeout: Timeout = Timeout(10.seconds)
   implicit val scheduler: ExecutionContext = system.dispatcher
 
-  val costAggregatorActor : ActorRef = system.actorOf(PersistentCostStatsAggregator.props("cost-aggregator"), "cost-aggregator")
-  val timeAggregatorActor : ActorRef = system.actorOf(PersistentTimeStatsAggregator.props("time-aggregator"), "time-aggregator")
+  val costAggregatorActor: ActorRef = system.actorOf(PersistentCostStatsAggregator.props("cost-aggregator"), "cost-aggregator")
+  val timeAggregatorActor: ActorRef = system.actorOf(PersistentTimeStatsAggregator.props("time-aggregator"), "time-aggregator")
 
   val parentCostShardRegionRef: ActorRef = createShardedCostActor(system,costAggregatorActor)
   val parentExtraInfoShardRegionRef: ActorRef = createShardedExtraInfoActor(system)
@@ -51,9 +51,9 @@ object TaxiStatAppLoader extends App {
   implicit val decoder: RowDecoder[TaxiTripEntry] = RowDecoder.ordered(TaxiTripEntry.apply _)
   // Start Processing including reading of the file
   val startTimeMillis = System.currentTimeMillis()
-  // val source_csv = Source.fromResource("smallset.csv").mkString
+  val source_csv = Source.fromResource("smallset.csv").mkString
   // val source_csv = Source.fromResource("100ksample.csv").mkString
-  val source_csv = Source.fromResource("1ksample.csv").mkString
+  // val source_csv = Source.fromResource("1ksample.csv").mkString
   // val source_csv = Source.fromResource("10ksample.csv").mkString
   // val source_csv = Source.fromResource("1millSample.csv").mkString
   val reader = source_csv.asCsvReader[TaxiTripEntry](rfc)

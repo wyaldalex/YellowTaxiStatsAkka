@@ -3,15 +3,15 @@ package com.tudux.taxi.actors.service
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 
 object ServiceActor {
-  def props(costAggregatorActor : ActorRef, timeAggregatorActor : ActorRef): Props =
+  def props(costAggregatorActor: ActorRef, timeAggregatorActor: ActorRef): Props =
     Props(new ServiceActor(costAggregatorActor, timeAggregatorActor))
 }
-class ServiceActor(costAggregatorActor : ActorRef, timeAggregatorActor : ActorRef) extends Actor with ActorLogging {
+class ServiceActor(costAggregatorActor: ActorRef, timeAggregatorActor: ActorRef) extends Actor with ActorLogging {
 
   import com.tudux.taxi.actors.aggregators.CostAggregatorCommand._
   import com.tudux.taxi.actors.aggregators.TimeAggregatorCommand._
 
-  override def receive : Receive = {
+  override def receive: Receive = {
 
     // Domain Specific Operations
     case calculateTripDistanceCost@CalculateTripDistanceCost(_) =>

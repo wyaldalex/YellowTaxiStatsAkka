@@ -69,6 +69,7 @@ object TaxiStatAppGraphDslLoader extends App {
 
   val file = Paths.get("src/main/resources/1ksample.csv")
   // val file = Paths.get("src/main/resources/10ksample.csv")
+  //val file = Paths.get("src/main/resources/100ksample.csv")
 
   val fileSource = FileIO.fromPath(file)
 

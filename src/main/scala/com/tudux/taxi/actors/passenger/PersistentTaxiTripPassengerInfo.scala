@@ -1,7 +1,9 @@
 package com.tudux.taxi.actors.passenger
 
 import akka.actor.{ActorLogging, Props}
+import akka.cluster.sharding.ShardRegion
 import akka.persistence.PersistentActor
+import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
 
 case class TaxiTripPassengerInfo(passengerCount: Int, deletedFlag: Boolean = false)
 
@@ -11,7 +13,6 @@ object TaxiTripPassengerInfoCommand {
   case class GetTaxiTripPassengerInfo(tripId: String) extends TaxiTripPassengerInfoCommand
   case class UpdateTaxiTripPassenger(tripId: String, taxiTripPassengerInfoStat: TaxiTripPassengerInfo) extends TaxiTripPassengerInfoCommand
   case class DeleteTaxiTripPassenger(tripId: String) extends TaxiTripPassengerInfoCommand
-  case object GetTotalPassengerInfoLoaded
 }
 
 
@@ -22,35 +23,93 @@ object TaxiTripPassengerInfoStatEvent{
   case class DeletedTaxiTripPassengerEvent(tripId: String) extends TaxiTripPassengerInfoEvent
 }
 
-object PersistentTaxiTripPassengerInfo {
-  def props(id: String): Props = Props(new PersistentTaxiTripPassengerInfo(id))
+
+object PassengerInfoActorShardingSettings {
+  import TaxiTripPassengerInfoCommand._
+
+  val numberOfShards = 1000 //  use 10x number of nodes in your cluster
+  val numberOfEntities = 10000 // 10x number of shards
+  // this help to map the corresponding message to a respective entity
+  val extractEntityId: ShardRegion.ExtractEntityId = {
+    case createTaxiTripPassengerInfo@CreateTaxiTripPassengerInfo(tripId,_) =>
+      val entityId = tripId.hashCode.abs % numberOfEntities
+      (entityId.toString, createTaxiTripPassengerInfo)
+    case msg@GetTaxiTripPassengerInfo(statId) =>
+      val shardId = statId.hashCode.abs % numberOfEntities
+      (shardId.toString, msg)
+    case msg@DeleteTaxiTripPassenger(statId) =>
+      val shardId = statId.hashCode.abs % numberOfEntities
+      (shardId.toString, msg)
+    case msg@UpdateTaxiTripPassenger(statId,_) =>
+      val shardId = statId.hashCode.abs % numberOfEntities
+      (shardId.toString, msg)
+  }
+
+  // this help to map the corresponding message to a respective shard
+  val extractShardId: ShardRegion.ExtractShardId = {
+    case CreateTaxiTripPassengerInfo(tripId,_) =>
+      val shardId = tripId.hashCode.abs % numberOfShards
+      shardId.toString
+    case GetTaxiTripPassengerInfo(statId) =>
+      val shardId = statId.hashCode.abs % numberOfShards
+      shardId.toString
+    case DeleteTaxiTripPassenger(statId) =>
+      val shardId = statId.hashCode.abs % numberOfShards
+      shardId.toString
+    case UpdateTaxiTripPassenger(statId,_) =>
+      val shardId = statId.hashCode.abs % numberOfShards
+      shardId.toString
+    case ShardRegion.StartEntity(entityId) =>
+      (entityId.toLong % numberOfShards).toString
+  }
+
 }
-class PersistentTaxiTripPassengerInfo(id: String) extends PersistentActor with ActorLogging {
+object PersistentTaxiTripPassengerInfo {
+  def props: Props = Props(new PersistentTaxiTripPassengerInfo)
+}
+class PersistentTaxiTripPassengerInfo extends PersistentActor with ActorLogging {
 
   import TaxiTripPassengerInfoCommand._
   import TaxiTripPassengerInfoStatEvent._
 
-  var state : TaxiTripPassengerInfo = TaxiTripPassengerInfo(0)
+  var state: TaxiTripPassengerInfo = TaxiTripPassengerInfo(0)
 
-  override def persistenceId: String = id
+  // override def persistenceId: String = id
+  override def persistenceId: String = "PassengerInfo" + "-" + context.parent.path.name + "-" + self.path.name
+
+  override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {
+    log.error("persist failure being triggered")
+    sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage))
+    super.onPersistFailure(cause, event, seqNr)
+  }
+
+  override def onPersistRejected(cause: Throwable, event: Any, seqNr: Long): Unit = {
+    log.error("persist rejected being triggered")
+    sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage))
+    super.onPersistFailure(cause, event, seqNr)
+  }
 
   override def receiveCommand: Receive = {
     case CreateTaxiTripPassengerInfo(tripId,taxiTripPassengerInfoStat) =>
       persist(TaxiTripPassengerInfoCreatedEvent(tripId,taxiTripPassengerInfoStat)) { _ =>
         log.info(s"Creating Passenger Info Stat $taxiTripPassengerInfoStat")
         state = taxiTripPassengerInfoStat
+        sender() ! OperationResponse(tripId,Right("Success"))
       }
     case GetTaxiTripPassengerInfo(tripId) =>
+      log.info(s"Request to return Passenger Info for tripId: $tripId")
       sender() ! state
     case UpdateTaxiTripPassenger(tripId,taxiTripPassengerInfoStat) =>
       log.info(s"Applying update for Passenger Info for id $tripId")
       persist(UpdatedTaxiTripPassengerEvent(tripId, taxiTripPassengerInfoStat)) { _ =>
         state = taxiTripPassengerInfoStat
+        sender() ! OperationResponse(tripId,Right("Success"))
       }
     case DeleteTaxiTripPassenger(tripId) =>
       log.info("Deleting taxi cost stat")
       persist(DeletedTaxiTripPassengerEvent(tripId)) { _ =>
         state = state.copy(deletedFlag = true)
+        sender() ! OperationResponse(tripId,Right("Success"))
       }
 
     case _ =>

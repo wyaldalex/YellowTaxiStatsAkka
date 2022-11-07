@@ -8,20 +8,22 @@ import akka.util.Timeout
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
 
-
-class MainRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem)
+// TODO Review 2: Return error from persistence layer in the HTTP layer and avoid false positive response (Pablo Patiño) (Medium)
+// TODO Review 2: Rename validateRequest2 naming (Pablo Patiño) (Minor)
+// TODO Review 2: Stop overusing 1 actor to forward everything, each route group should use its own specific actor (Agustin Bettati) (Medium)
+class MainRouter(shardedCostActor: ActorRef, shardedExtraInfoActor: ActorRef,
+                 shardedPassengerActor: ActorRef, shardedTimeInfoActor: ActorRef, serviceActor: ActorRef)(implicit system: ActorSystem)
   {
 
   implicit val dispatcher: ExecutionContext = system.dispatcher
-  implicit val timeout: Timeout = Timeout(2.seconds)
+  implicit val timeout: Timeout = Timeout(30.seconds)
 
-  val taxiTripRoutes = TaxiTripRoutes(taxiTripActor)
-  val costRoutes = CostRoutes(taxiTripActor)
-  val timeRoutes = TimeRoutes(taxiTripActor)
-  val passengerRoutes = PassengerRoutes(taxiTripActor)
-  val extraInfoRoutes = ExtraInfoRoutes(taxiTripActor)
-  val serviceRoutes = ServiceRoutes(taxiTripActor)
-  val actorInfoRoutes = ActorInfoRoutes(taxiTripActor)
+  val taxiTripRoutes = CommonTaxiTripRoutes(shardedCostActor,shardedExtraInfoActor,shardedPassengerActor,shardedTimeInfoActor)
+  val costRoutes = CostRoutes(shardedCostActor)
+  val timeRoutes = TimeRoutes(shardedTimeInfoActor)
+  val passengerRoutes = PassengerRoutes(shardedPassengerActor)
+  val extraInfoRoutes = ExtraInfoRoutes(shardedExtraInfoActor)
+  val serviceRoutes = ServiceRoutes(serviceActor)
   val pingRoutes = Ping()
 
   val routes: Route = {
@@ -31,7 +33,6 @@ class MainRouter(taxiTripActor: ActorRef)(implicit system: ActorSystem)
     passengerRoutes.routes ~
     extraInfoRoutes.routes  ~
     serviceRoutes.routes ~
-    actorInfoRoutes.routes ~
     pingRoutes.routes
 
 

@@ -1,13 +1,14 @@
-package com.tudux.taxi.http.helpers
+package com.tudux.taxi.http.formatters
 
-import spray.json.DefaultJsonProtocol
-import RoutePayloads._
 import com.tudux.taxi.actors.aggregators.CostAggregatorResponse.{CalculateTripDistanceCostResponse, GetAverageTipAmountResponse}
 import com.tudux.taxi.actors.aggregators.TimeAggregatorResponse.TaxiTripAverageTimeMinutesResponse
+import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
 import com.tudux.taxi.actors.cost.TaxiTripCost
 import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfo
 import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfo
 import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfo
+import com.tudux.taxi.http.payloads.RoutePayloads.{CombinedTaxiTripOperationResponse, LoadedStatsResponse}
+import spray.json.DefaultJsonProtocol
 
 object RouteFormatters {
 
@@ -41,6 +42,14 @@ object RouteFormatters {
 
   trait GetTotalLoadedResponseProtocol extends DefaultJsonProtocol {
     implicit val totalLoadedResponseFormat = jsonFormat4(LoadedStatsResponse)
+  }
+
+  trait OperationResponseProtocol extends DefaultJsonProtocol {
+    implicit val operationResponseProtocolFormat = jsonFormat3(OperationResponse)
+  }
+
+  trait CombineCreationResponseProtocol extends DefaultJsonProtocol with  OperationResponseProtocol {
+    implicit val combineCreationResponseProtocolFormat = jsonFormat4(CombinedTaxiTripOperationResponse)
   }
 
 }

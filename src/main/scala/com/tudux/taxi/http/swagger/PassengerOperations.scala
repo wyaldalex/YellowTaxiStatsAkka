@@ -1,6 +1,7 @@
 package com.tudux.taxi.http.swagger
 
 import akka.http.scaladsl.server.Route
+import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
 import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfo
 import io.swagger.annotations._
 
@@ -23,7 +24,7 @@ trait GetTaxiPassenger {
 
 }
 
-import com.tudux.taxi.http.helpers.RoutePayloads.UpdatePassengerInfoRequest
+import com.tudux.taxi.http.payloads.RoutePayloads.UpdatePassengerInfoRequest
 import io.swagger.models.Operation
 
 
@@ -41,7 +42,7 @@ trait UpdateTaxiPassenger {
     new ApiImplicitParam(name = "tripId", value = "The unique id of the taxi trip stat", required = true, dataType = "int", paramType = "path")
   ))
   @ApiResponses(Array(
-    new ApiResponse(code = 200, message = "OK"),
+    new ApiResponse(code = 200, message = "OK", response = classOf[OperationResponse]),
     new ApiResponse(code = 400, message = "The request content was malformed"),
     new ApiResponse(code = 500, message = "There was an internal server error.")
   ))

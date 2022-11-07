@@ -2,23 +2,24 @@ package com.tudux.taxi.actors.aggregators
 
 import akka.actor.{ActorLogging, Props}
 import akka.persistence.{PersistentActor, SaveSnapshotFailure, SaveSnapshotSuccess, SnapshotOffer}
+import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
 import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfo
 
-//commands
+// commands
 sealed trait TimeAggregatorCommand
 object TimeAggregatorCommand  {
-  case class AddTimeAggregatorValues(time: TaxiTripTimeInfo) extends TimeAggregatorCommand
+  case class AddTimeAggregatorValues(tripId: String,time: TaxiTripTimeInfo) extends TimeAggregatorCommand
   case object GetAverageTripTime extends TimeAggregatorCommand
-  case class UpdateTimeAggregatorValues(preTime: TaxiTripTimeInfo, newTime: TaxiTripTimeInfo) extends TimeAggregatorCommand
+  case class UpdateTimeAggregatorValues(tripId: String,preTime: TaxiTripTimeInfo, newTime: TaxiTripTimeInfo) extends TimeAggregatorCommand
 }
-//events
+// events
 sealed trait TimeAggregatorEvent
 object TimeAggregatorEvent {
   case class AddedTimeAggregatorValuesEvent(time: TaxiTripTimeInfo) extends TimeAggregatorEvent
   case class UpdatedTimeAggregatorValuesEvent(preTime: TaxiTripTimeInfo, newTime: TaxiTripTimeInfo) extends TimeAggregatorEvent
 }
 
-//responses
+// responses
 sealed trait TimeAggregatorResponse
 object TimeAggregatorResponse{
 case class TaxiTripAverageTimeMinutesResponse(averageTimeMinutes: Double) extends TimeAggregatorResponse
@@ -38,33 +39,48 @@ class PersistentTimeStatsAggregator(id: String) extends PersistentActor with Act
     ((format.parse(taxiTripTimeInfoStat.tpepDropoffDatetime).getTime - format.parse(taxiTripTimeInfoStat.tpepPickupDatetime).getTime)/60000).toInt
   }
 
-  var totalMinutesTrip : Double = 0
-  var totalTrips : Int = 0
+  var totalMinutesTrip: Double = 0
+  var totalTrips: Int = 0
   var tripsWithoutCheckpoint = 0
-  val MAX_MESSAGES = 900
+  val maxMessages = 900
 
   override def persistenceId: String = id
+
+  override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {
+    log.error("persist failure being triggered")
+    sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage))
+    super.onPersistFailure(cause, event, seqNr)
+  }
+
+  override def onPersistRejected(cause: Throwable, event: Any, seqNr: Long): Unit = {
+    log.error("persist rejected being triggered")
+    sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage))
+    super.onPersistFailure(cause, event, seqNr)
+  }
+
   override def receiveCommand: Receive = {
-    case AddTimeAggregatorValues(taxiStat) =>
+    case AddTimeAggregatorValues(tripId,taxiStat) =>
       log.info("Adding time aggregator values")
       persist(AddedTimeAggregatorValuesEvent(taxiStat)) { _ =>
         val tripMinutes = getMinutes(taxiStat)
         totalMinutesTrip += tripMinutes
         totalTrips += 1
+        sender() ! OperationResponse(tripId,Right("Success"))
         maybeCheckpoint()
       }
-    case UpdateTimeAggregatorValues(preTime,newTime) =>
+    case UpdateTimeAggregatorValues(tripId,preTime,newTime) =>
       log.info("Updating time aggregator values")
       persist(UpdatedTimeAggregatorValuesEvent(preTime, newTime)) { _ =>
         val timeDelta = getMinutes(newTime) - getMinutes(preTime)
         totalMinutesTrip += timeDelta
+        sender() ! OperationResponse(tripId,Right("Success"))
         maybeCheckpoint()
       }
 
     case GetAverageTripTime =>
       sender() ! TaxiTripAverageTimeMinutesResponse(totalMinutesTrip / totalTrips)
 
-    //SNAPSHOT related
+    // SNAPSHOT related
     case SaveSnapshotSuccess(metadata) =>
       log.info(s"saving snapshot succeeded: $metadata")
     case SaveSnapshotFailure(metadata, reason) =>
@@ -82,19 +98,16 @@ class PersistentTimeStatsAggregator(id: String) extends PersistentActor with Act
       val timeDelta = getMinutes(newTime) - getMinutes(preTime)
       totalMinutesTrip += timeDelta
     case SnapshotOffer(metadata, contents) =>
-      //How does it work? A: It will recover from the last snapshot not from the first message,
-      //WARNING: Saved state has to match with the state update operations
       log.info(s"Recovered snapshot: $metadata")
       val snapState = contents.asInstanceOf[Tuple2[Int,Double]]
       totalTrips = snapState._1
       totalMinutesTrip = snapState._2
   }
-
   def maybeCheckpoint(): Unit = {
     tripsWithoutCheckpoint += 1
-    if (tripsWithoutCheckpoint >= MAX_MESSAGES) {
+    if (tripsWithoutCheckpoint >= maxMessages) {
       log.info("Saving checkpoint...")
-      saveSnapshot((totalTrips -> totalMinutesTrip)) // save a tuple with the current actor state
+      saveSnapshot((totalTrips -> totalMinutesTrip)) //  save a tuple with the current actor state
       tripsWithoutCheckpoint = 0
     }
   }

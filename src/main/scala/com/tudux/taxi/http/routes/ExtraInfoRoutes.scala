@@ -2,24 +2,30 @@ package com.tudux.taxi.http.routes
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directives.{entity, _}
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpResponse, StatusCodes}
+import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
+import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
 import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfo
 import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfoCommand.GetTaxiTripExtraInfo
-import com.tudux.taxi.http.helpers.RouteFormatters._
-import com.tudux.taxi.http.helpers.RoutePayloads._
+import com.tudux.taxi.http.formatters.RouteFormatters._
+import com.tudux.taxi.http.payloads.RoutePayloads._
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.generic.auto._
 import spray.json._
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
-case class ExtraInfoRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem, dispatcher: ExecutionContext,timeout: Timeout ) extends SprayJsonSupport
+case class ExtraInfoRoutes(shardedExtraInfoActor: ActorRef)(implicit system: ActorSystem, dispatcher: ExecutionContext,timeout: Timeout ) extends SprayJsonSupport
   with TaxiExtraInfoProtocol
+  with OperationResponseProtocol
 {
+
+  def updateTaxiTripExtraInfoResponse(tripId: String, request: UpdateExtraInfoRequest): Future[OperationResponse] = {
+    (shardedExtraInfoActor ? request.toCommand(tripId)).mapTo[OperationResponse]
+  }
 
   val routes: Route = {
       pathPrefix("api" / "yellowtaxi" / "extrainfo") {
@@ -27,8 +33,8 @@ case class ExtraInfoRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem
           path(Segment) { tripId =>
             println(s"Received some statID $tripId")
             complete(
-              (taxiTripActor ? GetTaxiTripExtraInfo(tripId.toString))
-                //.mapTo[Option[TaxiExtraInfoStat]]
+              (shardedExtraInfoActor ? GetTaxiTripExtraInfo(tripId.toString))
+                // .mapTo[Option[TaxiExtraInfoStat]]
                 .mapTo[TaxiTripExtraInfo]
                 .map(_.toJson.prettyPrint)
                 .map(toHttpEntity)
@@ -39,8 +45,21 @@ case class ExtraInfoRoutes(taxiTripActor: ActorRef)(implicit system: ActorSystem
             path(Segment) { tripId =>
               put {
                 entity(as[UpdateExtraInfoRequest]) { request =>
-                  taxiTripActor ! request.toCommand(tripId)
-                  complete(StatusCodes.OK)
+                  validateRequest(request) {
+                    onSuccess(updateTaxiTripExtraInfoResponse(tripId, request)) {
+                      case operationResponse@OperationResponse(_, status, _) =>
+                        // val statusCode = if (status == "Failure") StatusCodes.BadRequest else StatusCodes.OK
+                        val statusCode = status match {
+                          case Right(_) => StatusCodes.Created
+                          case Left(_) => StatusCodes.BadRequest
+                        }
+                        complete(HttpResponse(
+                          statusCode,
+                          entity = HttpEntity(
+                            ContentTypes.`application/json`,
+                            operationResponse.toJson.prettyPrint)))
+                    }
+                  }
                 }
               }
             }

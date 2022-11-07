@@ -1,8 +1,15 @@
 package com.tudux.taxi.actors.cost
 
 import akka.actor.{ActorLogging, ActorRef, Props}
+import akka.cluster.sharding.ShardRegion
 import akka.persistence.PersistentActor
-import com.tudux.taxi.actors.aggregators.CostAggregatorCommand.UpdateCostAggregatorValues
+import akka.util.Timeout
+import com.tudux.taxi.actors.aggregators.AggregatorStat
+import com.tudux.taxi.actors.aggregators.CostAggregatorCommand.{AddCostAggregatorValues, UpdateCostAggregatorValues}
+import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.DurationInt
 
 case class TaxiTripCost(vendorID: Int,
                         tripDistance: Double,
@@ -12,85 +19,143 @@ case class TaxiTripCost(vendorID: Int,
 
 sealed trait TaxiCostCommand
 object TaxiTripCostCommand {
-  case class CreateTaxiTripCost(statId: String, taxiTripCost: TaxiTripCost) extends TaxiCostCommand
-  case class GetTaxiTripCost(statId: String) extends  TaxiCostCommand
-  case class UpdateTaxiTripCost(statId: String, taxiTripCost: TaxiTripCost, costAggregator: ActorRef = null) extends TaxiCostCommand
-  case class DeleteTaxiTripCost(statId: String) extends TaxiCostCommand
-  case object GetTotalCostLoaded extends TaxiCostCommand
-  case class PrintTimeToLoad(startTimeMillis: Long) extends TaxiCostCommand
+  case class CreateTaxiTripCost(tripId: String, taxiTripCost: TaxiTripCost) extends TaxiCostCommand
+  case class GetTaxiTripCost(tripId: String) extends  TaxiCostCommand
+  case class UpdateTaxiTripCost(tripId: String, taxiTripCost: TaxiTripCost, costAggregator: ActorRef = ActorRef.noSender) extends TaxiCostCommand
+  case class DeleteTaxiTripCost(tripId: String) extends TaxiCostCommand
 }
 
 
 sealed trait TaxiCostEvent
 object TaxiTripCostEvent{
-  case class TaxiTripCostCreatedEvent(statId: String, taxiTripCost: TaxiTripCost) extends TaxiCostEvent
-  case class UpdatedTaxiTripCostEvent(statId: String, taxiTripCost: TaxiTripCost) extends TaxiCostEvent
-  case class DeletedTaxiTripCostEvent(statId: String) extends TaxiCostEvent
+  case class TaxiTripCostCreatedEvent(tripId: String, taxiTripCost: TaxiTripCost // , migrationError: String = "Cause Failure"
+                                     ) extends TaxiCostEvent
+  case class UpdatedTaxiTripCostEvent(tripId: String, taxiTripCost: TaxiTripCost) extends TaxiCostEvent
+  case class DeletedTaxiTripCostEvent(tripId: String) extends TaxiCostEvent
 }
 
+object CostActorShardingSettings {
+
+  import TaxiTripCostCommand._
+
+  val numberOfShards = 1000 //  use 10x number of nodes in your cluster
+  val numberOfEntities = 10000 // 10x number of shards
+  // this help to map the corresponding message to a respective entity
+  val extractEntityId: ShardRegion.ExtractEntityId = {
+    case createTaxiTripCost@CreateTaxiTripCost(tripId,_) =>
+      val entityId = tripId.hashCode.abs % numberOfEntities
+      (entityId.toString, createTaxiTripCost)
+    case msg@GetTaxiTripCost(tripId) =>
+      val shardId = tripId.hashCode.abs % numberOfEntities
+      (shardId.toString, msg)
+    case msg@DeleteTaxiTripCost(tripId) =>
+      val shardId = tripId.hashCode.abs % numberOfEntities
+      (shardId.toString, msg)
+    case msg@UpdateTaxiTripCost(tripId,_,_) =>
+      val shardId = tripId.hashCode.abs % numberOfEntities
+      (shardId.toString, msg)
+  }
+
+  // this help to map the corresponding message to a respective shard
+  val extractShardId: ShardRegion.ExtractShardId = {
+    case CreateTaxiTripCost(tripId,_) =>
+      val shardId = tripId.hashCode.abs % numberOfShards
+      shardId.toString
+    case GetTaxiTripCost(tripId) =>
+      val shardId = tripId.hashCode.abs % numberOfShards
+      shardId.toString
+    case DeleteTaxiTripCost(tripId) =>
+      val shardId = tripId.hashCode.abs % numberOfShards
+      shardId.toString
+    case UpdateTaxiTripCost(tripId,_, _) =>
+      val shardId = tripId.hashCode.abs % numberOfShards
+      shardId.toString
+    case ShardRegion.StartEntity(entityId) =>
+      (entityId.toLong % numberOfShards).toString
+  }
+
+}
 object PersistentTaxiTripCost {
-  def props(id: String): Props = Props(new PersistentTaxiTripCost(id))
+  def props(costAggregator: ActorRef): Props = Props(new PersistentTaxiTripCost(costAggregator))
 }
-class PersistentTaxiTripCost(id: String) extends PersistentActor with ActorLogging {
-
+class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor with ActorLogging {
+// Scala vs Golang,NodeJs
   import TaxiTripCostCommand._
   import TaxiTripCostEvent._
 
-  var state : TaxiTripCost = TaxiTripCost(0,0,0,0,0,0,0,0,0,0)
+  import akka.pattern.{ask, pipe}
+  implicit val ec: ExecutionContext = context.dispatcher
+  implicit val timeout = Timeout(5 seconds)
 
-  override def persistenceId: String = id
+  var state: TaxiTripCost = TaxiTripCost(0,0,0,0,0,0,0,0,0,0)
+  override def persistenceId: String = "Cost" + "-" + context.parent.path.name + "-" + self.path.name
+  // override def persistenceId : String = "x"
+
+  override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {
+    sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage)) // TODO: used typed objects instead of raw strings (missing typed lang benefits), research: benefits from typing and monads, importance
+    // fp simplified , de Alexander Kelvin
+    log.error("persist failure being triggered")
+    super.onPersistFailure(cause, event, seqNr)
+  }
+
+  override def onPersistRejected(cause: Throwable, event: Any, seqNr: Long): Unit = {
+    sender() ! OperationResponse("", Left("Failure"), Left(cause.getMessage))
+    log.error("persist rejected being triggered")
+    super.onPersistFailure(cause, event, seqNr)
+  }
 
   override def receiveCommand: Receive = {
-    case CreateTaxiTripCost(statId,taxiTripCost) =>
-      persist(TaxiTripCostCreatedEvent(statId,taxiTripCost)) { _ =>
-        log.info(s"Creating Taxi Cost $taxiTripCost")
+    case CreateTaxiTripCost(tripId,taxiTripCost) =>
+      persist(TaxiTripCostCreatedEvent(tripId,taxiTripCost)) { _ =>
+        log.info(s"Creating Taxi Cost $tripId at location ${self.path.name}")
         state = taxiTripCost
         log.info(s"Created cost stat: $taxiTripCost")
+        // TODO: use specific log level         // May not succeed
+        (costAggregator ? AddCostAggregatorValues(tripId,AggregatorStat(taxiTripCost.totalAmount,taxiTripCost.tripDistance,taxiTripCost.tipAmount))).pipeTo(sender())
+        // sender() ! OperationResponse(tripId,Right("Success"))
       }
-      sender() ! s"${self.path} child actor registered"
 
-    case GetTaxiTripCost(statId) =>
-      log.info(s"Receiving request to return cost trip cost information ${self.path}")
+    case GetTaxiTripCost(tripId) =>
+      log.info(s"Request to return Cost Info for tripId: $tripId")
       sender() ! state
-    case UpdateTaxiTripCost(statId,taxiTripCost,costAggregator) =>
+    case UpdateTaxiTripCost(tripId,taxiTripCost,_) =>
 
-      persist(UpdatedTaxiTripCostEvent(statId, taxiTripCost)) { _ =>
-        costAggregator ! UpdateCostAggregatorValues(
+      persist(UpdatedTaxiTripCostEvent(tripId, taxiTripCost)) { _ =>
+        state = taxiTripCost
+        (costAggregator ? UpdateCostAggregatorValues(
+          tripId,
           taxiTripCost.totalAmount-state.totalAmount,
           taxiTripCost.tripDistance-state.tripDistance,
-          taxiTripCost.tipAmount - state.tipAmount, //new minus old
-          state.tipAmount)
-        state = taxiTripCost
+          taxiTripCost.tipAmount - state.tipAmount, // new minus old
+          state.tipAmount)).pipeTo(sender())
+        // sender() ! OperationResponse(tripId,Right("Success"))
         log.info(s"Updated cost stat: $taxiTripCost")
         }
 
-    case DeleteTaxiTripCost(statId) =>
+    case DeleteTaxiTripCost(tripId) =>
       log.info("Deleting taxi cost stat")
-      persist(DeletedTaxiTripCostEvent(statId)) { _ =>
+      persist(DeletedTaxiTripCostEvent(tripId)) { _ =>
         state = state.copy(deletedFlag = true)
+        sender() ! OperationResponse(tripId,Right("Success"))
       }
-
-    case PrintTimeToLoad(startTimeMillis) =>
-      log.info("Getting Load Time")
-      val endTimeMillis = System.currentTimeMillis()
-      val durationSeconds = (endTimeMillis - startTimeMillis) / 1000
-      log.info(s"Total Load Time: $durationSeconds" )
     case _ =>
       log.info(s"Received something else at ${self.path.name}")
 
   }
 
   override def receiveRecover: Receive = {
-    case TaxiTripCostCreatedEvent(statId,taxiTripCost) =>
-      log.info(s"Recovering Taxi Cost Created  $statId ")
+    case TaxiTripCostCreatedEvent(tripId,taxiTripCost) =>
+      log.info(s"Recovering Taxi Cost Created  $tripId ")
+      state = taxiTripCost
+      log.info(s"The state is $state from recovered $taxiTripCost")
+      log.info(s"Location recovered $persistenceId")
+
+    case UpdatedTaxiTripCostEvent(tripId,taxiTripCost) =>
+      log.info(s"Recovering Taxi Cost Updated $tripId ")
       state = taxiTripCost
 
-    case UpdatedTaxiTripCostEvent(statId,taxiTripCost) =>
-      log.info(s"Recovering Taxi Cost Updated $statId ")
-      state = taxiTripCost
-
-    case DeletedTaxiTripCostEvent(statId) =>
-      log.info(s"Recovering Taxi Cost Deleted for $statId ")
+    case DeletedTaxiTripCostEvent(tripId) =>
+      log.info(s"Recovering Taxi Cost Deleted for $tripId ")
       state = state.copy(deletedFlag = true)
   }
 }

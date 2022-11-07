@@ -18,8 +18,7 @@ case class Swagger(system: ActorSystem) extends SwaggerHttpService {
     classOf[GetTaxiCostStat], classOf[CalculateTripDistanceCost], classOf[GetAverageTipAmount],classOf[GetAverageTripTime],
     classOf[UpdateTaxiCost], classOf[GetTaxiTimeInfoStat], classOf[UpdateTaxiTimeInfo],
     classOf[GetTaxiPassenger],classOf[UpdateTaxiPassenger],
-    classOf[GetTaxiExtraInfo],classOf[UpdateTaxiExtraInfo],
-    classOf[GetLoadedStats])
+    classOf[GetTaxiExtraInfo],classOf[UpdateTaxiExtraInfo])
 
   override val host = API_URL
 

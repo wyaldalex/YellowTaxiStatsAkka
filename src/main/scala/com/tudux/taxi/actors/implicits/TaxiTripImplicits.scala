@@ -1,13 +1,14 @@
-package com.tudux.taxi.actors.helpers
+package com.tudux.taxi.actors.implicits
 
 import com.tudux.taxi.actors.cost.TaxiTripCost
 import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfo
 import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfo
 import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfo
-import com.tudux.taxi.actors.TaxiTripEntry
 import com.tudux.taxi.actors.aggregators.AggregatorStat
+import com.tudux.taxi.actors.aggregators.CostAggregatorCommand.AddCostAggregatorValues
+import com.tudux.taxi.actors.loader.TaxiTripEntry
 
-object TaxiTripHelpers {
+object TaxiTripImplicits {
 
   implicit def toTaxiCost(taxiStat: TaxiTripEntry): TaxiTripCost = {
     TaxiTripCost(taxiStat.vendorID, taxiStat.tripDistance,

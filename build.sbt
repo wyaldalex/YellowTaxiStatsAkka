@@ -50,6 +50,10 @@ libraryDependencies ++= Seq(
   "io.aeron" % "aeron-driver" % "1.15.0",
   "io.aeron" % "aeron-client" % "1.15.0",
 
+  //akka streams
+  "com.typesafe.akka" %% "akka-stream" % akkaVersion,
+  "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion,
+
   // optional, if you want to add tests
   "com.typesafe.akka" %% "akka-http-testkit"          % akkaHttpVersion % Test,
   "com.typesafe.akka" %% "akka-actor-testkit-typed"   % akkaVersion     % Test,

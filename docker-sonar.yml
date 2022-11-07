@@ -5,3 +5,6 @@ services:
     image: mwizner/sonarqube-scala-plugins:latest-full
     ports:
       - 9000:9000
+
+#docker-compose -f docker-sonar.yml up
+#sbt clean coverage test coverageReport scapegoat sonarScan

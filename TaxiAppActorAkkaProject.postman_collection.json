@@ -11,7 +11,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/cost/cc519a4f-3e8a-4d65-8cfd-d10916c8b560",
+					"raw": "http://localhost:10001/api/yellowtaxi/cost/a5ca02cd-0934-4e72-bcf8-86d201679497",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -21,7 +21,7 @@
 						"api",
 						"yellowtaxi",
 						"cost",
-						"cc519a4f-3e8a-4d65-8cfd-d10916c8b560"
+						"a5ca02cd-0934-4e72-bcf8-86d201679497"
 					]
 				}
 			},
@@ -42,7 +42,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/cost/cc519a4f-3e8a-4d65-8cfd-d10916c8b560",
+					"raw": "http://localhost:10001/api/yellowtaxi/cost/a5ca02cd-0934-4e72-bcf8-86d201679497",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -52,7 +52,7 @@
 						"api",
 						"yellowtaxi",
 						"cost",
-						"cc519a4f-3e8a-4d65-8cfd-d10916c8b560"
+						"a5ca02cd-0934-4e72-bcf8-86d201679497"
 					]
 				}
 			},
@@ -128,7 +128,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/time/cc519a4f-3e8a-4d65-8cfd-d10916c8b560",
+					"raw": "http://localhost:10001/api/yellowtaxi/time/a5ca02cd-0934-4e72-bcf8-86d201679497",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -138,7 +138,7 @@
 						"api",
 						"yellowtaxi",
 						"time",
-						"cc519a4f-3e8a-4d65-8cfd-d10916c8b560"
+						"a5ca02cd-0934-4e72-bcf8-86d201679497"
 					]
 				}
 			},
@@ -159,7 +159,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/time/cc519a4f-3e8a-4d65-8cfd-d10916c8b560",
+					"raw": "http://localhost:10001/api/yellowtaxi/time/a5ca02cd-0934-4e72-bcf8-86d201679497",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -169,7 +169,7 @@
 						"api",
 						"yellowtaxi",
 						"time",
-						"cc519a4f-3e8a-4d65-8cfd-d10916c8b560"
+						"a5ca02cd-0934-4e72-bcf8-86d201679497"
 					]
 				}
 			},
@@ -193,7 +193,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/passenger/cc519a4f-3e8a-4d65-8cfd-d10916c8b560",
+					"raw": "http://localhost:10001/api/yellowtaxi/passenger/a5ca02cd-0934-4e72-bcf8-86d201679497",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -203,7 +203,7 @@
 						"api",
 						"yellowtaxi",
 						"passenger",
-						"cc519a4f-3e8a-4d65-8cfd-d10916c8b560"
+						"a5ca02cd-0934-4e72-bcf8-86d201679497"
 					]
 				}
 			},
@@ -224,7 +224,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/passenger/cc519a4f-3e8a-4d65-8cfd-d10916c8b560",
+					"raw": "http://localhost:10001/api/yellowtaxi/passenger/a5ca02cd-0934-4e72-bcf8-86d201679497",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -234,7 +234,7 @@
 						"api",
 						"yellowtaxi",
 						"passenger",
-						"cc519a4f-3e8a-4d65-8cfd-d10916c8b560"
+						"a5ca02cd-0934-4e72-bcf8-86d201679497"
 					]
 				}
 			},
@@ -242,23 +242,11 @@
 		},
 		{
 			"name": "GetTaxiExtraInfo",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
 			"request": {
 				"method": "GET",
 				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": " {\r\n   \"VendorID\": 2,\r\n   \"tpep_pickup_datetime\": \"2015-01-15 19:05:42\",\r\n   \"tpep_dropoff_datetime\": \"2015-01-15 19:16:18\",\r\n   \"passenger_count\": 1,\r\n   \"trip_distance\": 1.53,\r\n   \"pickup_longitude\": \"-73.991127014160156\",\r\n   \"pickup_latitude\": \"40.750080108642578\",\r\n   \"RateCodeID\": 1,\r\n   \"store_and_fwd_flag\": \"N\",\r\n   \"dropoff_longitude\": \"-73.988609313964844\",\r\n   \"dropoff_latitude\": \"40.734889984130859\",\r\n   \"payment_type\": 2,\r\n   \"fare_amount\": 9,\r\n   \"extra\": 1,\r\n   \"mta_tax\": 0.5,\r\n   \"tip_amount\": 0,\r\n   \"tolls_amount\": 0,\r\n   \"improvement_surcharge\": 0.3,\r\n   \"total_amount\": 10.8\r\n }",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
 				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/extrainfo/cc519a4f-3e8a-4d65-8cfd-d10916c8b560",
+					"raw": "http://localhost:10001/api/yellowtaxi/extrainfo/a5ca02cd-0934-4e72-bcf8-86d201679497",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -268,7 +256,7 @@
 						"api",
 						"yellowtaxi",
 						"extrainfo",
-						"cc519a4f-3e8a-4d65-8cfd-d10916c8b560"
+						"a5ca02cd-0934-4e72-bcf8-86d201679497"
 					]
 				}
 			},
@@ -289,7 +277,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/extrainfo/cc519a4f-3e8a-4d65-8cfd-d10916c8b560",
+					"raw": "http://localhost:10001/api/yellowtaxi/extrainfo/a5ca02cd-0934-4e72-bcf8-86d201679497",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -299,7 +287,7 @@
 						"api",
 						"yellowtaxi",
 						"extrainfo",
-						"cc519a4f-3e8a-4d65-8cfd-d10916c8b560"
+						"a5ca02cd-0934-4e72-bcf8-86d201679497"
 					]
 				}
 			},
@@ -403,28 +391,6 @@
 						"yellowtaxi",
 						"service",
 						"average-tip"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "GetTotalLoadedPerActor",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:10001/api/yellowtaxi/actor/loaded",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "10001",
-					"path": [
-						"api",
-						"yellowtaxi",
-						"actor",
-						"loaded"
 					]
 				}
 			},

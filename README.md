@@ -5,11 +5,11 @@ Project based on: https://www.kaggle.com/datasets/elemento/nyc-yellow-taxi-trip-
 
 ## To run the Http Project:
   1) docker-compose up
-  2) run TaxiApp
+  2) run com.tudux.taxi.app.TaxiApp
   3) For Swagger Documentation about routes visit: http://localhost:10001/swagger-ui/index.html  
 
 ## To Load from sample CSV
-run com.tudux.taxi.actors.loader.TaxiStatAppLoader
+run com.tudux.taxi.actors.loader.TaxiStatAppGraphDslLoader
 
 ## Considerations 
 - java version:  11.0.15.1 2022-04-22 LTS 

@@ -5,12 +5,10 @@ import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
 import cats.data.Validated
 import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
-import com.tudux.taxi.actors.loader.TaxiTripCommand.CreateTaxiTripCommand
 import com.tudux.taxi.actors.cost.TaxiTripCost
 import com.tudux.taxi.actors.cost.TaxiTripCostCommand.{CreateTaxiTripCost, UpdateTaxiTripCost}
 import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfo
 import com.tudux.taxi.actors.extrainfo.TaxiTripExtraInfoCommand.{CreateTaxiTripExtraInfo, UpdateTaxiTripExtraInfo}
-import com.tudux.taxi.actors.loader.TaxiTripEntry
 import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfo
 import com.tudux.taxi.actors.passenger.TaxiTripPassengerInfoCommand.{CreateTaxiTripPassengerInfo, UpdateTaxiTripPassenger}
 import com.tudux.taxi.actors.timeinfo.TaxiTripTimeInfo
@@ -19,8 +17,6 @@ import com.tudux.taxi.http.validation.Validation._
 import com.tudux.taxi.http.validation.Validators._
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.generic.auto._
-
-import scala.concurrent.Future
 
 object RoutePayloads {
 
@@ -32,11 +28,6 @@ object RoutePayloads {
                                    storeAndFwdFlag: String, dropoffLongitude: Double, dropoffLatitude: Double,
                                    paymentType: Int, fareAmount: Double, extra: Double, mtaTax: Double,
                                    tipAmount: Double, tollsAmount: Double, improvementSurcharge: Double, totalAmount: Double) {
-    def toCommand: CreateTaxiTripCommand = CreateTaxiTripCommand(TaxiTripEntry(vendorID, tpepPickupDatetime, tpepDropoffDatetime, passengerCount,
-      tripDistance, pickupLongitude, pickupLatitude, rateCodeID,
-      storeAndFwdFlag, dropoffLongitude, dropoffLatitude,
-      paymentType, fareAmount, extra, mtaTax,
-      tipAmount, tollsAmount, improvementSurcharge, totalAmount))
 
     def toCostCommand(tripId: String): CreateTaxiTripCost = CreateTaxiTripCost(tripId,TaxiTripCost(vendorID,
       tripDistance,
@@ -101,23 +92,5 @@ object RoutePayloads {
         complete(StatusCodes.BadRequest, FailureResponse(failures.toList.map(_.errorMessage).mkString(", ")))
     }
   }
-
-  /*
-  case class ValidatedRequestResponse(flag: Boolean, routeResult: Route)
-  def validateRequestForDecision[R: Validator](request: R, validRoute: Route): ValidatedRequestResponse = {
-    validateEntity(request) match {
-      case Validated.Valid(_) => ValidatedRequestResponse(true,validRoute)
-      case Validated.Invalid(failures) =>
-        ValidatedRequestResponse(false,
-        complete(StatusCodes.BadRequest, FailureResponse(failures.toList.map(_.errorMessage).mkString(", "))))
-    }
-  }
-*/
-  case class TaxiCreatedResponse(
-                                  costResponse: Future[OperationResponse],
-                                  extraInfoResponse: Future[OperationResponse],
-                                  passengerResponse: Future[OperationResponse],
-                                  timeResponse: Future[OperationResponse])
-
 
 }

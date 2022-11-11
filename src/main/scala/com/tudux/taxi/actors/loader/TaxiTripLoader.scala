@@ -26,11 +26,6 @@ case class TaxiTripEntry(vendorID: Int, tpepPickupDatetime: String, tpepDropoffD
                          paymentType: Int, fareAmount: Double, extra: Double, mtaTax: Double,
                          tipAmount: Double, tollsAmount: Double, improvementSurcharge: Double, totalAmount: Double)
 
-sealed trait TaxiTripCommand
-object TaxiTripCommand {
-  case class CreateTaxiTripCommand(taxiTrip: TaxiTripEntry, tripId: String = "") extends  TaxiTripCommand
-}
-
 object ActorCounter {
   def props(name: String): Props = Props(new ActorCounter(name))
 }

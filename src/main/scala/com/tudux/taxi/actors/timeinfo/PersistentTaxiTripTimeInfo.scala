@@ -141,8 +141,6 @@ class PersistentTaxiTripTimeInfo(timeAggregator: ActorRef) extends PersistentAct
     case DeletedTaxiTripTimeInfoEvent(tripId) =>
       log.info(s"Recovering Deleted Trip Time Info Stat $tripId")
       state = state.copy(deletedFlag = true)
-
-
   }
 }
 

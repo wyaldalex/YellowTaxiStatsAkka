@@ -42,8 +42,6 @@ class TaxiTripRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matc
   val routes = CommonTaxiTripRoutes(persistentCost,
     persistentExtraInfo, persistentPassenger, persistentTimeInfo).routes
 
-  override def createActorSystem(): ActorSystem = ActorSystem("taxiTripRouterSpec")
-
   Feature("Handle taxi trip endpoints") {
 
     Scenario("Create a new taxi trip test case #1") {

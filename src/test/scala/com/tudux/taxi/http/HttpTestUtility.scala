@@ -13,4 +13,19 @@ object HttpTestUtility {
   trait CreateTaxiTripRequestProtocol extends DefaultJsonProtocol {
     implicit val CreateTaxiTripRequestFormat = jsonFormat19(CreateTaxiTripRequest)
   }
+
+  case class OperationResponse(id: String, status: String, message: String)
+
+  trait OperationResponseProtocol extends DefaultJsonProtocol {
+    implicit val OperationResponseFormat = jsonFormat3(OperationResponse)
+  }
+
+  case class CombinedTaxiTripOperationResponse(costResponse: OperationResponse,
+    extraInfoResponse: OperationResponse, passengerResponse: OperationResponse,
+    timeResponse: OperationResponse)
+
+  trait CombinedTaxiTripOperationResponseProtocol extends DefaultJsonProtocol with OperationResponseProtocol {
+    implicit val CombinedTaxiTripOperationResponseFormat = jsonFormat4(CombinedTaxiTripOperationResponse)
+  }
+
 }

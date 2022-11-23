@@ -1,6 +1,6 @@
 package com.tudux.taxi.http
 
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.ActorRef
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.{ContentTypes, StatusCodes}
 import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
@@ -11,16 +11,16 @@ import com.tudux.taxi.actors.cost.PersistentTaxiTripCost
 import com.tudux.taxi.actors.extrainfo.PersistentTaxiExtraInfo
 import com.tudux.taxi.actors.passenger.PersistentTaxiTripPassengerInfo
 import com.tudux.taxi.actors.timeinfo.PersistentTaxiTripTimeInfo
+import com.tudux.taxi.http.HttpTestUtility._
 import com.tudux.taxi.http.routes.CommonTaxiTripRoutes
 import org.scalatest.GivenWhenThen
 import org.scalatest.featurespec.AnyFeatureSpecLike
 import org.scalatest.matchers.should.Matchers
-import HttpTestUtility._
 
 import scala.concurrent.duration._
 
 class TaxiTripRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers with ScalatestRouteTest
-  with SprayJsonSupport with CreateTaxiTripRequestProtocol {
+  with SprayJsonSupport with CreateTaxiTripRequestProtocol with CombinedTaxiTripOperationResponseProtocol {
 
   info("As a user of the application")
   info("I should be able to handle Taxi Trip information")
@@ -42,7 +42,7 @@ class TaxiTripRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matc
   val routes = CommonTaxiTripRoutes(persistentCost,
     persistentExtraInfo, persistentPassenger, persistentTimeInfo).routes
 
-  Feature("Handle taxi trip endpoints") {
+  Feature("Handle create taxi trip endpoint") {
 
     Scenario("Create a new taxi trip test case #1") {
       Given("A taxi trip create request")
@@ -107,8 +107,8 @@ class TaxiTripRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matc
       When("a user send a POST request to create a new taxi trip")
       Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
         aCreateTaxiTripRequest) ~> routes ~> check {
-        Then("should reject the request")
 
+        Then("should reject the request")
         rejections should not be empty
       }
     }
@@ -379,6 +379,40 @@ class TaxiTripRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matc
       Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
         aCreateTaxiTripRequest) ~> routes ~> check {
         Then("should respond with a bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+  }
+
+  Feature("Handle delete taxi trip endpoint") {
+
+    Scenario("Delete a existent taxi trip") {
+      Given("A taxi trip create request")
+      val aCreateTaxiTripRequest: CreateTaxiTripRequest = CreateTaxiTripRequest(vendorID = 1,
+        tpepPickupDatetime = "2015-01-15 19:05:42", tpepDropoffDatetime = "2015-01-15 19:16:18",
+        passengerCount = 1, tripDistance = 1.53, pickupLongitude = 180, pickupLatitude = 90, rateCodeID = 1,
+        storeAndFwdFlag = "Y", dropoffLongitude = 180, dropoffLatitude = 90, paymentType = 2,
+        fareAmount = 9, extra = 0, mtaTax = 0, tipAmount = 0, tollsAmount = 0, improvementSurcharge = 0,
+        totalAmount = 2.0)
+
+      When("a user send a POST request to create a new taxi trip and after that send a DELETE " +
+        "request to delete it")
+      Post("/api/yellowtaxi/taxitrip", aCreateTaxiTripRequest) ~> routes ~> check {
+        val taxiTripId: String =
+          entityAs[CombinedTaxiTripOperationResponse].costResponse.id
+
+        Then("should response with a OK status code")
+        Delete(s"/api/yellowtaxi/taxitrip/$taxiTripId") ~> routes ~> check {
+          status shouldBe StatusCodes.OK
+        }
+      }
+    }
+
+    Scenario("Delete a with an not existent taxi trip id") {
+      When("a user send a DELETE request with a empty taxiTripId")
+      val aNotExistentTaxiTripId: String = "ThisIdDontExistOnTheSystem"
+      Delete(s"/api/yellowtaxi/taxitrip/$aNotExistentTaxiTripId") ~> routes ~> check {
+        Then("should response with a BadRequest status code")
         status shouldBe StatusCodes.BadRequest
       }
     }

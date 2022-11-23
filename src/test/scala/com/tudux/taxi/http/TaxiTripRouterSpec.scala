@@ -520,6 +520,1842 @@ class TaxiTripRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matc
       }
     }
 
+    Scenario("Create a new taxi trip test case #17") {
+      Given("A taxi trip create request with empty tripDistance")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": ,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": 1,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #18") {
+      Given("A taxi trip create request with empty tripDistance")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": "A",
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": 1,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #19") {
+      Given("A taxi trip create request with zero as tripDistance")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 0,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": 1,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #20") {
+      Given("A taxi trip create request with negative number as tripDistance")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": -1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": 1,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #21") {
+      Given("A taxi trip create request with empty pickupLongitude")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": 1,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #22") {
+      Given("A taxi trip create request with something different to a number as pickupLongitude")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "A",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": 1,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #23") {
+      Given("A taxi trip create request with limit 181 as pickupLongitude")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "181",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": 1,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #24") {
+      Given("A taxi trip create request with limit -181 as pickupLongitude")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "-181",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": 1,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #25") {
+      Given("A taxi trip create request with empty pickupLatitude")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "",
+           |  "rateCodeID": 1,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #26") {
+      Given("A taxi trip create request with something different to a number as pickupLatitude")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "A",
+           |  "rateCodeID": 1,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #27") {
+      Given("A taxi trip create request with limit 91 as pickupLatitude")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "91",
+           |  "rateCodeID": 1,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #28") {
+      Given("A taxi trip create request with limit -91 as pickupLatitude")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "-180",
+           |  "pickupLatitude": "-91",
+           |  "rateCodeID": 1,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #29") {
+      Given("A taxi trip create request with empty rateCodeID")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": ,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #30") {
+      Given("A taxi trip create request with something different to a number as rateCodeID")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "A",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #31") {
+      Given("A taxi trip create request with a negative number as rateCodeID")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "-1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #32") {
+      Given("A taxi trip create request with a zero as rateCodeID")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "0",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #33") {
+      Given("A taxi trip create request with 7 as rateCodeID")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "7",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #34") {
+      Given("A taxi trip create request with empty as storeAndFwdFlag")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": ,
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #35") {
+      Given("A taxi trip create request with something different to a Y and N as storeAndFwdFlag")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "A",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #36") {
+      Given("A taxi trip create request with empty as dropoffLongitude")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #37") {
+      Given("A taxi trip create request with empty as dropoffLongitude")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "A",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #38") {
+      Given("A taxi trip create request with limit 181 as dropoffLongitude")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "181",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #39") {
+      Given("A taxi trip create request with limit -181 as dropoffLongitude")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "-181",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #40") {
+      Given("A taxi trip create request with empty as dropoffLatitude")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #41") {
+      Given("A taxi trip create request with empty as dropoffLatitude")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "A",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #42") {
+      Given("A taxi trip create request with limit 91 as dropoffLatitude")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "91",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #43") {
+      Given("A taxi trip create request with limit -91 as dropoffLatitude")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "-91",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #44") {
+      Given("A taxi trip create request with empty as paymentType")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": ,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #45") {
+      Given("A taxi trip create request with something different to a number as paymentType")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": "A",
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #46") {
+      Given("A taxi trip create request with a negative number as paymentType")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": -1,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #47") {
+      Given("A taxi trip create request with a limit zero as paymentType")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 0,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #48") {
+      Given("A taxi trip create request with a limit 7 as paymentType")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 7,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #49") {
+      Given("A taxi trip create request with empty as fareAmount")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": "",
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #50") {
+      Given("A taxi trip create request with empty as fareAmount")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": "A",
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #51") {
+      Given("A taxi trip create request with empty as fareAmount")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": 0,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #52") {
+      Given("A taxi trip create request with empty as fareAmount")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": -1,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #53") {
+      Given("A taxi trip create request with empty as extra")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": 1,
+           |  "extra": ,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #54") {
+      Given("A taxi trip create request with something different to a number as extra")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": 1,
+           |  "extra": "A",
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #55") {
+      Given("A taxi trip create request with a negative number as extra")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": 1,
+           |  "extra": -1,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #56") {
+      Given("A taxi trip create request with empty as mtaTax")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": 1,
+           |  "extra": 1,
+           |  "mtaTax": ,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #57") {
+      Given("A taxi trip create request with something different to a number as mtaTax")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": 1,
+           |  "extra": 1,
+           |  "mtaTax": "A",
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #58") {
+      Given("A taxi trip create request with a negative number as mtaTax")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": 1,
+           |  "extra": 1,
+           |  "mtaTax": -1,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #59") {
+      Given("A taxi trip create request with empty as tipAmount")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": 1,
+           |  "extra": 1,
+           |  "mtaTax": 1,
+           |  "tipAmount": ,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #60") {
+      Given("A taxi trip create request with something different to a number as tipAmount")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": 1,
+           |  "extra": 1,
+           |  "mtaTax": 1,
+           |  "tipAmount": A,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #61") {
+      Given("A taxi trip create request with a negative number as tipAmount")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": 1,
+           |  "extra": 1,
+           |  "mtaTax": 1,
+           |  "tipAmount": -1,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #62") {
+      Given("A taxi trip create request with empty as tollsAmount")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": 1,
+           |  "extra": 1,
+           |  "mtaTax": 1,
+           |  "tipAmount": 1,
+           |  "tollsAmount": ,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #63") {
+      Given("A taxi trip create request with something different to a number as tollsAmount")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": 1,
+           |  "extra": 1,
+           |  "mtaTax": 1,
+           |  "tipAmount": 1,
+           |  "tollsAmount": "A",
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #64") {
+      Given("A taxi trip create request with a negative number as tollsAmount")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": 1,
+           |  "extra": 1,
+           |  "mtaTax": 1,
+           |  "tipAmount": 1,
+           |  "tollsAmount": -1,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #65") {
+      Given("A taxi trip create request with empty as improvementSurcharge")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": 1,
+           |  "extra": 1,
+           |  "mtaTax": 1,
+           |  "tipAmount": 1,
+           |  "tollsAmount": 1,
+           |  "improvementSurcharge": ,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #66") {
+      Given("A taxi trip create request with a negative number as tollsAmount")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": 1,
+           |  "extra": 1,
+           |  "mtaTax": 1,
+           |  "tipAmount": 1,
+           |  "tollsAmount": 1,
+           |  "improvementSurcharge": -1,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #67") {
+      Given("A taxi trip create request with empty as totalAmount")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": 1,
+           |  "extra": 1,
+           |  "mtaTax": 1,
+           |  "tipAmount": 1,
+           |  "tollsAmount": 1,
+           |  "improvementSurcharge": 1,
+           |  "totalAmount":
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #68") {
+      Given("A taxi trip create request with something different to a number as totalAmount")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": 1,
+           |  "extra": 1,
+           |  "mtaTax": 1,
+           |  "tipAmount": 1,
+           |  "tollsAmount": 1,
+           |  "improvementSurcharge": 1,
+           |  "totalAmount": "A"
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #69") {
+      Given("A taxi trip create request with zero as totalAmount")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": 1,
+           |  "extra": 1,
+           |  "mtaTax": 1,
+           |  "tipAmount": 1,
+           |  "tollsAmount": 1,
+           |  "improvementSurcharge": 1,
+           |  "totalAmount": 0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Create a new taxi trip test case #70") {
+      Given("A taxi trip create request with a negative number as totalAmount")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": 1,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 1,
+           |  "fareAmount": 1,
+           |  "extra": 1,
+           |  "mtaTax": 1,
+           |  "tipAmount": 1,
+           |  "tollsAmount": 1,
+           |  "improvementSurcharge": 1,
+           |  "totalAmount": -1
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
 
   }
 

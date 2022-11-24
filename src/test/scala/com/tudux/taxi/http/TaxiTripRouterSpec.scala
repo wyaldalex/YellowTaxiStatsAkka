@@ -25,19 +25,23 @@ class TaxiTripRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matc
   info("As a user of the application")
   info("I should be able to handle Taxi Trip information")
   info("So I should be able to use the resources available to create and delete taxi trip")
+
+  // Initializing timers
+  implicit val timeoutRouteTestTimeout = RouteTestTimeout(60.seconds.dilated)
+  implicit val timeout: Timeout = Timeout(30.seconds)
+
   // Create the aggregators
   val costAggregatorActor: ActorRef = system.actorOf(PersistentCostStatsAggregator.props("cost-aggregator")
     , "cost-aggregator")
-
-  implicit val timeoutRouteTestTimeout = RouteTestTimeout(60.seconds.dilated)
-  implicit val timeout: Timeout = Timeout(30.seconds)
   val timeAggregatorActor: ActorRef = system.actorOf(PersistentTimeStatsAggregator.props("time-aggregator")
     , "time-aggregator")
-  // Create the sharded version of the persistent actors
+
+  // Create the persistent actors
   val persistentCost: ActorRef = system.actorOf(PersistentTaxiTripCost.props(costAggregatorActor))
   val persistentExtraInfo: ActorRef = system.actorOf(PersistentTaxiExtraInfo.props)
   val persistentPassenger: ActorRef = system.actorOf(PersistentTaxiTripPassengerInfo.props)
   val persistentTimeInfo: ActorRef = system.actorOf(PersistentTaxiTripTimeInfo.props(timeAggregatorActor))
+
   //routes
   val routes = CommonTaxiTripRoutes(persistentCost,
     persistentExtraInfo, persistentPassenger, persistentTimeInfo).routes
@@ -2384,7 +2388,7 @@ class TaxiTripRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matc
     }
 
     Scenario("Delete a with an not existent taxi trip id") {
-      When("a user send a DELETE request with a empty taxiTripId")
+      When("a user send a DELETE request with a not existent taxiTripId")
       val aNotExistentTaxiTripId: String = "ThisIdDontExistOnTheSystem"
       Delete(s"/api/yellowtaxi/taxitrip/$aNotExistentTaxiTripId") ~> routes ~> check {
         Then("should response with a BadRequest status code")

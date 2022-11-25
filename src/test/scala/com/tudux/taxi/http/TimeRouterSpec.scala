@@ -100,6 +100,18 @@ class TimeRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
   Feature("Handle put taxi trip time endpoint") {
 
+    Scenario("Update a taxi trip test case #1") {
+      Given("A taxi trip time update request")
+      val aTaxiTripTimeInfo: TaxiTripTimeInfo = TaxiTripTimeInfo(tpepPickupDatetime = "2015-01-15 19:05:42",
+        tpepDropoffDatetime = "2015-01-15 19:16:18")
+
+      When("a user send a Put request to update a taxi trip time")
+      Put(s"/api/yellowtaxi/time/$taxiTripId", aTaxiTripTimeInfo) ~> timeRoutes ~> check {
+        Then("should response with an Created status code")
+        status shouldBe StatusCodes.Created
+      }
+    }
+
     Scenario("Update a taxi trip time test case #7") {
       Given("A taxi trip update request with empty tpepPickupDatetime")
       val aUpdateTaxiTripRequest: String =

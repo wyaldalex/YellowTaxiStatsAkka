@@ -49,9 +49,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
   val commonRoutes = CommonTaxiTripRoutes(persistentCost,
     persistentExtraInfo, persistentPassenger, persistentTimeInfo).routes
   val costRoutes = CostRoutes(persistentCost).routes
-  val aTaxiTripCost: TaxiTripCost = TaxiTripCost(vendorID = 1, tripDistance = 1.53, paymentType = 2,
-    fareAmount = 9, extra = 0, mtaTax = 0, tipAmount = 0, tollsAmount = 0, improvementSurcharge = 0,
-    totalAmount = 2.0)
+
   // initializing variables
   var taxiTripId: String = ""
 
@@ -77,9 +75,13 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
   Feature("Handle get taxi trip cost endpoint") {
 
     Scenario("Get cost existent taxi trip id") {
+      Given("a TaxiTripCost to be got it")
+      val aTaxiTripCost: TaxiTripCost = TaxiTripCost(vendorID = 1, tripDistance = 1.53, paymentType = 2,
+        fareAmount = 9, extra = 0, mtaTax = 0, tipAmount = 0, tollsAmount = 0, improvementSurcharge = 0,
+        totalAmount = 2.0)
+
       When("a user send a GET request to get the specify taxi trip cost")
       Get(s"/api/yellowtaxi/cost/$taxiTripId") ~> costRoutes ~> check {
-
         Then("should response with a OK status code AND id should be equal to taxiTripId")
         status shouldBe StatusCodes.OK
         entityAs[TaxiTripCost] shouldBe aTaxiTripCost

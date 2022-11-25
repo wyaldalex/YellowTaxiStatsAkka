@@ -97,4 +97,609 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
     }
   }
 
+  Feature("Handle update taxi trip extraInfo endpoint") {
+    Scenario("Update  a taxi trip extraInfo test case #1") {
+      Given("A taxi trip update request")
+      val aTaxiTripExtraInfo: TaxiTripExtraInfo = TaxiTripExtraInfo(pickupLongitude = 180,
+        pickupLatitude = 90, rateCodeID = 1, storeAndFwdFlag = "Y", dropoffLongitude = 180,
+        dropoffLatitude = 90)
+
+      When("a user send a Put request to Update  a taxi trip extraInfo")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId", aTaxiTripExtraInfo) ~> extraInfoRoutes ~> check {
+        Then("should response with an Created status code")
+        status shouldBe StatusCodes.Created
+      }
+    }
+
+    Scenario("Update  a taxi trip extraInfo test case #2") {
+      Given("A taxi trip update request")
+      val aTaxiTripExtraInfo: TaxiTripExtraInfo = TaxiTripExtraInfo(pickupLongitude = -180,
+        pickupLatitude = -90, rateCodeID = 6, storeAndFwdFlag = "N", dropoffLongitude = 180,
+        dropoffLatitude = 90)
+
+      When("a user send a Put request to Update a taxi trip extraInfo")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId", aTaxiTripExtraInfo) ~> extraInfoRoutes ~> check {
+
+        Then("should response with an Created status code")
+        status shouldBe StatusCodes.Created
+      }
+    }
+
+    Scenario("Update a taxi trip test case #21") {
+      Given("A taxi trip update request with empty pickupLongitude")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": 1,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Update a taxi trip test case #22") {
+      Given("A taxi trip update request with something different to a number as pickupLongitude")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "A",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": 1,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Update a taxi trip test case #23") {
+      Given("A taxi trip update request with limit 181 as pickupLongitude")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "181",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": 1,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Update a taxi trip test case #24") {
+      Given("A taxi trip update request with limit -181 as pickupLongitude")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "-181",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": 1,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Update a taxi trip test case #25") {
+      Given("A taxi trip update request with empty pickupLatitude")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "",
+           |  "rateCodeID": 1,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Update a taxi trip test case #26") {
+      Given("A taxi trip update request with something different to a number as pickupLatitude")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "A",
+           |  "rateCodeID": 1,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Update a taxi trip test case #27") {
+      Given("A taxi trip update request with limit 91 as pickupLatitude")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "91",
+           |  "rateCodeID": 1,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Update a taxi trip test case #28") {
+      Given("A taxi trip update request with limit -91 as pickupLatitude")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "-180",
+           |  "pickupLatitude": "-91",
+           |  "rateCodeID": 1,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Update a taxi trip test case #29") {
+      Given("A taxi trip update request with empty rateCodeID")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": ,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Update a taxi trip test case #30") {
+      Given("A taxi trip update request with something different to a number as rateCodeID")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "A",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Update a taxi trip test case #31") {
+      Given("A taxi trip update request with a negative number as rateCodeID")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "-1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Update a taxi trip test case #32") {
+      Given("A taxi trip update request with a zero as rateCodeID")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "0",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Update a taxi trip test case #33") {
+      Given("A taxi trip update request with 7 as rateCodeID")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "7",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Update a taxi trip test case #34") {
+      Given("A taxi trip update request with empty as storeAndFwdFlag")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": ,
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Update a taxi trip test case #35") {
+      Given("A taxi trip update request with something different to a Y and N as storeAndFwdFlag")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "A",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Update a taxi trip test case #36") {
+      Given("A taxi trip update request with empty as dropoffLongitude")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "",
+           |  "dropoffLatitude": "90"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Update a taxi trip test case #37") {
+      Given("A taxi trip update request with empty as dropoffLongitude")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "A",
+           |  "dropoffLatitude": "90"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Update a taxi trip test case #38") {
+      Given("A taxi trip update request with limit 181 as dropoffLongitude")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "181",
+           |  "dropoffLatitude": "90"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Update a taxi trip test case #39") {
+      Given("A taxi trip update request with limit -181 as dropoffLongitude")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "-181",
+           |  "dropoffLatitude": "90"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Update a taxi trip test case #40") {
+      Given("A taxi trip update request with empty as dropoffLatitude")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": ""
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Update a taxi trip test case #41") {
+      Given("A taxi trip update request with empty as dropoffLatitude")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "A"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
+    Scenario("Update a taxi trip test case #42") {
+      Given("A taxi trip update request with limit 91 as dropoffLatitude")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "91"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    Scenario("Update a taxi trip test case #43") {
+      Given("A taxi trip update request with limit -91 as dropoffLatitude")
+      val aUpdateTaxiTripExtraInfoRequest: String =
+        s"""{
+           
+
+
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": "1",
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "-91"
+
+           |} """.stripMargin
+
+      When("a user send a Put request to Update a taxi trip")
+      Put(s"/api/yellowtaxi/extrainfo/$taxiTripId").withEntity(ContentTypes.`application/json`,
+        aUpdateTaxiTripExtraInfoRequest) ~> extraInfoRoutes ~> check {
+
+        Then("should response with bad request status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+    
+  }
+
 }

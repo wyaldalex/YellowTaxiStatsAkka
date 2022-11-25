@@ -117,6 +117,40 @@ class TaxiTripRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matc
       }
     }
 
+    Scenario("Create a new taxi trip test case #4") {
+      Given("A taxi trip create request with something different to a number vendorID")
+      val aCreateTaxiTripRequest: String =
+        s"""{
+           |  "vendorID": A,
+           |  "tpepPickupDatetime": "2015-01-15 19:05:42",
+           |  "tpepDropoffDatetime": "2015-01-15 19:16:18",
+           |  "passengerCount": 1,
+           |  "tripDistance": 1.53,
+           |  "pickupLongitude": "180",
+           |  "pickupLatitude": "90",
+           |  "rateCodeID": 1,
+           |  "storeAndFwdFlag": "Y",
+           |  "dropoffLongitude": "180",
+           |  "dropoffLatitude": "90",
+           |  "paymentType": 2,
+           |  "fareAmount": 9,
+           |  "extra": 0,
+           |  "mtaTax": 0,
+           |  "tipAmount": 0,
+           |  "tollsAmount": 0,
+           |  "improvementSurcharge": 0,
+           |  "totalAmount": 2.0
+           |} """.stripMargin
+
+      When("a user send a POST request to create a new taxi trip")
+      Post("/api/yellowtaxi/taxitrip").withEntity(ContentTypes.`application/json`,
+        aCreateTaxiTripRequest) ~> routes ~> check {
+
+        Then("should reject the request")
+        rejections should not be empty
+      }
+    }
+
     Scenario("Create a new taxi trip test case #5") {
       Given("A taxi trip create request with a not register vendor as vendorID")
       val aCreateTaxiTripRequest: String =
@@ -151,7 +185,6 @@ class TaxiTripRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matc
       }
     }
 
-
     Scenario("Create a new taxi trip test case #6") {
       Given("A taxi trip create request with a not register vendor (negative) as vendorID")
       val aCreateTaxiTripRequest: String =
@@ -185,7 +218,6 @@ class TaxiTripRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matc
         status shouldBe StatusCodes.BadRequest
       }
     }
-
 
     Scenario("Create a new taxi trip test case #7") {
       Given("A taxi trip create request with empty tpepPickupDatetime")
@@ -286,7 +318,6 @@ class TaxiTripRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matc
       }
     }
 
-
     Scenario("Create a new taxi trip test case #10") {
       Given("A taxi trip create request with a invalid dropoff date")
       val aCreateTaxiTripRequest: String =
@@ -319,7 +350,6 @@ class TaxiTripRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matc
         status shouldBe StatusCodes.BadRequest
       }
     }
-
 
     Scenario("Create a new taxi trip test case #11") {
       Given("A taxi trip create request with a invalid pickup and dropoff date")
@@ -386,7 +416,6 @@ class TaxiTripRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matc
         status shouldBe StatusCodes.BadRequest
       }
     }
-
 
     Scenario("Create a new taxi trip test case #13") {
       Given("A taxi trip create request with empty passengerCount")

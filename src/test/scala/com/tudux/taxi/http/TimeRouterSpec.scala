@@ -7,13 +7,13 @@ import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
 import akka.testkit.TestDuration
 import akka.util.Timeout
 import com.tudux.taxi.actors.aggregators.{PersistentCostStatsAggregator, PersistentTimeStatsAggregator}
-import com.tudux.taxi.actors.cost.{PersistentTaxiTripCost, TaxiTripCost}
+import com.tudux.taxi.actors.cost.PersistentTaxiTripCost
 import com.tudux.taxi.actors.extrainfo.PersistentTaxiExtraInfo
 import com.tudux.taxi.actors.passenger.PersistentTaxiTripPassengerInfo
 import com.tudux.taxi.actors.timeinfo.{PersistentTaxiTripTimeInfo, TaxiTripTimeInfo}
 import com.tudux.taxi.http.HttpTestUtility._
-import com.tudux.taxi.http.formatters.RouteFormatters.{TaxiCostStatProtocol, TaxiTimeInfoStatProtocol}
-import com.tudux.taxi.http.routes.{CommonTaxiTripRoutes, CostRoutes, TimeRoutes}
+import com.tudux.taxi.http.formatters.RouteFormatters.TaxiTimeInfoStatProtocol
+import com.tudux.taxi.http.routes.{CommonTaxiTripRoutes, TimeRoutes}
 import org.scalatest.featurespec.AnyFeatureSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterEach, GivenWhenThen}
@@ -22,7 +22,8 @@ import scala.concurrent.duration._
 
 class TimeRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers with ScalatestRouteTest
   with BeforeAndAfterEach with SprayJsonSupport with CreateTaxiTripRequestProtocol
-  with CombinedTaxiTripOperationResponseProtocol with OperationResponseProtocol with TaxiTimeInfoStatProtocol {
+  with CombinedTaxiTripOperationResponseProtocol with OperationResponseProtocol with
+  TaxiTimeInfoStatProtocol {
 
   info("As a user of the application")
   info("I should be able to handle Taxi Trip Cost information")

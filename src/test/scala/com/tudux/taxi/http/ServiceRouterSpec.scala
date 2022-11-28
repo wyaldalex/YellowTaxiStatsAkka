@@ -2,21 +2,23 @@ package com.tudux.taxi.http
 
 import akka.actor.ActorRef
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.model.{ContentTypes, StatusCodes}
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
 import akka.testkit.TestDuration
 import akka.util.Timeout
-import com.tudux.taxi.actors.aggregators.CostAggregatorResponse.{CalculateTripDistanceCostResponse, GetAverageTipAmountResponse}
+import com.tudux.taxi.actors.aggregators.CostAggregatorResponse.{CalculateTripDistanceCostResponse,
+  GetAverageTipAmountResponse}
 import com.tudux.taxi.actors.aggregators.TimeAggregatorResponse.TaxiTripAverageTimeMinutesResponse
 import com.tudux.taxi.actors.aggregators.{PersistentCostStatsAggregator, PersistentTimeStatsAggregator}
-import com.tudux.taxi.actors.cost.{PersistentTaxiTripCost, TaxiTripCost}
-import com.tudux.taxi.actors.extrainfo.{PersistentTaxiExtraInfo, TaxiTripExtraInfo}
+import com.tudux.taxi.actors.cost.PersistentTaxiTripCost
+import com.tudux.taxi.actors.extrainfo.PersistentTaxiExtraInfo
 import com.tudux.taxi.actors.passenger.PersistentTaxiTripPassengerInfo
 import com.tudux.taxi.actors.service.ServiceActor
-import com.tudux.taxi.actors.timeinfo.{PersistentTaxiTripTimeInfo, TaxiTripTimeInfo}
+import com.tudux.taxi.actors.timeinfo.PersistentTaxiTripTimeInfo
 import com.tudux.taxi.http.HttpTestUtility._
-import com.tudux.taxi.http.formatters.RouteFormatters.{CalculateAverageTripTimeProtocol, CalculateDistanceCostProtocol, GetAverageTipAmountProtocol, TaxiCostStatProtocol, TaxiExtraInfoProtocol, TaxiTimeInfoStatProtocol}
-import com.tudux.taxi.http.routes.{CommonTaxiTripRoutes, CostRoutes, ExtraInfoRoutes, ServiceRoutes, TimeRoutes}
+import com.tudux.taxi.http.formatters.RouteFormatters.{CalculateAverageTripTimeProtocol,
+  CalculateDistanceCostProtocol, GetAverageTipAmountProtocol}
+import com.tudux.taxi.http.routes.{CommonTaxiTripRoutes, ServiceRoutes}
 import org.scalatest.featurespec.AnyFeatureSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterEach, GivenWhenThen}
@@ -25,7 +27,8 @@ import scala.concurrent.duration._
 
 class ServiceRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers with ScalatestRouteTest
   with BeforeAndAfterEach with SprayJsonSupport with CreateTaxiTripRequestProtocol
-  with CombinedTaxiTripOperationResponseProtocol with OperationResponseProtocol with CalculateDistanceCostProtocol
+  with CombinedTaxiTripOperationResponseProtocol with OperationResponseProtocol with
+  CalculateDistanceCostProtocol
   with CalculateAverageTripTimeProtocol with GetAverageTipAmountProtocol {
 
   info("As a user of the application")
@@ -73,7 +76,7 @@ class ServiceRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Match
     val aCreateTaxiTripRequestTwo: CreateTaxiTripRequest = CreateTaxiTripRequest(vendorID = 2,
       tpepPickupDatetime = "2015-01-15 19:05:42", tpepDropoffDatetime = "2015-01-15 23:16:18",
       passengerCount = 3, tripDistance = 2.53, pickupLongitude = 19.79344, pickupLatitude = -70.6884,
-      rateCodeID = 1, storeAndFwdFlag = "Y", dropoffLongitude = 18.47186 , dropoffLatitude = -69.89232,
+      rateCodeID = 1, storeAndFwdFlag = "Y", dropoffLongitude = 18.47186, dropoffLatitude = -69.89232,
       paymentType = 3, fareAmount = 9, extra = 1, mtaTax = 0.5, tipAmount = 2, tollsAmount = 1,
       improvementSurcharge = 0.5, totalAmount = 25.0)
 
@@ -106,7 +109,8 @@ class ServiceRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Match
       When("a user send a GET request to get the specify taxi trip cost")
       Get(s"/api/yellowtaxi/service/calculate-distance-cost/$distance") ~> servicesRoutes ~> check {
 
-        Then("should response with a OK status code AND estimatedCost should be equal to expectedEstimateCost")
+        Then("should response with a OK status code AND estimatedCost should be equal to " +
+          "expectedEstimateCost")
         status shouldBe StatusCodes.OK
         entityAs[CalculateTripDistanceCostResponse].estimatedCost shouldBe expectedEstimateCost
       }

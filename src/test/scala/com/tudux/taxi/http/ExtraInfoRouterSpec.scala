@@ -7,13 +7,13 @@ import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
 import akka.testkit.TestDuration
 import akka.util.Timeout
 import com.tudux.taxi.actors.aggregators.{PersistentCostStatsAggregator, PersistentTimeStatsAggregator}
-import com.tudux.taxi.actors.cost.{PersistentTaxiTripCost, TaxiTripCost}
+import com.tudux.taxi.actors.cost.PersistentTaxiTripCost
 import com.tudux.taxi.actors.extrainfo.{PersistentTaxiExtraInfo, TaxiTripExtraInfo}
 import com.tudux.taxi.actors.passenger.PersistentTaxiTripPassengerInfo
-import com.tudux.taxi.actors.timeinfo.{PersistentTaxiTripTimeInfo, TaxiTripTimeInfo}
+import com.tudux.taxi.actors.timeinfo.PersistentTaxiTripTimeInfo
 import com.tudux.taxi.http.HttpTestUtility._
-import com.tudux.taxi.http.formatters.RouteFormatters.{TaxiCostStatProtocol, TaxiExtraInfoProtocol, TaxiTimeInfoStatProtocol}
-import com.tudux.taxi.http.routes.{CommonTaxiTripRoutes, CostRoutes, ExtraInfoRoutes, TimeRoutes}
+import com.tudux.taxi.http.formatters.RouteFormatters.TaxiExtraInfoProtocol
+import com.tudux.taxi.http.routes.{CommonTaxiTripRoutes, ExtraInfoRoutes}
 import org.scalatest.featurespec.AnyFeatureSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterEach, GivenWhenThen}
@@ -129,8 +129,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with empty pickupLongitude")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "",
            |  "pickupLatitude": "90",
@@ -154,8 +152,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with something different to a number as pickupLongitude")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "A",
            |  "pickupLatitude": "90",
@@ -179,8 +175,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with limit 181 as pickupLongitude")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "181",
            |  "pickupLatitude": "90",
@@ -204,8 +198,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with limit -181 as pickupLongitude")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "-181",
            |  "pickupLatitude": "90",
@@ -229,8 +221,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with empty pickupLatitude")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "180",
            |  "pickupLatitude": "",
@@ -254,8 +244,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with something different to a number as pickupLatitude")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "180",
            |  "pickupLatitude": "A",
@@ -279,8 +267,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with limit 91 as pickupLatitude")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "180",
            |  "pickupLatitude": "91",
@@ -304,8 +290,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with limit -91 as pickupLatitude")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "-180",
            |  "pickupLatitude": "-91",
@@ -329,8 +313,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with empty rateCodeID")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "180",
            |  "pickupLatitude": "90",
@@ -354,8 +336,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with something different to a number as rateCodeID")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "180",
            |  "pickupLatitude": "90",
@@ -379,8 +359,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with a negative number as rateCodeID")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "180",
            |  "pickupLatitude": "90",
@@ -404,8 +382,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with a zero as rateCodeID")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "180",
            |  "pickupLatitude": "90",
@@ -429,8 +405,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with 7 as rateCodeID")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "180",
            |  "pickupLatitude": "90",
@@ -454,8 +428,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with empty as storeAndFwdFlag")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "180",
            |  "pickupLatitude": "90",
@@ -479,8 +451,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with something different to a Y and N as storeAndFwdFlag")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "180",
            |  "pickupLatitude": "90",
@@ -504,8 +474,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with empty as dropoffLongitude")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "180",
            |  "pickupLatitude": "90",
@@ -529,8 +497,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with empty as dropoffLongitude")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "180",
            |  "pickupLatitude": "90",
@@ -554,8 +520,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with limit 181 as dropoffLongitude")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "180",
            |  "pickupLatitude": "90",
@@ -579,8 +543,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with limit -181 as dropoffLongitude")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "180",
            |  "pickupLatitude": "90",
@@ -604,8 +566,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with empty as dropoffLatitude")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "180",
            |  "pickupLatitude": "90",
@@ -629,8 +589,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with empty as dropoffLatitude")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "180",
            |  "pickupLatitude": "90",
@@ -654,8 +612,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with limit 91 as dropoffLatitude")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "180",
            |  "pickupLatitude": "90",
@@ -679,8 +635,6 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
       Given("A taxi trip update request with limit -91 as dropoffLatitude")
       val aUpdateTaxiTripExtraInfoRequest: String =
         s"""{
-           
-
 
            |  "pickupLongitude": "180",
            |  "pickupLatitude": "90",
@@ -699,7 +653,7 @@ class ExtraInfoRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Mat
         status shouldBe StatusCodes.BadRequest
       }
     }
-    
+
   }
 
 }

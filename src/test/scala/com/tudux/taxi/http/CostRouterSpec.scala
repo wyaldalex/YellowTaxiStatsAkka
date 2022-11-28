@@ -134,13 +134,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": ,
-           
-           
 
            |  "tripDistance": 1.53,
-           
-           
-           
 
            |  "paymentType": 2,
            |  "fareAmount": 9,
@@ -166,13 +161,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 3,
-           
-           
-           
+
            |  "tripDistance": 1.53,
-           
-           
-           
 
            |  "paymentType": 2,
            |  "fareAmount": 9,
@@ -198,13 +188,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": -1,
-           
-           
-           
+
            |  "tripDistance": 1.53,
-           
-           
-           
 
            |  "paymentType": 2,
            |  "fareAmount": 9,
@@ -224,19 +209,14 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
         status shouldBe StatusCodes.BadRequest
       }
     }
-    
+
     Scenario("Update a  taxi trip cost test case #17") {
       Given("A taxi trip cost update request with empty tripDistance")
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": ,
-           
-           
-           
 
            |  "paymentType": 2,
            |  "fareAmount": 9,
@@ -262,13 +242,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": "A",
-           
-           
-           
 
            |  "paymentType": 2,
            |  "fareAmount": 9,
@@ -294,13 +269,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 0,
-           
-           
-           
 
            |  "paymentType": 2,
            |  "fareAmount": 9,
@@ -326,13 +296,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": -1,
-           
-           
-           
 
            |  "paymentType": 2,
            |  "fareAmount": 9,
@@ -358,13 +323,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": ,
            |  "fareAmount": 9,
@@ -390,13 +350,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": "A",
            |  "fareAmount": 9,
@@ -422,13 +377,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": -1,
            |  "fareAmount": 9,
@@ -454,13 +404,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 0,
            |  "fareAmount": 9,
@@ -486,13 +431,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 7,
            |  "fareAmount": 9,
@@ -518,13 +458,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": "",
@@ -550,13 +485,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": "A",
@@ -582,13 +512,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": 0,
@@ -614,13 +539,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": -1,
@@ -646,13 +566,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": 1,
@@ -678,13 +593,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": 1,
@@ -710,13 +620,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": 1,
@@ -742,13 +647,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": 1,
@@ -774,13 +674,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": 1,
@@ -806,13 +701,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": 1,
@@ -838,13 +728,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": 1,
@@ -870,13 +755,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": 1,
@@ -902,13 +782,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": 1,
@@ -934,13 +809,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": 1,
@@ -966,13 +836,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": 1,
@@ -998,13 +863,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": 1,
@@ -1030,13 +890,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": 1,
@@ -1062,13 +917,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": 1,
@@ -1094,13 +944,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": 1,
@@ -1126,13 +971,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": 1,
@@ -1158,13 +998,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": 1,
@@ -1190,13 +1025,8 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       val aUpdateTaxiTripRequest: String =
         s"""{
            |  "vendorID": 1,
-           
-           
-           
+
            |  "tripDistance": 1,
-           
-           
-           
 
            |  "paymentType": 1,
            |  "fareAmount": 1,

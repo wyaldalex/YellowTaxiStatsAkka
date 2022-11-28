@@ -15,7 +15,7 @@ import org.scalatest._
 
 import scala.concurrent.duration._
 
-trait Routes extends SuiteMixin with ScalatestRouteTest {
+trait Routes extends ScalatestRouteTest {
   this: Suite =>
 
   // Initializing timers
@@ -40,5 +40,4 @@ trait Routes extends SuiteMixin with ScalatestRouteTest {
   //routes
   val routes = new MainRouter(persistentCost, persistentExtraInfo,
     persistentPassenger, persistentTimeInfo, serviceActor).routes
-
 }

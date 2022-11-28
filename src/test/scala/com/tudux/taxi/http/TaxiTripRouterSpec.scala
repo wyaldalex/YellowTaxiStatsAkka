@@ -1,50 +1,19 @@
 package com.tudux.taxi.http
 
-import akka.actor.ActorRef
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.{ContentTypes, StatusCodes}
-import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
-import akka.testkit.TestDuration
-import akka.util.Timeout
-import com.tudux.taxi.actors.aggregators.{PersistentCostStatsAggregator, PersistentTimeStatsAggregator}
-import com.tudux.taxi.actors.cost.PersistentTaxiTripCost
-import com.tudux.taxi.actors.extrainfo.PersistentTaxiExtraInfo
-import com.tudux.taxi.actors.passenger.PersistentTaxiTripPassengerInfo
-import com.tudux.taxi.actors.timeinfo.PersistentTaxiTripTimeInfo
 import com.tudux.taxi.http.HttpTestUtility._
-import com.tudux.taxi.http.routes.CommonTaxiTripRoutes
+import com.tudux.taxi.http.fixtures.Routes
 import org.scalatest.GivenWhenThen
 import org.scalatest.featurespec.AnyFeatureSpecLike
 import org.scalatest.matchers.should.Matchers
 
-import scala.concurrent.duration._
-
-class TaxiTripRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers with ScalatestRouteTest
+class TaxiTripRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers with Routes
   with SprayJsonSupport with CreateTaxiTripRequestProtocol with CombinedTaxiTripOperationResponseProtocol {
 
   info("As a user of the application")
   info("I should be able to handle Taxi Trip information")
   info("So I should be able to use the resources available to create and delete taxi trip")
-
-  // Initializing timers
-  implicit val timeoutRouteTestTimeout = RouteTestTimeout(60.seconds.dilated)
-  implicit val timeout: Timeout = Timeout(30.seconds)
-
-  // Create the aggregators
-  val costAggregatorActor: ActorRef = system.actorOf(PersistentCostStatsAggregator.props("cost-aggregator")
-    , "cost-aggregator")
-  val timeAggregatorActor: ActorRef = system.actorOf(PersistentTimeStatsAggregator.props("time-aggregator")
-    , "time-aggregator")
-
-  // Create the persistent actors
-  val persistentCost: ActorRef = system.actorOf(PersistentTaxiTripCost.props(costAggregatorActor))
-  val persistentExtraInfo: ActorRef = system.actorOf(PersistentTaxiExtraInfo.props)
-  val persistentPassenger: ActorRef = system.actorOf(PersistentTaxiTripPassengerInfo.props)
-  val persistentTimeInfo: ActorRef = system.actorOf(PersistentTaxiTripTimeInfo.props(timeAggregatorActor))
-
-  //routes
-  val routes = CommonTaxiTripRoutes(persistentCost,
-    persistentExtraInfo, persistentPassenger, persistentTimeInfo).routes
 
   Feature("Handle create taxi trip endpoint") {
 

@@ -104,7 +104,7 @@ class ServiceRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Match
     Scenario("Get taxi trip estimate cost base on distance") {
       Given("Distance and expected estimate cost")
       val distance: Int = 10
-      val expectedEstimateCost: Double = 13.071895424836601
+      val expectedEstimateCost: Double = 86.20689655172414
 
       When("a user send a GET request to get the specify taxi trip cost")
       Get(s"/api/yellowtaxi/service/calculate-distance-cost/$distance") ~> servicesRoutes ~> check {

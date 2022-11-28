@@ -1,54 +1,22 @@
 package com.tudux.taxi.http
 
-import akka.actor.ActorRef
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.{ContentTypes, StatusCodes}
-import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
-import akka.testkit.TestDuration
-import akka.util.Timeout
-import com.tudux.taxi.actors.aggregators.{PersistentCostStatsAggregator, PersistentTimeStatsAggregator}
-import com.tudux.taxi.actors.cost.{PersistentTaxiTripCost, TaxiTripCost}
-import com.tudux.taxi.actors.extrainfo.PersistentTaxiExtraInfo
-import com.tudux.taxi.actors.passenger.PersistentTaxiTripPassengerInfo
-import com.tudux.taxi.actors.timeinfo.PersistentTaxiTripTimeInfo
+import com.tudux.taxi.actors.cost.TaxiTripCost
 import com.tudux.taxi.http.HttpTestUtility._
+import com.tudux.taxi.http.fixtures.Routes
 import com.tudux.taxi.http.formatters.RouteFormatters.TaxiCostStatProtocol
-import com.tudux.taxi.http.routes.{CommonTaxiTripRoutes, CostRoutes}
 import org.scalatest.featurespec.AnyFeatureSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterEach, GivenWhenThen}
 
-import scala.concurrent.duration._
-
-class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers with ScalatestRouteTest
+class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers with Routes
   with BeforeAndAfterEach with SprayJsonSupport with CreateTaxiTripRequestProtocol
   with CombinedTaxiTripOperationResponseProtocol with OperationResponseProtocol with TaxiCostStatProtocol {
 
   info("As a user of the application")
   info("I should be able to handle Taxi Trip Cost information")
   info("So I should be able to use the resources available to get and update taxi trip cost")
-  // Initializing timers
-  implicit val timeoutRouteTestTimeout = RouteTestTimeout(60.seconds.dilated)
-  implicit val timeout: Timeout = Timeout(30.seconds)
-
-  // Create the aggregators
-  val costAggregatorActor: ActorRef = system.actorOf(PersistentCostStatsAggregator.props("cost-aggregator")
-    , "cost-aggregator")
-  val timeAggregatorActor: ActorRef = system.actorOf(PersistentTimeStatsAggregator.props("time-aggregator")
-    , "time-aggregator")
-
-  // Create the persistent actors
-  val persistentExtraInfo: ActorRef = system.actorOf(PersistentTaxiExtraInfo.props)
-  val persistentPassenger: ActorRef = system.actorOf(PersistentTaxiTripPassengerInfo.props)
-  val persistentTimeInfo: ActorRef = system.actorOf(PersistentTaxiTripTimeInfo.props(timeAggregatorActor))
-
-  // Create the persistent actors
-  val persistentCost: ActorRef = system.actorOf(PersistentTaxiTripCost.props(costAggregatorActor))
-
-  //routes
-  val commonRoutes = CommonTaxiTripRoutes(persistentCost,
-    persistentExtraInfo, persistentPassenger, persistentTimeInfo).routes
-  val costRoutes = CostRoutes(persistentCost).routes
 
   // initializing variables
   var taxiTripId: String = ""
@@ -61,7 +29,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
       fareAmount = 9, extra = 0, mtaTax = 0, tipAmount = 0, tollsAmount = 0, improvementSurcharge = 0,
       totalAmount = 2.0)
 
-    Post("/api/yellowtaxi/taxitrip", aCreateTaxiTripRequest) ~> commonRoutes ~> check {
+    Post("/api/yellowtaxi/taxitrip", aCreateTaxiTripRequest) ~> routes ~> check {
       taxiTripId = entityAs[CombinedTaxiTripOperationResponse].costResponse.id
     }
     super.beforeEach()
@@ -69,7 +37,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
   override def afterEach() {
     try super.afterEach()
-    finally Delete(s"/api/yellowtaxi/taxitrip/$taxiTripId") ~> commonRoutes
+    finally Delete(s"/api/yellowtaxi/taxitrip/$taxiTripId") ~> routes
   }
 
   Feature("Handle get taxi trip cost endpoint") {
@@ -81,7 +49,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
         totalAmount = 2.0)
 
       When("a user send a GET request to get the specify taxi trip cost")
-      Get(s"/api/yellowtaxi/cost/$taxiTripId") ~> costRoutes ~> check {
+      Get(s"/api/yellowtaxi/cost/$taxiTripId") ~> routes ~> check {
         Then("should response with a OK status code AND id should be equal to taxiTripId")
         status shouldBe StatusCodes.OK
         entityAs[TaxiTripCost] shouldBe aTaxiTripCost
@@ -91,7 +59,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
     Scenario("Get cost with an not existent taxi trip id") {
       When("a user send a Get request with a not existent taxiTripId")
       val aNotExistentTaxiTripId: String = "ThisIdDontExistOnTheSystem"
-      Get(s"/api/yellowtaxi/cost/$aNotExistentTaxiTripId") ~> costRoutes ~> check {
+      Get(s"/api/yellowtaxi/cost/$aNotExistentTaxiTripId") ~> routes ~> check {
         Then("should response with a NotFound")
         status shouldBe StatusCodes.NotFound
       }
@@ -106,7 +74,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
         totalAmount = 2.0)
 
       When("a user send a PUT request to update a taxi trip")
-      Put(s"/api/yellowtaxi/cost/$taxiTripId", aTaxiTripCost) ~> costRoutes ~> check {
+      Put(s"/api/yellowtaxi/cost/$taxiTripId", aTaxiTripCost) ~> routes ~> check {
 
         Then("should response with an OK status code")
         status shouldBe StatusCodes.OK
@@ -121,7 +89,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
         improvementSurcharge = 0.3, totalAmount = 2.0)
 
       When("a user send a Put request to update a taxi trip cost")
-      Put(s"/api/yellowtaxi/cost/$taxiTripId", aTaxiTripCost) ~> costRoutes ~> check {
+      Put(s"/api/yellowtaxi/cost/$taxiTripId", aTaxiTripCost) ~> routes ~> check {
 
         Then("should response with an OK status code")
         status shouldBe StatusCodes.OK
@@ -149,7 +117,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should reject the request")
         rejections should not be empty
@@ -176,7 +144,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
         Then("should respond with a bad request status code")
 
         status shouldBe StatusCodes.BadRequest
@@ -203,7 +171,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
         Then("should respond with a bad request status code")
 
         status shouldBe StatusCodes.BadRequest
@@ -230,7 +198,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should reject the request")
         rejections should not be empty
@@ -257,7 +225,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should reject the request")
         rejections should not be empty
@@ -284,7 +252,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should response with bad request status code")
         status shouldBe StatusCodes.BadRequest
@@ -311,7 +279,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should response with bad request status code")
         status shouldBe StatusCodes.BadRequest
@@ -338,7 +306,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should reject the request")
         rejections should not be empty
@@ -365,7 +333,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should reject the request")
         rejections should not be empty
@@ -392,7 +360,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should response with bad request status code")
         status shouldBe StatusCodes.BadRequest
@@ -419,7 +387,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should response with bad request status code")
         status shouldBe StatusCodes.BadRequest
@@ -446,7 +414,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should response with bad request status code")
         status shouldBe StatusCodes.BadRequest
@@ -473,7 +441,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should reject the request")
         rejections should not be empty
@@ -500,7 +468,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should reject the request")
         rejections should not be empty
@@ -527,7 +495,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should response with bad request status code")
         status shouldBe StatusCodes.BadRequest
@@ -554,7 +522,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should response with bad request status code")
         status shouldBe StatusCodes.BadRequest
@@ -581,7 +549,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should reject the request")
         rejections should not be empty
@@ -608,7 +576,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should reject the request")
         rejections should not be empty
@@ -635,7 +603,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should response with bad request status code")
         status shouldBe StatusCodes.BadRequest
@@ -662,7 +630,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should reject the request")
         rejections should not be empty
@@ -689,7 +657,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should reject the request")
         rejections should not be empty
@@ -716,7 +684,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should response with bad request status code")
         status shouldBe StatusCodes.BadRequest
@@ -743,7 +711,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should reject the request")
         rejections should not be empty
@@ -770,7 +738,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should reject the request")
         rejections should not be empty
@@ -797,7 +765,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should response with bad request status code")
         status shouldBe StatusCodes.BadRequest
@@ -824,7 +792,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should reject the request")
         rejections should not be empty
@@ -851,7 +819,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should reject the request")
         rejections should not be empty
@@ -878,7 +846,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should response with bad request status code")
         status shouldBe StatusCodes.BadRequest
@@ -905,7 +873,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should reject the request")
         rejections should not be empty
@@ -932,7 +900,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should response with bad request status code")
         status shouldBe StatusCodes.BadRequest
@@ -959,7 +927,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should reject the request")
         rejections should not be empty
@@ -986,7 +954,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should reject the request")
         rejections should not be empty
@@ -1013,7 +981,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should response with bad request status code")
         status shouldBe StatusCodes.BadRequest
@@ -1040,7 +1008,7 @@ class CostRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Matchers
 
       When("a user send a Put request to Update a  taxi trip cost")
       Put(s"/api/yellowtaxi/cost/$taxiTripId").withEntity(ContentTypes.`application/json`,
-        aUpdateTaxiTripRequest) ~> costRoutes ~> check {
+        aUpdateTaxiTripRequest) ~> routes ~> check {
 
         Then("should response with bad request status code")
         status shouldBe StatusCodes.BadRequest

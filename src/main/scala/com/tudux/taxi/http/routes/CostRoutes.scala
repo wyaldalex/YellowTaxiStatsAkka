@@ -18,7 +18,7 @@ import spray.json._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-case class CostRoutes(shardedCostActor: ActorRef)(implicit system: ActorSystem, dispatcher: ExecutionContext,timeout: Timeout ) extends SprayJsonSupport
+case class CostRoutes(shardedCostActor: ActorRef)(implicit system: ActorSystem, dispatcher: ExecutionContext, timeout: Timeout ) extends SprayJsonSupport
   with TaxiCostStatProtocol
   with OperationResponseProtocol
 {

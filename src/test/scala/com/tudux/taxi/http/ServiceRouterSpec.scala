@@ -124,6 +124,4 @@ class ServiceRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Match
       }
     }
   }
-
-
 }

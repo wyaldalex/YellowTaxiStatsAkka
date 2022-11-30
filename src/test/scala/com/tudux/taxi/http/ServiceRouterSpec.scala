@@ -78,12 +78,23 @@ class ServiceRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Match
       }
     }
 
+    Scenario("Get taxi trip estimate cost base on negative distance") {
+      Given("Distance and expected estimate cost")
+      val distance: Int = -10
+
+      When("a user send a GET request to get the specify taxi trip cost with a negative distance")
+      Get(s"/api/yellowtaxi/service/calculate-distance-cost/$distance") ~> routes ~> check {
+        Then("should response with a BadRequest status code")
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
   }
 
   Feature("Handle get average trip time endpoint") {
 
     Scenario("Get taxi trip average trip time") {
-      Given("Distance and expected estimate cost")
+      Given("Expected average time")
       val expectedAverageTime: Double = 130.0
 
       When("a user send a GET request to get the taxi trip average trip time")
@@ -100,7 +111,7 @@ class ServiceRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Match
   Feature("Handle get average tip amount endpoint") {
 
     Scenario("Get taxi trip average trip time") {
-      Given("Distance and expected estimate cost")
+      Given("expected average tip amount")
       val expectedAverageTipAmount: Double = 1.5
 
       When("a user send a GET request to get the taxi trip average tip amount")
@@ -113,6 +124,4 @@ class ServiceRouterSpec extends AnyFeatureSpecLike with GivenWhenThen with Match
       }
     }
   }
-
-
 }

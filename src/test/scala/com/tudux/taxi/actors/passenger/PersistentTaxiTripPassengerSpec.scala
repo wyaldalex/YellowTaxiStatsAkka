@@ -7,7 +7,7 @@ import org.scalatest.GivenWhenThen
 import org.scalatest.featurespec.AnyFeatureSpecLike
 import org.scalatest.matchers.should.Matchers
 
-class PersistentTaxiTripPassengerInfoSpec extends TestKit(ActorSystem("PersistentTaxiExtraInfoSpec"))
+class PersistentTaxiTripPassengerSpec extends TestKit(ActorSystem("PersistentTaxiExtraInfoSpec"))
   with AnyFeatureSpecLike with GivenWhenThen with ImplicitSender with Matchers {
 
   info("As a external actor")

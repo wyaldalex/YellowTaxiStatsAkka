@@ -28,22 +28,17 @@ object TaxiExtraInfoStatEvent{
 object ExtraInfoActorShardingSettings {
   import TaxiTripExtraInfoCommand._
 
-  val numberOfShards = 1000 //  use 10x number of nodes in your cluster
-  val numberOfEntities = 10000 // 10x number of shards
+  val numberOfShards = 10 //  use 10x number of nodes in your cluster
   // this help to map the corresponding message to a respective entity
   val extractEntityId: ShardRegion.ExtractEntityId = {
     case createTaxiTripExtraInfo@CreateTaxiTripExtraInfo(tripId,_) =>
-      val entityId = tripId.hashCode.abs % numberOfEntities
-      (entityId.toString, createTaxiTripExtraInfo)
-    case msg@GetTaxiTripExtraInfo(statId) =>
-      val shardId = statId.hashCode.abs % numberOfEntities
-      (shardId.toString, msg)
-    case msg@DeleteTaxiTripExtraInfo(statId) =>
-      val shardId = statId.hashCode.abs % numberOfEntities
-      (shardId.toString, msg)
-    case msg@UpdateTaxiTripExtraInfo(statId,_) =>
-      val shardId = statId.hashCode.abs % numberOfEntities
-      (shardId.toString, msg)
+      (tripId, createTaxiTripExtraInfo)
+    case msg@GetTaxiTripExtraInfo(tripId) =>
+      (tripId, msg)
+    case msg@DeleteTaxiTripExtraInfo(tripId) =>
+      (tripId, msg)
+    case msg@UpdateTaxiTripExtraInfo(tripId,_) =>
+      (tripId, msg)
   }
 
   // this help to map the corresponding message to a respective shard
@@ -60,8 +55,8 @@ object ExtraInfoActorShardingSettings {
     case UpdateTaxiTripExtraInfo(statId,_) =>
       val shardId = statId.hashCode.abs % numberOfShards
       shardId.toString
-    case ShardRegion.StartEntity(entityId) =>
-      (entityId.toLong % numberOfShards).toString
+    case ShardRegion.StartEntity(tripId) =>
+      tripId
   }
 
 }

@@ -38,22 +38,17 @@ object CostActorShardingSettings {
 
   import TaxiTripCostCommand._
 
-  val numberOfShards = 1000 //  use 10x number of nodes in your cluster
-  val numberOfEntities = 10000 // 10x number of shards
+  val numberOfShards = 10 //  use 10x number of nodes in your cluster
   // this help to map the corresponding message to a respective entity
   val extractEntityId: ShardRegion.ExtractEntityId = {
     case createTaxiTripCost@CreateTaxiTripCost(tripId,_) =>
-      val entityId = tripId.hashCode.abs % numberOfEntities
-      (entityId.toString, createTaxiTripCost)
+      (tripId, createTaxiTripCost)
     case msg@GetTaxiTripCost(tripId) =>
-      val shardId = tripId.hashCode.abs % numberOfEntities
-      (shardId.toString, msg)
+      (tripId, msg)
     case msg@DeleteTaxiTripCost(tripId) =>
-      val shardId = tripId.hashCode.abs % numberOfEntities
-      (shardId.toString, msg)
+      (tripId, msg)
     case msg@UpdateTaxiTripCost(tripId,_,_) =>
-      val shardId = tripId.hashCode.abs % numberOfEntities
-      (shardId.toString, msg)
+      (tripId, msg)
   }
 
   // this help to map the corresponding message to a respective shard
@@ -70,8 +65,8 @@ object CostActorShardingSettings {
     case UpdateTaxiTripCost(tripId,_, _) =>
       val shardId = tripId.hashCode.abs % numberOfShards
       shardId.toString
-    case ShardRegion.StartEntity(entityId) =>
-      (entityId.toLong % numberOfShards).toString
+    case ShardRegion.StartEntity(tripId) =>
+      tripId
   }
 
 }

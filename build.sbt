@@ -14,6 +14,7 @@ lazy val akkaHttpVersion = "10.2.8"
 //lazy val protobufVersion = "3.6.1"
 lazy val akkaVersion     = "2.6.9"
 lazy val circeVersion    = "0.14.1"
+lazy val akkaManagementVersion =  "1.0.9"
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http"                  % akkaHttpVersion,
@@ -58,4 +59,6 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http-testkit"          % akkaHttpVersion % Test,
   "com.typesafe.akka" %% "akka-actor-testkit-typed"   % akkaVersion     % Test,
   ///"org.scalatest"     %% "scalatest"                  % "3.2.9"         % Test
+  "com.lightbend.akka.management" %% "akka-management" % akkaManagementVersion,
+  "com.lightbend.akka.management" %% "akka-management-cluster-http" % akkaManagementVersion
 )

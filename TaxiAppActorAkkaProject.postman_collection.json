@@ -395,6 +395,47 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "ClusterMembers",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8558/cluster/members",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8558",
+					"path": [
+						"cluster",
+						"members"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ClusterShards",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8558/cluster/shards/ShardedCostActor",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8558",
+					"path": [
+						"cluster",
+						"shards",
+						"ShardedCostActor"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

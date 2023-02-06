@@ -9,3 +9,5 @@ addSbtPlugin("com.sonar-scala" % "sbt-sonar" % "2.3.0")
 
 addSbtPlugin("com.sksamuel.scapegoat" %% "sbt-scapegoat" % "1.1.1")
 
+addDependencyTreePlugin
+

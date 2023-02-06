@@ -4,6 +4,7 @@ import akka.actor.{ActorRef, ActorSystem}
 import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
+import akka.management.scaladsl.AkkaManagement
 import akka.util.Timeout
 import com.tudux.taxi.actors.aggregators.{PersistentCostStatsAggregator, PersistentTimeStatsAggregator}
 import com.tudux.taxi.actors.cost.{CostActorShardingSettings, PersistentTaxiTripCost}
@@ -56,6 +57,7 @@ object TaxiApp extends App {
     "akka.remote.artery.canonical.port = 2551".stripMargin).withFallback(ConfigFactory.load("sharded/shardedConfigSettings.conf"))
 
   implicit val system: ActorSystem = ActorSystem("YellowTaxiCluster", config)
+  AkkaManagement(system).start()
   import ShardedActorsGenerator._
   // Create the aggregators
   val costAggregatorActor: ActorRef = system.actorOf(PersistentCostStatsAggregator.props("cost-aggregator"), "cost-aggregator")

@@ -3,10 +3,12 @@ package com.tudux.taxi.actors.cost
 import akka.actor.{ActorLogging, ActorRef, Props}
 import akka.cluster.sharding.ShardRegion
 import akka.persistence.PersistentActor
+import akka.persistence.journal.{EventAdapter, EventSeq, Tagged}
 import akka.util.Timeout
 import com.tudux.taxi.actors.aggregators.AggregatorStat
 import com.tudux.taxi.actors.aggregators.CostAggregatorCommand.{AddCostAggregatorValues, UpdateCostAggregatorValues}
 import com.tudux.taxi.actors.common.response.CommonOperationResponse.OperationResponse
+import org.slf4j.{Logger, LoggerFactory}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
@@ -152,6 +154,54 @@ class PersistentTaxiTripCost(costAggregator: ActorRef) extends PersistentActor w
     case DeletedTaxiTripCostEvent(tripId) =>
       log.info(s"Recovering Taxi Cost Deleted for $tripId ")
       state = state.copy(deletedFlag = true)
+  }
+}
+
+object TaxiTripCostDataModel {
+  case class WrittenTaxiTripCostCreated(tripId: String, taxiTripCost: TaxiTripCost)
+  case class WrittenUpdatedTaxiTripCost(tripId: String, taxiTripCost: TaxiTripCost)
+  case class WrittenDeletedTaxiTripCost(tripId: String)
+}
+
+class TaxiTripCostAdapter extends EventAdapter {
+
+  val log: Logger = LoggerFactory.getLogger(classOf[TaxiTripCostAdapter])
+
+  import TaxiTripCostEvent._
+  import TaxiTripCostDataModel._
+
+  override def manifest(event: Any): String = "COST-TAXI"
+
+
+  override def fromJournal(event: Any, manifest: String): EventSeq = event match {
+    case event @ WrittenTaxiTripCostCreated(tripId, taxiTripCost) =>
+      log.info(s"Converting WrittenTaxiTripCostCreated $event to TaxiTripCostCreatedEvent ")
+      EventSeq.single(TaxiTripCostCreatedEvent(tripId, taxiTripCost))
+
+    case event@WrittenUpdatedTaxiTripCost(tripId,taxiTripCost) =>
+      log.info(s"Converting WrittenUpdatedTaxiTripCost $event to UpdatedTaxiTripCostEvent ")
+      EventSeq.single(UpdatedTaxiTripCostEvent(tripId, taxiTripCost))
+
+    case event@WrittenDeletedTaxiTripCost(tripId) =>
+      log.info(s"Converting WrittenDeletedTaxiTripCost $event to DeletedTaxiTripCostEvent ")
+      EventSeq.single(DeletedTaxiTripCostEvent(tripId))
+    case other =>
+      log.info(s"Recovering non adapted event $other ")
+      EventSeq.single(other)
+  }
+
+  override def toJournal(event: Any): Any = event match {
+    case event@TaxiTripCostCreatedEvent(tripId, taxiTripCost) =>
+      log.info(s"Converting TaxiTripCostCreatedEvent $event to WrittenTaxiTripCostCreated ")
+      Tagged(WrittenTaxiTripCostCreated(tripId, taxiTripCost),Set(taxiTripCost.paymentType.toString))
+
+    case event@UpdatedTaxiTripCostEvent(tripId, taxiTripCost) =>
+      log.info(s"Converting UpdatedTaxiTripCostEvent $event to WrittenUpdatedTaxiTripCost ")
+      Tagged(WrittenUpdatedTaxiTripCost(tripId, taxiTripCost),Set(taxiTripCost.paymentType.toString))
+
+    case event@DeletedTaxiTripCostEvent(tripId) =>
+      log.info(s"Converting DeletedTaxiTripCostEvent $event to WrittenDeletedTaxiTripCost ")
+      WrittenDeletedTaxiTripCost(tripId)
   }
 }
 

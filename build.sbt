@@ -60,5 +60,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor-testkit-typed"   % akkaVersion     % Test,
   ///"org.scalatest"     %% "scalatest"                  % "3.2.9"         % Test
   "com.lightbend.akka.management" %% "akka-management" % akkaManagementVersion,
-  "com.lightbend.akka.management" %% "akka-management-cluster-http" % akkaManagementVersion
+  "com.lightbend.akka.management" %% "akka-management-cluster-http" % akkaManagementVersion,
+
+  "org.slf4j" % "slf4j-simple" % "2.0.5",
+  "org.slf4j" % "slf4j-api" % "2.0.5"
 )

@@ -11,3 +11,6 @@ addSbtPlugin("com.sksamuel.scapegoat" %% "sbt-scapegoat" % "1.1.1")
 
 addDependencyTreePlugin
 
+//For Deployment
+addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.7")
+

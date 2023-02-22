@@ -16,6 +16,10 @@ lazy val akkaVersion     = "2.6.9"
 lazy val circeVersion    = "0.14.1"
 lazy val akkaManagementVersion =  "1.0.9"
 
+enablePlugins(JavaAppPackaging)
+
+Compile/mainClass := Some("com.tudux.taxi.app.TaxiApp")
+
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http"                  % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-actor-typed"           % akkaVersion,

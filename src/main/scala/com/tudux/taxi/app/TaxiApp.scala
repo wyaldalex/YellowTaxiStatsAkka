@@ -38,7 +38,10 @@ object TaxiApp extends App {
       shardedParentPassengerInfoActor, shardedParentTimeInfoActor,serviceActor)
     val routes = router.routes  ~ Swagger(system).routes ~ getFromResourceDirectory("swagger-ui")
 
-    val bindingFuture = Http().newServerAt("localhost", 10001).bind(routes)
+    val host = "0.0.0.0"
+    val port = sys.env.getOrElse("PORT","10001").toInt
+
+    val bindingFuture = Http().newServerAt(host, port).bind(routes)
 
     bindingFuture.onComplete {
       case Success(binding) =>

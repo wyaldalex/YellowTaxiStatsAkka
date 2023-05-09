@@ -93,7 +93,7 @@ object ShardedActorsGenerator {
       typeName = "ShardedCostActor",
       // entityProps = Props[PersistentParentTaxiCost],
       entityProps = PersistentTaxiTripCost.props(costAggregator),
-      settings = ClusterShardingSettings(system).withRememberEntities(true),
+      settings = ClusterShardingSettings(system).withRememberEntities(false),
       extractEntityId = CostActorShardingSettings.extractEntityId,
       extractShardId = CostActorShardingSettings.extractShardId
     )
@@ -104,7 +104,7 @@ object ShardedActorsGenerator {
       typeName = "ShardedExtraInfoActor",
       // entityProps = Props[PersistentParentTaxiCost],
       entityProps = PersistentTaxiExtraInfo.props,
-      settings = ClusterShardingSettings(system).withRememberEntities(true),
+      settings = ClusterShardingSettings(system).withRememberEntities(false),
       extractEntityId = ExtraInfoActorShardingSettings.extractEntityId,
       extractShardId = ExtraInfoActorShardingSettings.extractShardId
     )
@@ -115,7 +115,7 @@ object ShardedActorsGenerator {
       typeName = "ShardedPassengerInfoActor",
       // entityProps = Props[PersistentParentTaxiCost],
       entityProps = PersistentTaxiTripPassengerInfo.props,
-      settings = ClusterShardingSettings(system).withRememberEntities(true),
+      settings = ClusterShardingSettings(system).withRememberEntities(false),
       extractEntityId = PassengerInfoActorShardingSettings.extractEntityId,
       extractShardId = PassengerInfoActorShardingSettings.extractShardId
     )
@@ -126,7 +126,7 @@ object ShardedActorsGenerator {
       typeName = "ShardedTimeInfoActor",
       // entityProps = Props[PersistentParentTaxiCost],
       entityProps = PersistentTaxiTripTimeInfo.props(timeAggregator),
-      settings = ClusterShardingSettings(system).withRememberEntities(true),
+      settings = ClusterShardingSettings(system).withRememberEntities(false),
       extractEntityId = TimeInfoActorShardingSettings.extractEntityId,
       extractShardId = TimeInfoActorShardingSettings.extractShardId
     )

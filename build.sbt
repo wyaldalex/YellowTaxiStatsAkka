@@ -17,8 +17,21 @@ lazy val circeVersion    = "0.14.1"
 lazy val akkaManagementVersion =  "1.0.9"
 
 enablePlugins(JavaAppPackaging)
+enablePlugins(DockerPlugin)
 
 Compile/mainClass := Some("com.tudux.taxi.app.TaxiApp")
+
+dockerBaseImage := "openjdk:11-jre-slim"
+//packageName in Docker := s"${name.value}-${version.value}"
+//packageName in Docker := name.value
+packageName in Docker := "comtudux/yellowtaxistatsakka"
+dockerExposedPorts := Seq(10001)
+
+maintainer in Windows := "acme.tudux@example.com>"
+maintainer in Linux := "acme.tudux@example.com>"
+maintainer in Universal := "acme.tudux@example.com>"
+
+packageName in Universal := s"${name.value}-${version.value}"
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http"                  % akkaHttpVersion,

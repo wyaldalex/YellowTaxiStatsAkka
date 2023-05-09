@@ -1,7 +1,16 @@
+version: '3'
+
 services:
-  cassandra:
+  cassandra-service:
     image: cassandra:latest
     ports:
       - 9042:9042
     environment:
       - CASSANDRA_CLUSTER_NAME=akka-cassandra-cluster
+
+  yellowtaxiakkastat:
+    image: 'comtudux/yellowtaxiakkastat:0.0.1'
+    container_name: yellowtaxiakkastat
+    ports:
+      - '10001:10001'
+        

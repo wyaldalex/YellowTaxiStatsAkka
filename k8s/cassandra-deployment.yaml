@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: cassandra-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  hostPath:
+    path: "/run/desktop/mnt/host/c/temp/testfiles"
+    type: DirectoryOrCreate
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cassandra-pvc
+spec:
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cassandra
+spec:
+  selector:
+    matchLabels:
+      app: cassandra
+  serviceName: cassandra
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cassandra
+    spec:
+      containers:
+        - name: cassandra
+          image: cassandra:latest
+          env:
+            - name: CASSANDRA_CLUSTER_NAME
+              value: akka-cassandra-cluster
+          ports:
+            - containerPort: 9042
+              name: cassandra
+          volumeMounts:
+            - name: cassandra-persistent-storage
+              mountPath: /var/lib/cassandra
+      volumes:
+        - name: cassandra-persistent-storage
+          persistentVolumeClaim:
+            claimName: cassandra-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cassandra-service
+spec:
+  clusterIP: None
+  selector:
+    app: cassandra
+  ports:
+    - port: 9042
+
